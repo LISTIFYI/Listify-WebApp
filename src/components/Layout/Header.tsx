@@ -6,7 +6,6 @@ import React, { useState } from "react";
 import { FiBell } from "react-icons/fi";
 import { LuMessageSquareText } from "react-icons/lu";
 import { IoChevronDown } from "react-icons/io5";
-import Image from "next/image";
 import { IoIosCheckboxOutline } from "react-icons/io";
 import { IoFilter } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";

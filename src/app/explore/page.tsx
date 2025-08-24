@@ -1,22 +1,35 @@
 "use client"
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, Heart, MessageCircle, Share, X, Clock, Eye, EyeIcon, Bookmark } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Play, Heart, MessageCircle, Share, EyeIcon, Bookmark } from 'lucide-react';
 import VideoDetails from '@/components/VideoDetails/VideoDetails';
 import Image from 'next/image';
 
-const VideoScrollingUI = () => {
-    const [selectedVideo, setSelectedVideo] = useState(null);
-    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-    const scrollContainerRef = useRef(null);
-    const videoRefs = useRef({});
+type Video = {
+    id: number;
+    title: string;
+    creator: string;
+    thumbnail: string;
+    duration: string;
+    likes: string;
+    comments: string;
+    views: string;
+    description: string;
+    tags: string[];
+};
 
-    // Mock video data
-    const videos = [
+const VideoScrollingUI = () => {
+    const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+    const videoRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+    // Memoized video data
+    const videos = useMemo(() => [
         {
             id: 1,
             title: "Amazing Sunset Timelapse",
             creator: "NatureFilms",
-            thumbnail: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop",
+            thumbnail: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?v=400&h=600&fit=crop",
             duration: "2:34",
             likes: "12.5K",
             comments: "234",
@@ -28,7 +41,7 @@ const VideoScrollingUI = () => {
             id: 2,
             title: "Urban Street Photography",
             creator: "CityLens",
-            thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=600&fit=crop",
+            thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?v=400&h=600&fit=crop",
             duration: "3:21",
             likes: "8.7K",
             comments: "156",
@@ -40,7 +53,7 @@ const VideoScrollingUI = () => {
             id: 3,
             title: "Ocean Waves Relaxation",
             creator: "SerenitySound",
-            thumbnail: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=600&fit=crop",
+            thumbnail: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?v=400&h=600&fit=crop",
             duration: "5:45",
             likes: "25.3K",
             comments: "567",
@@ -52,19 +65,19 @@ const VideoScrollingUI = () => {
             id: 4,
             title: "Mountain Hiking Adventure",
             creator: "AdventureSeeker",
-            thumbnail: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=600&fit=crop",
+            thumbnail: "https://images.unsplash.com/photo-1551632811-561732d1e306?v=400&h=600&fit=crop",
             duration: "4:12",
             likes: "15.2K",
             comments: "289",
             views: "34.7K",
-            description: "Join us on an epic mountain hiking adventure through rugged terrain and breathtaking vistas. Experience the thrill of reaching new heights.",
+            description: "Join us on an epic mountain hiking adventure through ragged terrain and breathtaking vistas. Experience the thrill of reaching new heights.",
             tags: ["hiking", "mountains", "adventure", "outdoor"]
         },
         {
             id: 5,
             title: "City Lights Night Drive",
             creator: "NightCrawler",
-            thumbnail: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&h=600&fit=crop",
+            thumbnail: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?v=400&h=600&fit=crop",
             duration: "3:56",
             likes: "19.8K",
             comments: "445",
@@ -76,7 +89,7 @@ const VideoScrollingUI = () => {
             id: 6,
             title: "Forest Morning Mist",
             creator: "WildernessWalk",
-            thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=600&fit=crop",
+            thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?v=400&h=600&fit=crop",
             duration: "2:18",
             likes: "11.4K",
             comments: "178",
@@ -84,14 +97,14 @@ const VideoScrollingUI = () => {
             description: "Early morning mist drifts through an ancient forest creating an ethereal atmosphere. Listen to the sounds of nature awakening.",
             tags: ["forest", "morning", "mist", "nature", "peaceful"]
         }
-    ];
+    ], []); // Empty dependency array since videos is static
 
     // Initialize with first video
     useEffect(() => {
         if (videos.length > 0) {
             setSelectedVideo(videos[0]);
         }
-    }, []);
+    }, [videos]);
 
     // Intersection Observer to detect which video is in view
     useEffect(() => {
@@ -99,8 +112,9 @@ const VideoScrollingUI = () => {
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
-                        const videoId = parseInt(entry.target.dataset.videoId);
-                        const video = videos.find(v => v.id === videoId);
+                        const target = entry.target as HTMLElement;
+                        const videoId = parseInt(target.dataset.videoId || "0");
+                        const video = videos.find((v) => v.id === videoId);
                         if (video && (!selectedVideo || selectedVideo.id !== videoId)) {
                             setSelectedVideo(video);
                         }
@@ -110,11 +124,10 @@ const VideoScrollingUI = () => {
             {
                 root: scrollContainerRef.current,
                 threshold: 0.5,
-                rootMargin: '0px'
+                rootMargin: "0px",
             }
         );
 
-        // Observe all video elements
         Object.values(videoRefs.current).forEach((ref) => {
             if (ref) observer.observe(ref);
         });
@@ -124,7 +137,7 @@ const VideoScrollingUI = () => {
         };
     }, [videos, selectedVideo]);
 
-    const handleVideoClick = (video) => {
+    const handleVideoClick = (video: Video) => {
         setSelectedVideo(video);
         setIsDetailsOpen(true);
     };
@@ -151,7 +164,7 @@ const VideoScrollingUI = () => {
                             {videos.map((video) => (
                                 <div
                                     key={video.id}
-                                    ref={(el) => videoRefs.current[video.id] = el}
+                                    ref={(el) => { videoRefs.current[video.id] = el; }} // Wrap in curly braces to avoid returning the assignment
                                     data-video-id={video.id}
                                     className="h-full snap-start relative group cursor-pointer rounded-xl "
                                     style={{
@@ -174,28 +187,24 @@ const VideoScrollingUI = () => {
                                     </div>
 
                                     {/* Video Info */}
-                                    <div className="absolute bottom-0 left-0 right-0 px-2  bg-gradient-to-t from-black/90 to-transparent rounded-b-xl">
-                                        <div className="flex justify-between items-end ">
+                                    <div className="absolute bottom-0 left-0 right-0 px-2 bg-gradient-to-t from-black/90 to-transparent rounded-b-xl">
+                                        <div className="flex justify-between items-end">
                                             <div className="flex-1 mb-[20px]">
                                                 <div className='flex flex-row items-center gap-2'>
                                                     <div className='border w-[28px] h-[28px] overflow-hidden rounded-full'>
                                                         <Image
                                                             src={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG5CPz89vwuDB4H5EsXhkpKz0_koS-0HK0Yg&s"}
-                                                            objectFit="cover" // Ensure the image covers the area without distortion
-                                                            width={0} // Required with layout="fill"
-                                                            height={0} // Required with layout="fill"
+                                                            objectFit="cover"
+                                                            width={0}
+                                                            height={0}
                                                             alt='img'
                                                             className='w-full h-full'
                                                         />
                                                     </div>
-
-
                                                     <h1 className='text-[14px] font-[500]'>Jignesh Sharma</h1>
-
                                                 </div>
-                                                <h3 className="text-[16px] font-bold ">{video.title}</h3>
-                                                <h3 className="text-[12px] font-normal">{"description"}</h3>
-
+                                                <h3 className="text-[16px] font-bold">{video.title}</h3>
+                                                <h3 className="text-[12px] font-normal">{video.description}</h3>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -208,8 +217,7 @@ const VideoScrollingUI = () => {
                                             </div>
 
                                             {/* Action Buttons */}
-                                            <div className="flex flex-col  space-y-3  absolute bottom-[20px] -right-[50px]">
-
+                                            <div className="flex flex-col space-y-3 absolute bottom-[20px] -right-[50px]">
                                                 <div className="flex flex-col space-y-2">
                                                     <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2">
                                                         <Heart className="w-6 h-6" />
@@ -226,7 +234,6 @@ const VideoScrollingUI = () => {
                                                     <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2">
                                                         <Share className="w-6 h-6" />
                                                     </button>
-
                                                 </div>
                                             </div>
                                         </div>
@@ -239,11 +246,12 @@ const VideoScrollingUI = () => {
 
                 {/* Details Panel */}
                 <div
-                    className={`h-full bg-gray-900 border-l border-gray-700 transition-transform duration-700 ease-out absolute top-0 right-0 w-1/2 ${isDetailsOpen ? 'translate-x-0' : 'translate-x-full'
-                        }`}
+                    className={`h-full bg-gray-900 border-l border-gray-700 transition-transform duration-700 ease-out absolute top-0 right-0 w-1/2 ${isDetailsOpen ? 'translate-x-0' : 'translate-x-full'}`}
                 >
                     {selectedVideo && (
-                        <VideoDetails selectedVideo={selectedVideo} handleCloseDetails={handleCloseDetails} />
+                        <VideoDetails
+                            // selectedVideo={selectedVideo}
+                            handleCloseDetails={handleCloseDetails} />
                     )}
                 </div>
             </div>

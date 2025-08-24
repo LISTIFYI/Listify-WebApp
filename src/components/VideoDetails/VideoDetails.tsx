@@ -1,19 +1,30 @@
 "use client"
 
 import { Building2, Calendar, Clock, MapPin, MessageCircle, Phone, Play, Star, X } from 'lucide-react'
+import Image from 'next/image';
 import React, { useState } from 'react'
 
-const VideoDetails = ({ selectedVideo, handleCloseDetails }) => {
+type VideoDetailsProps = {
+    handleCloseDetails: () => void;
+};
 
+const VideoDetails = ({ handleCloseDetails }: VideoDetailsProps) => {
     const tabs = ["Location map", "Shopping", "School"];
     const [activeTab, setActiveTab] = useState("Location map");
+    const [activeIndex, setActiveIndex] = useState(0);
 
     const images = [
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4sly3zeMUd6G3eUB5qx9VhYQC05CAZlBQkQ&s",
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3PXXOg4AefDv6XwHm2CdL1lHBdiDcA2KVPw&s",
     ];
 
-    const [activeIndex, setActiveIndex] = useState(0);
+    const handleNextImage = () => {
+        setActiveIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const handlePrevImage = () => {
+        setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
 
     return (
         <div className="h-full flex flex-col overflow-scroll">
@@ -38,14 +49,15 @@ const VideoDetails = ({ selectedVideo, handleCloseDetails }) => {
                     {images.map((src, index) => (
                         <div
                             key={index}
-                            className="w-full flex-shrink-0 snap-center relative "
+                            className="w-full flex-shrink-0 snap-center relative"
                         >
-                            <img
+                            <Image
                                 src={src}
                                 alt={`Property ${index + 1}`}
+                                width={1200} // Set appropriate width
+                                height={256} // Set appropriate height (matches h-64)
                                 className="w-full h-64 object-cover"
                             />
-                            {/* Play Button Overlay */}
                             <button className="absolute inset-0 flex items-center justify-center">
                                 <div className="bg-black bg-opacity-50 p-4 rounded-full">
                                     <Play size={32} className="text-white" />
