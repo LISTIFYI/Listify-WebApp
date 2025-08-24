@@ -51,7 +51,7 @@ const VideoDetails = ({ handleCloseDetails }: VideoDetailsProps) => {
                             key={index}
                             className="w-full flex-shrink-0 snap-center relative"
                         >
-                            <Image
+                            <img
                                 src={src}
                                 alt={`Property ${index + 1}`}
                                 width={1200} // Set appropriate width
