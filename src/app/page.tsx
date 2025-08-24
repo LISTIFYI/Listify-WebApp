@@ -57,13 +57,14 @@ const Home = () => {
             className="p-2 border-[2px] border-[#EAEAEA] rounded-[20px]"
           >
             <div className="h-[280px] border rounded-[20px] relative overflow-hidden">
-              <Image
+              <img
+                className="object-cover w-full h-full"
                 alt="img"
                 src={
                   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ52CyCh_takVY_6gLcC3-p9m_JdVoXL67EhA&s"
                 }
-                layout="fill" // Fill the parent container
-                objectFit="cover" // Ensure the image covers the area without distortion
+                // layout="fill" // Fill the parent container
+                // objectFit="cover" // Ensure the image covers the area without distortion
                 width={0} // Required with layout="fill"
                 height={0} // Required with layout="fill"
               />

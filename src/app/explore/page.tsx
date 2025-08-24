@@ -160,7 +160,7 @@ const VideoScrollingUI = () => {
                         ref={scrollContainerRef}
                         className="h-full overflow-y-auto snap-y snap-mandatory flex justify-center no-scrollbar"
                     >
-                        <div className="w-[400px] space-y-4 border-[4px]">
+                        <div className="w-[400px] space-y-4 ">
                             {videos.map((video) => (
                                 <div
                                     key={video.id}
