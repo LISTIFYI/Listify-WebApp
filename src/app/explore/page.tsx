@@ -352,15 +352,18 @@ const VideoScrollingUI = () => {
                                                 {postData.post.location && (
                                                     <p className="text-[10px] text-gray-300 mt-1">📍 {postData.post.location}</p>
                                                 )}
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleOpenDetails();
-                                                    }}
-                                                    className="px-4 py-[12px] mt-2 shadow-md rounded-md text-[14px] font-medium transition-colors duration-200 w-[80%] bg-[#00000099]"
-                                                >
-                                                    View Details
-                                                </button>
+                                                {
+                                                    postData?.listing &&
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleOpenDetails();
+                                                        }}
+                                                        className="px-4 py-[12px] mt-2 shadow-md rounded-md text-[14px] font-medium transition-colors duration-200 w-[80%] bg-[#00000099]"
+                                                    >
+                                                        View Details
+                                                    </button>
+                                                }
                                             </div>
 
                                             {/* Action Buttons */}

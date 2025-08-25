@@ -83,6 +83,8 @@ type VideoDetailsProps = {
 };
 
 const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
+    console.log("postttt", post);
+
     const tabs = ["Location map", "Shopping", "School"];
     const [activeTab, setActiveTab] = useState("Location map");
     const [activeIndex, setActiveIndex] = useState(0);
