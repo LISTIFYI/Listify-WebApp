@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { CiHeart, CiBookmark, CiShare2 } from "react-icons/ci";
 import { Bath, BedDouble, BrickWall, Eye, MessageCircle, Sofa, TriangleRight } from "lucide-react";
@@ -8,86 +8,75 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { usePostContext } from "@/lib/postContext";
 
-// Interface for Location
-interface Location {
-  address: string;
-  area: string;
-  city: string;
-  state: string;
-  pincode: string;
-}
-
-// Interface for Pricing
-interface Pricing {
-  type: string;
-  pricePerSqft: number;
-  amount: number;
-  negotiable: boolean;
-  maintenanceCharges: number;
-}
-
-// Interface for Listing
-interface Listing {
-  id: string;
-  location: Location;
-  pricing: Pricing;
-  status: string;
-  title: string;
-  propertyValues?: {
-    bedroom?: number;
-    bathroom?: number;
-    hall?: number;
-    totalFloor?: number;
-    sqft_area?: number;
+// Update the Post interface
+type Post = {
+  post: {
+    id: string;
+    title: string;
+    description: string;
+    video_url: string;
+    thumbnail_url: string;
+    duration_seconds: number;
+    tags: string[];
+    mentions: string[];
+    view_count: number;
+    like_count: number;
+    comment_count: number;
+    share_count: number;
+    save_count: number;
+    status: string;
+    visibility: string;
+    location: string;
+    comments_disabled: boolean;
+    created_at: string;
+    updated_at: string;
   };
-}
+  user: {
+    id: string;
+    name: string;
+    profile_photo: string;
+  };
+  listing: {
+    id: string;
+    location: {
+      address: string;
+      area: string;
+      city: string;
+      state: string;
+      pincode: string;
+    };
+    pricing: {
+      type: string;
+      pricePerSqft: number;
+      amount: number;
+      negotiable: boolean;
+      maintenanceCharges: number;
+    };
+    status: string;
+    title: string;
+    propertyValues?: {
+      bedroom?: number;
+      bathroom?: number;
+      hall?: number;
+      totalFloor?: number;
+      sqft_area?: number;
+    };
+  };
+};
 
-// Interface for Post
-interface Post {
-  comment_count: number;
-  comments_disabled: boolean;
-  created_at: string;
-  description: string;
-  duration_seconds: number;
-  id: string;
-  like_count: number;
-  location: string;
-  mentions: string[];
-  save_count: number;
-  share_count: number;
-  status: string;
-  tags: string[];
-  thumbnail_url: string;
-  title: string;
-  updated_at: string;
-  video_url: string;
-  view_count: number;
-  visibility: string;
-}
+type ApiResponse = {
+  posts: Post[];
+  pagination: {
+    totalCount: number;
+    limit: number;
+    offset: number;
+  };
+  success: boolean;
+  message: string;
+};
 
-// Interface for User
-interface User {
-  id: string;
-  name: string;
-  profile_photo: string;
-}
-
-// Interface for Pagination
-interface Pagination {
-  totalCount: number;
-  limit: number;
-  offset: number;
-}
-
-// Main Response Interface
-interface ApiResponse {
-  listing: Listing;
-  post: Post;
-  user: User;
-  pagination?: Pagination;
-}
 const Home = () => {
-  const [posts, setPosts] = useState<ApiResponse[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -111,60 +100,51 @@ const Home = () => {
     "Apartment7",
   ];
 
-  const getPosts = useCallback(
-    async (offset: number = 0, reset: boolean = false) => {
-      if (!hasMore && !reset) return;
-      try {
-        setLoading(true);
-        const res = await axios.get<{ posts: ApiResponse[]; pagination?: Pagination }>(
-          `https://listifyi-api-1012443530727.asia-south1.run.app/public/posts/feed?limit=${limit}&offset=${offset}${selected ? `&tag=${selected}` : ""}`
-        );
+  const getPosts = async (offset: number = 0, reset: boolean = false) => {
+    if (!hasMore && !reset) return; // Prevent fetching if no more data unless resetting
+    try {
+      setLoading(true);
+      const res = await axios.get<ApiResponse>(
+        `https://listifyi-api-1012443530727.asia-south1.run.app/public/posts/feed?limit=${limit}&offset=${offset}${selected ? `&tag=${selected}` : ""
+        }`
+      );
 
-        if (res.data && res.data.posts) {
-          const newPosts = res.data.posts;
-          setPosts((prev) => {
-            if (reset) return newPosts;
-            const existingIds = new Set(prev.map((post) => post.post.id));
-            const uniqueNewPosts = newPosts.filter((post: ApiResponse) => !existingIds.has(post.post.id));
-            return [...prev, ...uniqueNewPosts];
-          });
-          const pagination = res.data.pagination;
-          if (pagination) {
-            setHasMore(pagination.offset + pagination.limit < pagination.totalCount);
-          } else {
-            setHasMore(false);
-          }
+      if (res.data && res.data.posts) {
+        const newPosts = res.data.posts;
+        setPosts((prev) => {
+          if (reset) return newPosts; // Reset posts for new tag or initial load
+          // Ensure no duplicates by filtering based on post.id
+          const existingIds = new Set(prev.map((post) => post.post.id));
+          const uniqueNewPosts = newPosts.filter((post: Post) => !existingIds.has(post.post.id));
+          return [...prev, ...uniqueNewPosts];
+        });
+        const pagination = res.data.pagination;
+        if (pagination) {
+          setHasMore(pagination.offset + pagination.limit < pagination.totalCount);
         } else {
-          console.log("No posts found in response");
           setHasMore(false);
         }
-      } catch (error) {
-        console.error("Error fetching posts:", error);
+      } else {
+        console.log("No posts found in response");
         setHasMore(false);
-      } finally {
-        setLoading(false);
       }
-    },
-    [hasMore, limit, selected, setHasMore, setLoading, setPosts]
-  );
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initial fetch and reset when tag changes
   useEffect(() => {
-    setPosts([]);
+    setPosts([]); // Clear posts when tag changes
     setPage(0);
     setHasMore(true);
     getPosts(0, true);
-  }, [selected, getPosts]);
+  }, [selected]);
 
-  // Fetch new page when page changes
-  useEffect(() => {
-    if (page > 0) {
-      getPosts(page * limit);
-    }
-  }, [page, getPosts]);
   // Infinite scroll observer
-
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -175,14 +155,13 @@ const Home = () => {
       { threshold: 0.1 }
     );
 
-    const currentLoader = loaderRef.current;
-    if (currentLoader) {
-      observer.observe(currentLoader);
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
     }
 
     return () => {
-      if (currentLoader) {
-        observer.unobserve(currentLoader);
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
       }
     };
   }, [hasMore, loading]);
@@ -194,7 +173,7 @@ const Home = () => {
     }
   }, [page]);
 
-  const handleClick = (post: ApiResponse) => {
+  const handleClick = (post: Post) => {
     setSelectedPost(post);
     router.push("/explore");
   };
@@ -219,7 +198,7 @@ const Home = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-5 gap-x-4 lg:p-6 p-4">
-          {posts.map((post: ApiResponse) => (
+          {posts.map((post: Post) => (
             <div
               onClick={() => handleClick(post)}
               key={post.post.id}
