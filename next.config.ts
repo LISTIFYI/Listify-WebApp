@@ -4,7 +4,8 @@ const nextConfig: NextConfig = {
   /* config options here */
   output: 'export',
   images: {
-    domains: ["encrypted-tbn0.gstatic.com"]
+    domains: ["encrypted-tbn0.gstatic.com", "storage.googleapis.com"],
+    unoptimized: true
   },
   trailingSlash: true,
 };
