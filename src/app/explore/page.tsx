@@ -1,122 +1,176 @@
 "use client"
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Play, Heart, MessageCircle, Share, EyeIcon, Bookmark } from 'lucide-react';
 import VideoDetails from '@/components/VideoDetails/VideoDetails';
 import Image from 'next/image';
+import { usePostContext } from '@/lib/postContext';
+import axios from 'axios';
 
-type Video = {
-    id: number;
-    title: string;
-    creator: string;
-    thumbnail: string;
-    duration: string;
-    likes: string;
-    comments: string;
-    views: string;
-    description: string;
-    tags: string[];
+// Update the Post interface
+type Post = {
+    post: {
+        id: string;
+        title: string;
+        description: string;
+        video_url: string;
+        thumbnail_url: string;
+        duration_seconds: number;
+        tags: string[];
+        mentions: string[];
+        view_count: number;
+        like_count: number;
+        comment_count: number;
+        share_count: number;
+        save_count: number;
+        status: string;
+        visibility: string;
+        location: string;
+        comments_disabled: boolean;
+        created_at: string;
+        updated_at: string;
+    };
+    user: {
+        id: string;
+        name: string;
+        profile_photo: string;
+    };
+    listing: {
+        id: string;
+        location: {
+            address: string;
+            area: string;
+            city: string;
+            state: string;
+            pincode: string;
+        };
+        pricing: {
+            type: string;
+            pricePerSqft: number;
+            amount: number;
+            negotiable: boolean;
+            maintenanceCharges: number;
+        };
+        status: string;
+        title: string;
+        propertyValues?: {
+            bedroom?: number;
+            bathroom?: number;
+            hall?: number;
+            totalFloor?: number;
+            sqft_area?: number;
+        };
+    };
+};
+
+type ApiResponse = {
+    posts: Post[];
+    pagination: {
+        totalCount: number;
+        limit: number;
+        offset: number;
+    };
+    success: boolean;
+    message: string;
 };
 
 const VideoScrollingUI = () => {
-    const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+    const { selectedPost } = usePostContext();
+    console.log("selecpost", selectedPost);
+
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [selectedVideo, setSelectedVideo] = useState<Post | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [pagination, setPagination] = useState({
+        totalCount: 0,
+        limit: 20,
+        offset: 0
+    });
+    const [userPausedVideos, setUserPausedVideos] = useState<Set<string>>(new Set());
+
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-    const videoRefs = useRef<Record<number, HTMLDivElement | null>>({});
+    const videoRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const videoElementRefs = useRef<Record<string, HTMLVideoElement | null>>({});
 
-    // Memoized video data
-    const videos = useMemo(() => [
-        {
-            id: 1,
-            title: "Amazing Sunset Timelapse",
-            creator: "NatureFilms",
-            thumbnail: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?v=400&h=600&fit=crop",
-            duration: "2:34",
-            likes: "12.5K",
-            comments: "234",
-            views: "45.2K",
-            description: "Watch this breathtaking sunset timelapse captured over the mountains. The golden hour creates magical lighting that transforms the entire landscape.",
-            tags: ["nature", "sunset", "timelapse", "mountains"]
-        },
-        {
-            id: 2,
-            title: "Urban Street Photography",
-            creator: "CityLens",
-            thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?v=400&h=600&fit=crop",
-            duration: "3:21",
-            likes: "8.7K",
-            comments: "156",
-            views: "23.1K",
-            description: "Exploring the vibrant streets of downtown with a focus on candid moments and architectural beauty. Street photography at its finest.",
-            tags: ["street", "urban", "photography", "city"]
-        },
-        {
-            id: 3,
-            title: "Ocean Waves Relaxation",
-            creator: "SerenitySound",
-            thumbnail: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?v=400&h=600&fit=crop",
-            duration: "5:45",
-            likes: "25.3K",
-            comments: "567",
-            views: "78.9K",
-            description: "Peaceful ocean waves washing onto the shore. Perfect for meditation, relaxation, or background ambiance while working or studying.",
-            tags: ["ocean", "relaxation", "meditation", "nature"]
-        },
-        {
-            id: 4,
-            title: "Mountain Hiking Adventure",
-            creator: "AdventureSeeker",
-            thumbnail: "https://images.unsplash.com/photo-1551632811-561732d1e306?v=400&h=600&fit=crop",
-            duration: "4:12",
-            likes: "15.2K",
-            comments: "289",
-            views: "34.7K",
-            description: "Join us on an epic mountain hiking adventure through ragged terrain and breathtaking vistas. Experience the thrill of reaching new heights.",
-            tags: ["hiking", "mountains", "adventure", "outdoor"]
-        },
-        {
-            id: 5,
-            title: "City Lights Night Drive",
-            creator: "NightCrawler",
-            thumbnail: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?v=400&h=600&fit=crop",
-            duration: "3:56",
-            likes: "19.8K",
-            comments: "445",
-            views: "56.3K",
-            description: "Cruise through the city at night with neon lights reflecting off wet streets. The perfect urban nighttime driving experience.",
-            tags: ["city", "night", "driving", "urban", "neon"]
-        },
-        {
-            id: 6,
-            title: "Forest Morning Mist",
-            creator: "WildernessWalk",
-            thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?v=400&h=600&fit=crop",
-            duration: "2:18",
-            likes: "11.4K",
-            comments: "178",
-            views: "28.5K",
-            description: "Early morning mist drifts through an ancient forest creating an ethereal atmosphere. Listen to the sounds of nature awakening.",
-            tags: ["forest", "morning", "mist", "nature", "peaceful"]
+    const getPosts = async (offset = 0) => {
+        try {
+            setLoading(true);
+            const res = await axios.get<ApiResponse>(
+                `https://listifyi-api-1012443530727.asia-south1.run.app/public/posts/feed?limit=20&offset=${offset}`
+            );
+
+            if (res.data.success) {
+                if (offset === 0) {
+                    setPosts(res.data.posts);
+                } else {
+                    setPosts(prev => [...prev, ...res.data.posts]);
+                }
+                setPagination(res.data.pagination);
+
+                // Set first video as selected if no video is selected
+                if (!selectedVideo && res.data.posts.length > 0) {
+                    setSelectedVideo(res.data.posts[0]);
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching posts:', err);
+            setError('Failed to load posts');
+        } finally {
+            setLoading(false);
         }
-    ], []); // Empty dependency array since videos is static
+    };
 
-    // Initialize with first video
+    // Load initial posts
     useEffect(() => {
-        if (videos.length > 0) {
-            setSelectedVideo(videos[0]);
+        getPosts();
+    }, []);
+
+    // Format duration from seconds to MM:SS
+    const formatDuration = (seconds: number): string => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
+    // Format numbers (1000 -> 1K)
+    const formatNumber = (num: number): string => {
+        if (num >= 1000000) {
+            return `${(num / 1000000).toFixed(1)}M`;
         }
-    }, [videos]);
+        if (num >= 1000) {
+            return `${(num / 1000).toFixed(1)}K`;
+        }
+        return num.toString();
+    };
 
-    // Intersection Observer to detect which video is in view
+    // Intersection Observer to detect which video is in view and handle autoplay
     useEffect(() => {
+        if (posts.length === 0) return;
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
+                    const target = entry.target as HTMLElement;
+                    const videoId = target.dataset.videoId;
+                    const videoElement = videoElementRefs.current[videoId!];
+
                     if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
-                        const target = entry.target as HTMLElement;
-                        const videoId = parseInt(target.dataset.videoId || "0");
-                        const video = videos.find((v) => v.id === videoId);
-                        if (video && (!selectedVideo || selectedVideo.id !== videoId)) {
-                            setSelectedVideo(video);
+                        const post = posts.find((p) => p.post.id === videoId);
+                        if (post && (!selectedVideo || selectedVideo.post.id !== videoId)) {
+                            setSelectedVideo(post);
+                        }
+
+                        // Auto-play video if user hasn't manually paused it
+                        if (videoElement && !userPausedVideos.has(videoId!)) {
+                            videoElement.play().catch(err => {
+                                console.log("Autoplay prevented:", err);
+                            });
+                        }
+                    } else {
+                        // Pause video when out of view (unless user manually paused it)
+                        if (videoElement && !videoElement.paused) {
+                            videoElement.pause();
                         }
                     }
                 });
@@ -135,11 +189,49 @@ const VideoScrollingUI = () => {
         return () => {
             observer.disconnect();
         };
-    }, [videos, selectedVideo]);
+    }, [posts, selectedVideo, userPausedVideos]);
 
-    const handleVideoClick = (video: Video) => {
-        setSelectedVideo(video);
-        setIsDetailsOpen(true);
+    // Load more posts when scrolling near bottom
+    const handleScroll = () => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        if (scrollTop + clientHeight >= scrollHeight - 1000) { // Load more when 1000px from bottom
+            if (!loading && posts.length < pagination.totalCount) {
+                getPosts(posts.length);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', handleScroll);
+            return () => container.removeEventListener('scroll', handleScroll);
+        }
+    }, [posts.length, pagination.totalCount, loading]);
+
+    const handleVideoClick = (post: Post, event: React.MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const videoElement = videoElementRefs.current[post.post.id];
+        if (videoElement) {
+            if (videoElement.paused) {
+                // User wants to play - remove from paused set
+                setUserPausedVideos(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(post.post.id);
+                    return newSet;
+                });
+                videoElement.play().catch(err => console.log("Play failed:", err));
+            } else {
+                // User wants to pause - add to paused set
+                setUserPausedVideos(prev => new Set(prev).add(post.post.id));
+                videoElement.pause();
+            }
+        }
     };
 
     const handleCloseDetails = () => {
@@ -148,8 +240,37 @@ const VideoScrollingUI = () => {
     };
 
     const handleOpenDetails = () => {
-        setIsDetailsOpen(true);
+        if (selectedVideo) {
+            setIsDetailsOpen(true);
+        }
     };
+
+    if (loading && posts.length === 0) {
+        return (
+            <div className="h-full bg-gray-950 text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                    <p>Loading posts...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="h-full bg-gray-950 text-white flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-400">{error}</p>
+                    <button
+                        onClick={() => getPosts(0)}
+                        className="mt-4 px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="h-full bg-gray-950 text-white overflow-hidden">
@@ -160,29 +281,52 @@ const VideoScrollingUI = () => {
                         ref={scrollContainerRef}
                         className="h-full overflow-y-auto snap-y snap-mandatory flex justify-center no-scrollbar"
                     >
-                        <div className="w-[400px] space-y-4 ">
-                            {videos.map((video) => (
+                        <div className="w-[400px] space-y-4">
+                            {posts.map((postData) => (
                                 <div
-                                    key={video.id}
-                                    ref={(el) => { videoRefs.current[video.id] = el; }} // Wrap in curly braces to avoid returning the assignment
-                                    data-video-id={video.id}
-                                    className="h-full snap-start relative group cursor-pointer rounded-xl "
-                                    style={{
-                                        backgroundImage: `url(${video.thumbnail})`,
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center'
-                                    }}
+                                    key={postData.post.id}
+                                    ref={(el) => { videoRefs.current[postData.post.id] = el; }}
+                                    data-video-id={postData.post.id}
+                                    className="h-full snap-start relative group cursor-pointer rounded-xl overflow-hidden"
                                 >
-                                    {/* Overlay */}
-                                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors duration-300 rounded-xl" />
+                                    {/* Video Element */}
+                                    <video
+                                        ref={(el) => { videoElementRefs.current[postData.post.id] = el; }}
+                                        src={postData.post.video_url}
+                                        poster={postData.post.thumbnail_url}
+                                        className="w-full h-full object-cover"
+                                        loop
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                        onClick={(e) => handleVideoClick(postData, e)}
+                                    />
 
-                                    {/* Play Button */}
-                                    <div className="absolute inset-0 flex items-center justify-center">
+                                    {/* Overlay */}
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300 pointer-events-none" />
+
+                                    {/* Duration Badge */}
+                                    <div className="absolute top-4 right-4 bg-black/60 px-2 py-1 rounded text-sm pointer-events-none">
+                                        {formatDuration(postData.post.duration_seconds)}
+                                    </div>
+
+                                    {/* Play/Pause Button - only shows when video is paused */}
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <button
-                                            onClick={() => handleVideoClick(video)}
-                                            className="bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300"
+                                            onClick={(e) => handleVideoClick(postData, e)}
+                                            className="bg-white/20 backdrop-blur-sm rounded-full p-4 hover:bg-white/30 hover:scale-110 transition-all duration-300 pointer-events-auto opacity-0 group-hover:opacity-100"
+                                            style={{
+                                                opacity: userPausedVideos.has(postData.post.id) ? 1 : undefined
+                                            }}
                                         >
-                                            <Play className="w-8 h-8 text-white fill-white" />
+                                            {userPausedVideos.has(postData.post.id) ? (
+                                                <Play className="w-8 h-8 text-white fill-white" />
+                                            ) : (
+                                                <div className="w-8 h-8 flex items-center justify-center">
+                                                    <div className="w-1 h-6 bg-white rounded mx-0.5"></div>
+                                                    <div className="w-1 h-6 bg-white rounded mx-0.5"></div>
+                                                </div>
+                                            )}
                                         </button>
                                     </div>
 
@@ -193,18 +337,21 @@ const VideoScrollingUI = () => {
                                                 <div className='flex flex-row items-center gap-2'>
                                                     <div className='border w-[28px] h-[28px] overflow-hidden rounded-full'>
                                                         <Image
-                                                            src={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG5CPz89vwuDB4H5EsXhkpKz0_koS-0HK0Yg&s"}
+                                                            src={postData.user.profile_photo || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG5CPz89vwuDB4H5EsXhkpKz0_koS-0HK0Yg&s"}
                                                             objectFit="cover"
-                                                            width={0}
-                                                            height={0}
-                                                            alt='img'
+                                                            width={28}
+                                                            height={28}
+                                                            alt={postData.user.name}
                                                             className='w-full h-full'
                                                         />
                                                     </div>
-                                                    <h1 className='text-[14px] font-[500]'>Jignesh Sharma</h1>
+                                                    <h1 className='text-[14px] font-[500]'>{postData.user.name}</h1>
                                                 </div>
-                                                <h3 className="text-[16px] font-bold">{video.title}</h3>
-                                                <h3 className="text-[12px] font-normal">{video.description}</h3>
+                                                <h3 className="text-[16px] font-bold">{postData.post.title}</h3>
+                                                <h3 className="text-[12px] font-normal">{postData.post.description}</h3>
+                                                {postData.post.location && (
+                                                    <p className="text-[10px] text-gray-300 mt-1">📍 {postData.post.location}</p>
+                                                )}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -219,20 +366,35 @@ const VideoScrollingUI = () => {
                                             {/* Action Buttons */}
                                             <div className="flex flex-col space-y-3 absolute bottom-[20px] -right-[50px]">
                                                 <div className="flex flex-col space-y-2">
-                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2">
-                                                        <Heart className="w-6 h-6" />
+                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2 relative">
+                                                        <Heart className={`w-6 h-6 ${postData.post.like_count > 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                                                        <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs">
+                                                            {formatNumber(postData.post.like_count)}
+                                                        </span>
                                                     </button>
-                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2">
+                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2 relative">
                                                         <MessageCircle className="w-6 h-6" />
+                                                        <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs">
+                                                            {formatNumber(postData.post.comment_count)}
+                                                        </span>
                                                     </button>
-                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2">
+                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2 relative">
                                                         <EyeIcon className="w-6 h-6" />
+                                                        <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs">
+                                                            {formatNumber(postData.post.view_count)}
+                                                        </span>
                                                     </button>
-                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2">
+                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2 relative">
                                                         <Bookmark className="w-6 h-6" />
+                                                        <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs">
+                                                            {formatNumber(postData.post.save_count)}
+                                                        </span>
                                                     </button>
-                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2">
+                                                    <button className="bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors duration-200 p-2 relative">
                                                         <Share className="w-6 h-6" />
+                                                        <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs">
+                                                            {formatNumber(postData.post.share_count)}
+                                                        </span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -240,6 +402,13 @@ const VideoScrollingUI = () => {
                                     </div>
                                 </div>
                             ))}
+
+                            {/* Loading indicator at bottom */}
+                            {loading && posts.length > 0 && (
+                                <div className="h-20 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -250,8 +419,9 @@ const VideoScrollingUI = () => {
                 >
                     {selectedVideo && (
                         <VideoDetails
-                            // selectedVideo={selectedVideo}
-                            handleCloseDetails={handleCloseDetails} />
+                            post={selectedVideo}
+                            handleCloseDetails={handleCloseDetails}
+                        />
                     )}
                 </div>
             </div>

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import Header from "@/components/Layout/Header";
+import { PostProvider } from "@/lib/postContext";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,18 +17,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex flex-col h-screen bg-gray-50">
-        {/* Fixed Header */}
-        <Header />
+        <PostProvider>
+          {/* Fixed Header */}
+          <Header />
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Fixed Sidebar */}
-          <Sidebar />
+          <div className="flex flex-1 overflow-hidden">
+            {/* Fixed Sidebar */}
+            <Sidebar />
 
-          {/* Dynamic Content Area */}
-          <main className="flex-1 overflow-y-auto">
-            {children}
-          </main>
-        </div>
+            {/* Dynamic Content Area */}
+            <main className="flex-1 overflow-y-auto">
+              {children}
+            </main>
+          </div>
+        </PostProvider>
       </body>
     </html>
   );

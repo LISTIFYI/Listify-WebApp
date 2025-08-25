@@ -10,7 +10,7 @@ export function Sidebar() {
 
     const navItems = [
         { name: "Properties", href: "/", icon: Home },
-        { name: "Explore Reels", href: "/explore", icon: PlayCircle },
+        { name: "Explore Reels", href: "/explore/", icon: PlayCircle },
         { name: "Projects", href: "/projects", icon: Building2 },
     ]
 
@@ -20,6 +20,9 @@ export function Sidebar() {
                 {navItems.map((item) => {
                     const Icon = item.icon
                     const isActive = pathname === item.href
+
+                    console.log("no", pathname, item.href);
+
 
                     return (
                         <Link
