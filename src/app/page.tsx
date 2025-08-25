@@ -215,72 +215,72 @@ const Home = () => {
                 className="absolute flex flex-row gap-[10px] bottom-0 bg-opacity-80 backdrop-blur-[2px] w-full left-0 items-center px-4 py-2 text-black text-[8px]"
               >
                 <div className="flex flex-row gap-[4px] justify-center items-center">
-                  <CiHeart color="#fff" size={16} />
-                  <h1 className="text-white text-[8px]">{post?.post?.like_count || 0}</h1>
+                  <CiHeart color="#fff" size={18} />
+                  <h1 className="text-white text-[12px]">{post?.post?.like_count || 0}</h1>
                 </div>
                 <div className="flex flex-row gap-[4px] justify-center items-center">
-                  <MessageCircle color="#fff" size={12} />
-                  <h1 className="text-white text-[8px]">{post?.post?.comment_count || 0}</h1>
+                  <MessageCircle color="#fff" size={14} />
+                  <h1 className="text-white text-[12px]">{post?.post?.comment_count || 0}</h1>
                 </div>
                 <div className="flex flex-row gap-[4px] justify-center items-center">
-                  <CiShare2 color="#fff" size={14} />
-                  <h1 className="text-white text-[8px]">{post?.post?.share_count || 0}</h1>
+                  <CiShare2 color="#fff" size={16} />
+                  <h1 className="text-white text-[12px]">{post?.post?.share_count || 0}</h1>
                 </div>
                 <div className="flex flex-row gap-[4px] justify-center items-center">
-                  <CiBookmark color="#fff" size={12} />
-                  <h1 className="text-white text-[8px]">{post?.post.save_count || 0}</h1>
+                  <CiBookmark color="#fff" size={14} />
+                  <h1 className="text-white text-[12px]">{post?.post.save_count || 0}</h1>
                 </div>
                 <div className="flex flex-row gap-[4px] justify-center items-center">
                   <Eye color="#fff" size={12} />
-                  <h1 className="text-white text-[8px]">{post?.post.view_count || 0}</h1>
+                  <h1 className="text-white text-[12px]">{post?.post.view_count || 0}</h1>
                 </div>
               </div>
             </div>
             <div className="p-2">
               <div className="flex flex-col gap-[2px]">
                 {post?.listing?.pricing?.amount && (
-                  <h1 className="text-black text-[16px] font-[600] truncate text-ellipsis">
+                  <h1 className="text-black text-[18px] font-[600] truncate text-ellipsis">
                     ₹{post?.listing?.pricing?.amount || "N/A"}
                   </h1>
                 )}
-                <h1 className="text-black text-[12px] font-[600] truncate text-ellipsis">
+                <h1 className="text-black text-[16px] font-[600] truncate text-ellipsis">
                   {post?.post.title || "Untitled Property"}
                 </h1>
-                <h1 className="text-[#A5A5A5] text-[10px] truncate text-ellipsis">
+                <h1 className="text-[#A5A5A5] text-[12px] truncate text-ellipsis">
                   {post?.listing?.location?.address || "Address not available"}
                 </h1>
               </div>
               <div className="flex flex-row gap-[4px] mt-[6px]">
                 <div className="flex flex-row justify-start items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
                   <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                    <BedDouble color="#000" size={10} />
+                    <BedDouble color="#000" size={12} />
                   </div>
-                  <h1 className="text-black text-[10px] px-[6px]">{post?.listing?.propertyValues?.bedroom || 0}</h1>
+                  <h1 className="text-black text-[12px] px-[6px]">{post?.listing?.propertyValues?.bedroom || 0}</h1>
                 </div>
                 <div className="flex flex-row justify-center items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
                   <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                    <Bath color="#000" size={10} />
+                    <Bath color="#000" size={12} />
                   </div>
-                  <h1 className="text-black text-[10px] px-[6px]">{post?.listing?.propertyValues?.bathroom || 0}</h1>
+                  <h1 className="text-black text-[12px] px-[6px]">{post?.listing?.propertyValues?.bathroom || 0}</h1>
                 </div>
                 <div className="flex flex-row justify-center items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
                   <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                    <Sofa color="#000" size={10} />
+                    <Sofa color="#000" size={20} />
                   </div>
-                  <h1 className="text-black text-[10px] px-[6px]">{post?.listing?.propertyValues?.hall || 0}</h1>
+                  <h1 className="text-black text-[12px] px-[6px]">{post?.listing?.propertyValues?.hall || 0}</h1>
                 </div>
                 <div className="flex flex-row justify-center items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
                   <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                    <BrickWall color="#000" size={10} />
+                    <BrickWall color="#000" size={12} />
                   </div>
-                  <h1 className="text-black text-[10px] px-[6px]">{post?.listing?.propertyValues?.totalFloor || 0}</h1>
+                  <h1 className="text-black text-[12px] px-[6px]">{post?.listing?.propertyValues?.totalFloor || 0}</h1>
                 </div>
                 {post?.listing?.propertyValues?.sqft_area && (
                   <div className="flex flex-row justify-center items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
                     <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                      <TriangleRight color="#000" size={10} />
+                      <TriangleRight color="#000" size={12} />
                     </div>
-                    <h1 className="text-black text-[10px] px-[6px]">{`${post?.listing?.propertyValues?.sqft_area ?? ""} sqft` || "N/A"}</h1>
+                    <h1 className="text-black text-[12px] px-[6px]">{`${post?.listing?.propertyValues?.sqft_area ?? ""} sqft` || "N/A"}</h1>
                   </div>
                 )}
               </div>
