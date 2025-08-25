@@ -86,7 +86,6 @@ interface ApiResponse {
   user: User;
   pagination?: Pagination;
 }
-
 const Home = () => {
   const [posts, setPosts] = useState<ApiResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -126,7 +125,7 @@ const Home = () => {
           setPosts((prev) => {
             if (reset) return newPosts;
             const existingIds = new Set(prev.map((post) => post.post.id));
-            const uniqueNewPosts = newPosts.filter((post) => !existingIds.has(post.post.id));
+            const uniqueNewPosts = newPosts.filter((post: ApiResponse) => !existingIds.has(post.post.id));
             return [...prev, ...uniqueNewPosts];
           });
           const pagination = res.data.pagination;
@@ -157,7 +156,15 @@ const Home = () => {
     getPosts(0, true);
   }, [selected, getPosts]);
 
+  // Fetch new page when page changes
+  useEffect(() => {
+    if (page > 0) {
+      getPosts(page * limit);
+    }
+  }, [page, getPosts]);
   // Infinite scroll observer
+
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -185,7 +192,7 @@ const Home = () => {
     if (page > 0) {
       getPosts(page * limit);
     }
-  }, [page, getPosts]);
+  }, [page]);
 
   const handleClick = (post: ApiResponse) => {
     setSelectedPost(post);

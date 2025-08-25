@@ -143,10 +143,10 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                 <div className="p-4 space-y-8 pb-28">
                     {/* Price + Location */}
                     <div>
-                        <h1 className="text-xl font-semibold">Price ₹{post.listing.pricing.amount.toLocaleString() || "N/A"}</h1>
+                        <h1 className="text-xl font-semibold">Price ₹{post?.listing?.pricing?.amount?.toLocaleString() || "N/A"}</h1>
                         <div className="flex items-center text-gray-400">
                             <MapPin size={16} className="mr-1" />
-                            {post.listing.location.address || "Address not available"}
+                            {post?.listing?.location?.address || "Address not available"}
                         </div>
                     </div>
 
@@ -155,17 +155,17 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         <h2 className="font-semibold text-lg">Property Highlights</h2>
                         <div className="flex gap-6 mt-2">
                             <div className="flex flex-col items-center">
-                                <div className="text-lg font-bold">{post.listing.propertyValues?.sqft_area || 1000}</div>
+                                <div className="text-lg font-bold">{post?.listing?.propertyValues?.sqft_area || 1000}</div>
                                 <div className="text-xs text-gray-400">sqft Area</div>
                             </div>
                             <div className="flex flex-col items-center">
-                                <div className="text-lg font-bold">{post.listing.propertyValues?.bedroom || 2}</div>
+                                <div className="text-lg font-bold">{post?.listing?.propertyValues?.bedroom || 2}</div>
                                 <div className="text-xs text-gray-400">Bedrooms</div>
                             </div>
                         </div>
 
                         <div className="flex flex-wrap gap-2 mt-4">
-                            {post.post.tags.length > 0
+                            {post?.post.tags.length > 0
                                 ? post.post.tags.slice(0, 3).map((tag) => (
                                     <span key={tag} className="px-3 py-1 rounded-full bg-gray-800 text-sm">
                                         {tag}
@@ -182,7 +182,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     {/* About */}
                     <div>
                         <h2 className="font-semibold text-lg">About Property</h2>
-                        <p className="text-gray-300 text-sm mt-1">{post.post.description || "No description available"}</p>
+                        <p className="text-gray-300 text-sm mt-1">{post?.post?.description || "No description available"}</p>
                     </div>
 
                     {/* Builder */}
@@ -196,7 +196,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                                 className="w-12 h-12 rounded-full object-cover"
                             />
                             <div>
-                                <p className="font-semibold">{post.user.name || "Unknown Builder"}</p>
+                                <p className="font-semibold">{post?.user?.name || "Unknown Builder"}</p>
                                 <p className="text-green-400 text-xs">Builder</p>
                                 <div className="flex items-center text-yellow-400 text-sm">
                                     <span>4.0</span>
@@ -221,18 +221,18 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     <div>
                         <div className="flex gap-3 mb-2">
                             <button className="px-4 py-1 rounded-full bg-gray-800 text-sm">All</button>
-                            <button className="px-4 py-1 rounded-full bg-gray-800 text-sm">{`${post.listing.propertyValues?.bedroom || 1
+                            <button className="px-4 py-1 rounded-full bg-gray-800 text-sm">{`${post?.listing?.propertyValues?.bedroom || 1
                                 } BHK`}</button>
                         </div>
 
                         <div className="bg-gray-900 p-3 rounded-xl flex justify-between">
                             <div>
                                 <p className="text-sm text-gray-400">Super Area</p>
-                                <p className="text-white text-sm">{`${post.listing.propertyValues?.sqft_area || 100} Sqft | ${post.listing.propertyValues?.bedroom || 1
+                                <p className="text-white text-sm">{`${post?.listing?.propertyValues?.sqft_area || 100} Sqft | ${post?.listing?.propertyValues?.bedroom || 1
                                     } BHK`}</p>
-                                <p className="text-white text-sm">₹{post.listing.pricing.amount.toLocaleString() || "N/A"} Onwards</p>
-                                <p className="text-white text-sm">₹{(post.listing.pricing.amount / 100).toLocaleString()} EMI</p>
-                                <p className="text-gray-400 text-xs">{new Date(post.post.created_at).toLocaleDateString() || "Aug 2025"}</p>
+                                <p className="text-white text-sm">₹{post?.listing?.pricing?.amount.toLocaleString() || "N/A"} Onwards</p>
+                                <p className="text-white text-sm">₹{(post?.listing?.pricing?.amount / 100).toLocaleString()} EMI</p>
+                                <p className="text-gray-400 text-xs">{new Date(post?.post?.created_at).toLocaleDateString() || "Aug 2025"}</p>
                                 <a href="#" className="underline text-sm mt-2 inline-block">
                                     See all properties
                                 </a>
@@ -292,23 +292,23 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                             <span>Project Status</span>
                             <span className="font-semibold">New/Under Construction</span>
                             <span>Possession Date</span>
-                            <span className="font-semibold">{new Date(post.post.created_at).toLocaleDateString() || "2025-08-21"}</span>
+                            <span className="font-semibold">{new Date(post?.post.created_at).toLocaleDateString() || "2025-08-21"}</span>
                             <span>Towers / Blocks</span>
                             <span className="font-semibold">10</span>
                             <span>Total Units</span>
                             <span className="font-semibold">1000 Units</span>
                             <span>Project Area</span>
-                            <span className="font-semibold">{post.listing.propertyValues?.sqft_area || 1000} Acres</span>
+                            <span className="font-semibold">{post?.listing?.propertyValues?.sqft_area || 1000} Acres</span>
                             <span>Unit Size Range</span>
-                            <span className="font-semibold">{post.listing.propertyValues?.sqft_area || 1000} sq.ft</span>
+                            <span className="font-semibold">{post?.listing?.propertyValues?.sqft_area || 1000} sq.ft</span>
                             <span>Price per Sq. Ft.</span>
-                            <span className="font-semibold">₹{post.listing.pricing.pricePerSqft.toLocaleString() || 10000}</span>
+                            <span className="font-semibold">₹{post?.listing?.pricing?.pricePerSqft.toLocaleString() || 10000}</span>
                             <span>Price Range</span>
-                            <span className="font-semibold">₹{post.listing.pricing.amount.toLocaleString() || 10000}</span>
+                            <span className="font-semibold">₹{post?.listing?.pricing?.amount.toLocaleString() || 10000}</span>
                             <span>Approval Authority</span>
                             <span className="font-semibold">Dhdhd</span>
                             <span>Unit Types</span>
-                            <span className="font-semibold">{`${post.listing.propertyValues?.bedroom || 1} BHK`}</span>
+                            <span className="font-semibold">{`${post?.listing?.propertyValues?.bedroom || 1} BHK`}</span>
                             <span>Facing Direction</span>
                             <span className="font-semibold">North-West</span>
                             <span>Age of Property</span>
@@ -336,11 +336,11 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         <div className="space-y-2 text-gray-300 text-sm">
                             <div className="flex justify-between">
                                 <span>Built by</span>
-                                <span className="text-white font-medium">{post.user.name || "Shree"}</span>
+                                <span className="text-white font-medium">{post?.user?.name || "Shree"}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Year built</span>
-                                <span className="text-white font-medium">{new Date(post.post.created_at).getFullYear() || 2020}</span>
+                                <span className="text-white font-medium">{new Date(post?.post?.created_at).getFullYear() || 2020}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Total units</span>
@@ -377,7 +377,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     {/* Location Info */}
                     <div className="p-4 border-b border-neutral-800 space-y-2">
                         <div className="flex items-center gap-2 text-gray-300">
-                            <MapPin size={18} /> <span>{post.listing.location.address || "Rajasthan, India"}</span>
+                            <MapPin size={18} /> <span>{post?.listing?.location?.address || "Rajasthan, India"}</span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                             <Clock size={18} /> <span>10 mins to Metro</span>
