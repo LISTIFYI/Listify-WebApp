@@ -11,7 +11,7 @@ export function Sidebar() {
     const navItems = [
         { name: "Properties", href: "/", icon: Home },
         { name: "Explore Reels", href: "/explore/", icon: PlayCircle },
-        { name: "Projects", href: "/projects", icon: Building2 },
+        // { name: "Projects", href: "/projects", icon: Building2 },
     ]
 
     return (
