@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { CiHeart, CiBookmark, CiShare2 } from "react-icons/ci";
-import { Bath, BedDouble, BrickWall, Eye, MessageCircle, Sofa, TriangleRight } from "lucide-react";
+import { Bath, BedDouble, BrickWall, Eye, Heart, MessageCircle, Play, Sofa, TriangleRight } from "lucide-react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { usePostContext } from "@/lib/postContext";
@@ -225,7 +225,7 @@ const Home = () => {
   };
 
   return (
-    <div className="w-[100%] py-4 ">
+    <div className="w-[100%] py-4">
       <div className="lg:px-6 px-4 flex w-full overflow-x-auto gap-2 no-scrollbar">
         {tags.map((tag, index) => (
           <div
@@ -252,7 +252,7 @@ const Home = () => {
               key={post.post.id}
               className="rounded-[20px] cursor-pointer"
             >
-              <div className="h-[460px] rounded-[14px] relative overflow-hidden">
+              <div className="h-[420px] rounded-[14px] relative overflow-hidden">
                 <Image
                   className="object-cover w-full h-full"
                   alt={post?.post.title || "Property image"}
@@ -260,16 +260,20 @@ const Home = () => {
                   width={300}
                   height={460}
                 />
-                <h2 className="absolute top-4 left-4 bg-white px-2 py-0.5 rounded-full text-black text-[8px]">
-                  Sponsored
+
+                {/* {
+                  post?.post.view_count > 0 && */}
+                <h2 className="absolute top-2 font-[600] text-[16px] flex flex-row items-center gap-2  left-1 px-2 py-0.5 rounded-full text-white">
+                  <Play size={18} color="#fff" /> {post?.post.view_count || 0}
                 </h2>
+                {/* } */}
                 <div
                   style={{
                     boxShadow: "inset 0 -10px 24px -2px rgba(0, 0, 0, 0.8)",
                   }}
                   className="absolute flex flex-row gap-[10px] bottom-0 bg-opacity-80 backdrop-blur-[2px] w-full left-0 items-center px-4 py-2 text-black text-[8px]"
                 >
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
+                  {/* <div className="flex flex-row gap-[4px] justify-center items-center">
                     <CiHeart color="#fff" size={18} />
                     <h1 className="text-white text-[12px]">{post?.post?.like_count || 0}</h1>
                   </div>
@@ -288,24 +292,57 @@ const Home = () => {
                   <div className="flex flex-row gap-[4px] justify-center items-center">
                     <Eye color="#fff" size={12} />
                     <h1 className="text-white text-[12px]">{post?.post.view_count || 0}</h1>
+                  </div> */}
+                  <div className="flex flex-row gap-[4px] justify-center items-center">
+                    <BedDouble color="#fff" size={18} />
+                    <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.bedroom || 0}</h1>
                   </div>
+
+                  <div className="flex flex-row gap-[4px] justify-center items-center">
+                    <Bath color="#fff" size={14} />
+                    <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.bathroom || 0}</h1>
+                  </div>
+
+                  <div className="flex flex-row gap-[4px] justify-center items-center">
+                    <Sofa color="#fff" size={16} />
+                    <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.hall || 0}</h1>
+                  </div>
+
+                  <div className="flex flex-row gap-[4px] justify-center items-center">
+                    <BrickWall color="#fff" size={14} />
+                    <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.totalFloor || 0}</h1>
+                  </div>
+                  {post?.listing?.propertyValues?.sqft_area &&
+                    <div className="flex flex-row gap-[4px] justify-center items-center">
+                      <TriangleRight color="#fff" size={12} />
+                      <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.sqft_area || 0}</h1>
+                    </div>
+                  }
                 </div>
               </div>
-              <div className="p-2">
-                <div className="flex flex-col gap-[2px]">
+              <div className="px-2 py-[4px]">
+                <div className="flex flex-col">
+                  {/* Left: Title + Price */}
+                  <div className="flex flex-row justify-between w-full">
+                    <h2 className="text-black w-[80%]  text-[16px] font-[600] text-ellipsis truncate">
+                      {post?.post.title || "Untitled Property"}
+                    </h2>
+                    <div className="flex w-[20%] justify-end flex-row gap-1 items-center pr-2 text-black">
+                      <Heart size={16} />
+                      <span className="text-[14px] font-medium">{post?.post.view_count || 0}</span>
+                    </div>
+                  </div>
                   {post?.listing?.pricing?.amount && (
-                    <h1 className="text-black text-[18px] font-[600] truncate text-ellipsis">
-                      ₹{post?.listing?.pricing?.amount || "N/A"}
-                    </h1>
+                    <span className="text-black text-[14px] font-[500] truncate">
+                      ₹{post?.listing?.pricing?.amount.toLocaleString("en-IN")}
+                    </span>
                   )}
-                  <h1 className="text-black text-[16px] font-[600] truncate text-ellipsis">
-                    {post?.post.title || "Untitled Property"}
-                  </h1>
-                  <h1 className="text-[#A5A5A5] text-[12px] truncate text-ellipsis">
-                    {post?.listing?.location?.address || "Address not available"}
-                  </h1>
+
+                  {/* Right: Views */}
+
                 </div>
-                <div className="flex flex-row gap-[4px] mt-[6px]">
+
+                {/* <div className="flex flex-row gap-[4px] mt-[6px]">
                   <div className="flex flex-row justify-start items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
                     <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
                       <BedDouble color="#000" size={12} />
@@ -338,7 +375,7 @@ const Home = () => {
                       <h1 className="text-black text-[12px] px-[6px]">{`${post?.listing?.propertyValues?.sqft_area ?? ""} sqft` || "N/A"}</h1>
                     </div>
                   )}
-                </div>
+                </div> */}
               </div>
             </div>
           ))}
