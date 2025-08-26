@@ -1,8 +1,8 @@
+
 import type { Metadata } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/Layout/Sidebar";
-import Header from "@/components/Layout/Header";
 import { PostProvider } from "@/lib/postContext";
+import AppShell from "@/components/Layout/AppShell";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,23 +14,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+
   return (
     <html lang="en">
       <body className="flex flex-col h-screen bg-gray-50">
         <PostProvider>
-          {/* Fixed Header */}
-          <Header />
-
-          <div className="flex flex-1 overflow-hidden">
-            {/* Fixed Sidebar */}
-            <Sidebar />
-
-            {/* Dynamic Content Area */}
-            <main className="flex-1 overflow-y-auto">
-              {children}
-            </main>
-          </div>
+          <AppShell>{children}</AppShell>
         </PostProvider>
+
       </body>
     </html>
   );

@@ -1,46 +1,61 @@
-"use client"
+// components/Layout/Sidebar.tsx
+"use client";
 
-import { Home, Building2, PlayCircle } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import clsx from "clsx"
+import { Home, PlayCircle } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import clsx from "clsx";
 
-export function Sidebar() {
-    const pathname = usePathname()
+type SidebarProps = { isCollapsed?: boolean };
 
+export function Sidebar({ isCollapsed = false }: SidebarProps) {
+    const pathname = usePathname();
     const navItems = [
         { name: "Properties", href: "/", icon: Home },
         { name: "Explore Reels", href: "/explore/", icon: PlayCircle },
-        // { name: "Projects", href: "/projects", icon: Building2 },
-    ]
+    ];
 
     return (
-        <aside className="w-64 bg-white border-r shadow-sm p-4">
+        <aside
+            className={clsx(
+                "bg-white border-r shadow-sm transition-all duration-300 ease-in-out",
+                isCollapsed ? "w-16 px-2 py-4" : "w-56 p-4" // <- smaller padding when collapsed
+            )}
+        >
             <nav className="space-y-2">
                 {navItems.map((item) => {
-                    const Icon = item.icon
-                    const isActive = pathname === item.href
-
-                    console.log("no", pathname, item.href);
-
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href;
 
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
                             className={clsx(
-                                "flex items-center gap-2 p-2 rounded-md transition-colors",
+                                "flex items-center rounded-md transition-colors",
+                                isCollapsed ? "justify-center gap-0 p-2" : "gap-2 p-2", // <- no gap when collapsed
                                 isActive
                                     ? "bg-blue-100 text-blue-600 font-medium"
                                     : "hover:bg-gray-100 text-gray-700"
                             )}
+                            aria-label={item.name}
+                            title={isCollapsed ? item.name : undefined}
                         >
-                            <Icon className="h-5 w-5" />
-                            <span>{item.name}</span>
+                            <Icon className="h-5 w-5 shrink-0" />
+
+                            {/* Label collapses width + fades, so icons stay visible */}
+                            <span
+                                className={clsx(
+                                    "whitespace-nowrap overflow-hidden transition-all duration-200",
+                                    isCollapsed ? "max-w-0 opacity-0" : "max-w-[200px] opacity-100"
+                                )}
+                            >
+                                {item.name}
+                            </span>
                         </Link>
-                    )
+                    );
                 })}
             </nav>
         </aside>
-    )
+    );
 }

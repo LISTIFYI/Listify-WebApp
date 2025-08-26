@@ -74,8 +74,8 @@ type ApiResponse = {
 };
 
 const VideoScrollingUI = () => {
-    const { selectedPost } = usePostContext();
-    console.log("selecpost", selectedPost);
+    const { selectedPost, setSelectedPost } = usePostContext();
+
 
     const [posts, setPosts] = useState<Post[]>([]);
     const [selectedVideo, setSelectedVideo] = useState<Post | null>(null);
@@ -101,16 +101,29 @@ const VideoScrollingUI = () => {
             );
 
             if (res.data.success) {
-                if (offset === 0) {
-                    setPosts(res.data.posts);
-                } else {
-                    setPosts(prev => [...prev, ...res.data.posts]);
+                let newPosts = res.data.posts;
+
+                if (selectedPost) {
+                    // Avoid duplicates
+                    newPosts = newPosts.filter(p => p.post.id !== selectedPost.post.id);
+                    // Insert selectedPost at index 0
+                    newPosts = [selectedPost, ...newPosts];
+
+                    // ✅ clear it from context after placing it
+                    setSelectedPost(null);
                 }
+
+                if (offset === 0) {
+                    setPosts(newPosts);
+                } else {
+                    setPosts(prev => [...prev, ...newPosts]);
+                }
+
                 setPagination(res.data.pagination);
 
-                // Set first video as selected if no video is selected
-                if (!selectedVideo && res.data.posts.length > 0) {
-                    setSelectedVideo(res.data.posts[0]);
+                // If no video is selected yet, pick the first one
+                if (!selectedVideo && newPosts.length > 0) {
+                    setSelectedVideo(newPosts[0]);
                 }
             }
         } catch (err) {
@@ -120,6 +133,7 @@ const VideoScrollingUI = () => {
             setLoading(false);
         }
     };
+
 
     // Load initial posts
     useEffect(() => {
