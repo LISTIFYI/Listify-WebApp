@@ -161,3 +161,28 @@
   scrollbar-color: black #f2f2f2;
   /* thumb color track color */
 }
+
+
+@media screen and (max-width: 1234px) {
+  .hideFilterTwo {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1234px) {
+  .hideFilterThree {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 976px) {
+  .hideSearchbar {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 508px) {
+  .hideFilterText {
+    display: none;
+  }
+}

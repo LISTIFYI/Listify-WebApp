@@ -7,6 +7,11 @@ import { Bath, BedDouble, BrickWall, Eye, Heart, MessageCircle, Play, Sofa, Tria
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { usePostContext } from "@/lib/postContext";
+import clsx from "clsx";
+import { RiHome6Line } from "react-icons/ri";
+import { PiBuildingOfficeThin } from "react-icons/pi";
+import { IoFilter, IoSearch } from "react-icons/io5";
+import { RxCross2 } from "react-icons/rx";
 
 // Update the Post interface
 type Post = {
@@ -128,7 +133,7 @@ const Home = () => {
       setLoading(true);
 
       const res = await axios.get<ApiResponse>(
-        `https://listifyi-api-1012443530727.asia-south1.run.app/public/posts/feed?limit=${limit}&offset=${offset}${selected ? `&tag=${selected}` : ""
+        `https://listifyi-api-1012443530727.asia-south1.run.app/public/posts/feed?limit=${limit}&offset=${offset}
         }`,
         {
           signal: abortControllerRef.current.signal
@@ -224,8 +229,69 @@ const Home = () => {
     router.push("/explore");
   };
 
+
+  const [activeToggle, setActiveToggle] = useState("All");
+
   return (
     <div className="w-[100%] py-4">
+
+      <div className="flex md:hidden lg:px-6 px-4 mb-4 mx-auto md:ml-0 flex-row gap-4 hideFilterOne ">
+        <div className="bg-[#F9FAFB]  flex flex-row justify-center items-center rounded-full p-[4px]">
+          <div
+            className={clsx(
+              "px-4 flex flex-row justify-center items-center gap-1 py-2 text-[12px] rounded-full cursor-pointer",
+              activeToggle === "All"
+                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
+                : "border-gray-300"
+            )}
+            onClick={() => setActiveToggle("All")}
+          >
+            <RiHome6Line className="text-[#989CA0]" size={14} />
+            All
+          </div>
+
+          <div
+            className={clsx(
+              "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
+              activeToggle === "Sale"
+                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
+                : "border-gray-300"
+            )}
+            onClick={() => setActiveToggle("Sale")}
+          >
+            <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
+            Sale
+          </div>
+
+          <div
+            className={clsx(
+              "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
+              activeToggle === "Resale"
+                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
+                : "border-gray-300"
+            )}
+            onClick={() => setActiveToggle("Resale")}
+          >
+            <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
+            Resale
+          </div>
+        </div>
+
+
+        <div className="border hideSearchbar rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-1.5 px-2.5 border-[#E7ECEE]">
+          <IoSearch className="text-[#989CA0]" size={14} />
+          <input
+            placeholder="Whitefield, banglore"
+            className="text-[12px] font-[400] outline-none px-0.5 border-none text-[#989CA0] placeholder:text-[#989CA0] max-w-[210px] w-[100%]"
+          />
+          <RxCross2 className="text-[#989CA0]" size={14} />
+        </div>
+
+        <div className="border rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-1.5 px-4 border-[#E7ECEE]">
+          <IoFilter className="text-[#989CA0]" size={14} />
+          <h1 className="text-[12px] hideFilterText font-[400] text-[#989CA0]">Filter</h1>
+        </div>
+      </div>
       <div className="lg:px-6 px-4 flex w-full overflow-x-auto gap-2 no-scrollbar">
         {tags.map((tag, index) => (
           <div
@@ -245,14 +311,14 @@ const Home = () => {
           <p>Loading properties...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-5 gap-x-4 lg:p-6 p-4">
+        <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 lg:p-6 p-4">
           {posts.map((post: Post) => (
             <div
               onClick={() => handleClick(post)}
               key={post.post.id}
               className="rounded-[20px] cursor-pointer"
             >
-              <div className="h-[420px] rounded-[14px] relative overflow-hidden">
+              <div className="h-[360px] rounded-[14px] relative overflow-hidden">
                 <Image
                   className="object-cover w-full h-full"
                   alt={post?.post.title || "Property image"}
@@ -324,19 +390,31 @@ const Home = () => {
                 <div className="flex flex-col">
                   {/* Left: Title + Price */}
                   <div className="flex flex-row justify-between w-full">
-                    <h2 className="text-black w-[80%]  text-[16px] font-[600] text-ellipsis truncate">
+                    <h2 className="text-black flex-1 text-[14px] font-[600] text-ellipsis truncate">
                       {post?.post.title || "Untitled Property"}
                     </h2>
-                    <div className="flex w-[20%] justify-end flex-row gap-1 items-center pr-2 text-black">
+                    {/* <div className="flex w-[20%] justify-end flex-row gap-1 items-center pr-2 text-black">
+                      <Heart size={16} />
+                      <span className="text-[14px] font-medium">{post?.post.view_count || 0}</span>
+                    </div> */}
+                    {post?.listing?.pricing?.amount && (
+                      <div className="text-black text-[14px] w-fit text-end font-[500] truncate">
+                        ₹{post?.listing?.pricing?.amount.toLocaleString("en-IN")}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex   flex-row justify-between ">
+                    <h2 className="text-black w-[80%]   text-[12px] font-[600] line-clamp-2">
+                      {post?.post?.description}
+                    </h2>
+                    <div className="flex w-[20%]  justify-end flex-row gap-1  items-start - text-black">
                       <Heart size={16} />
                       <span className="text-[14px] font-medium">{post?.post.view_count || 0}</span>
                     </div>
+
                   </div>
-                  {post?.listing?.pricing?.amount && (
-                    <span className="text-black text-[14px] font-[500] truncate">
-                      ₹{post?.listing?.pricing?.amount.toLocaleString("en-IN")}
-                    </span>
-                  )}
+
 
                   {/* Right: Views */}
 

@@ -18,7 +18,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="flex flex-col h-screen bg-gray-50">
+      <body className="flex flex-col bg-gray-50">
         <PostProvider>
           <AppShell>{children}</AppShell>
         </PostProvider>

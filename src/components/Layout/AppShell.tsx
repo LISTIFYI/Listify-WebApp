@@ -3,12 +3,13 @@
 import React, { useState } from "react";
 import Header from "./Header";
 import { Sidebar } from "./Sidebar";
+import { BottomNavigation } from "./BottomTabNavigation";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     return (
-        <div className="flex flex-col h-screen bg-gray-50">
+        <div className="flex flex-col h-[100dvh] bg-gray-50">
             <Header
                 isSidebarCollapsed={isSidebarCollapsed}
                 onToggleSidebar={() => setIsSidebarCollapsed((v) => !v)}
@@ -18,6 +19,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <Sidebar isCollapsed={isSidebarCollapsed} />
                 <main className="flex-1 overflow-y-auto">{children}</main>
             </div>
+
+            <BottomNavigation />
         </div>
     );
 }

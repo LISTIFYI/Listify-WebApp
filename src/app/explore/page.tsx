@@ -321,24 +321,24 @@ const VideoScrollingUI = () => {
     }
 
     return (
-        <div className="h-full bg-gray-950 text-white overflow-hidden py-6">
+        <div className="h-full bg-gray-950 text-white overflow-hidden md:py-6 p-0">
             <div className="flex h-full relative">
                 {/* Video Scrolling Section */}
-                <div className={`h-full transition-all duration-700 ease-out ${isDetailsOpen ? 'w-1/2' : 'w-full'}`}>
+                <div className={`h-full md:transition-all md:duration-700 md:ease-out ${isDetailsOpen ? 'w-1/2' : 'w-full'}`}>
                     <div
                         ref={scrollContainerRef}
-                        className="h-full overflow-y-auto snap-y snap-mandatory flex justify-center no-scrollbar"
+                        className="h-full   overflow-y-auto snap-y snap-mandatory flex justify-center no-scrollbar"
                     >
-                        <div className="w-[400px] space-y-4">
+                        <div className="md:max-w-[400px] w-[100%]  space-y-4">
                             {posts.map((postData) => (
                                 <div
                                     key={postData.post.id}
                                     ref={(el) => { videoRefs.current[postData.post.id] = el; }}
                                     data-video-id={postData.post.id}
-                                    className="h-full snap-start  relative group cursor-pointer rounded-xl overflow-visible"
+                                    className="h-full snap-start  relative group cursor-pointer md:rounded-xl overflow-visible"
                                 >
                                     {/* Video Element */}
-                                    <div className='relative h-full rounded-xl overflow-hidden'>
+                                    <div className='relative h-full md:rounded-xl overflow-hidden'>
                                         <video
                                             ref={(el) => { videoElementRefs.current[postData.post.id] = el; }}
                                             src={postData.post.video_url}
@@ -419,35 +419,35 @@ const VideoScrollingUI = () => {
                                             </div>
 
                                             {/* Action Buttons */}
-                                            <div className="flex flex-col space-y-3 absolute bottom-[10px] -right-[30px]">
+                                            <div className="flex flex-col space-y-3 absolute bottom-[10px] md:-right-[30px] right-2">
                                                 <div className="flex flex-col space-y-2">
                                                     <button className="duration-200 ">
-                                                        <Heart className={`w-6 h-6 ${postData.post.like_count > 0 ? 'fill-red-500 text-red-500' : ''}`} />
-                                                        <span className="text-xs">
+                                                        <Heart className={`w-8 h-8 ${postData.post.like_count > 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                                                        <span className="text-[18px]">
                                                             {formatNumber(postData.post.like_count ?? 0)}
                                                         </span>
                                                     </button>
                                                     <button className="duration-200 ">
-                                                        <MessageCircle className="w-6 h-6" />
-                                                        <span className="text-xs">
+                                                        <MessageCircle className="w-8 h-8" />
+                                                        <span className="text-[18px]">
                                                             {formatNumber(postData.post.comment_count ?? 0)}
                                                         </span>
                                                     </button>
                                                     <button className="duration-200  ">
-                                                        <EyeIcon className="w-6 h-6" />
-                                                        <span className=" text-xs">
+                                                        <EyeIcon className="w-8 h-8" />
+                                                        <span className=" text-[18px]">
                                                             {formatNumber(postData.post.view_count ?? 0)}
                                                         </span>
                                                     </button>
                                                     <button className="duration-200  ">
-                                                        <Bookmark className="w-6 h-6" />
-                                                        <span className=" text-xs">
+                                                        <Bookmark className="w-8 h-8" />
+                                                        <span className=" text-[18px]">
                                                             {formatNumber(postData.post.save_count ?? 0)}
                                                         </span>
                                                     </button>
                                                     <button className="duration-200  ">
-                                                        <Share className="w-6 h-6" />
-                                                        <span className=" text-xs">
+                                                        <Share className="w-8 h-8" />
+                                                        <span className=" text-[18px]">
                                                             {formatNumber(postData.post.share_count ?? 0)}
                                                         </span>
                                                     </button>
@@ -466,7 +466,7 @@ const VideoScrollingUI = () => {
                             )}
                         </div>
                     </div>
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex flex-col gap-2 z-10">
+                    <div className="hidden md:flex absolute right-4 top-1/2 transform -translate-y-1/2 flex-col gap-2 z-10">
                         <button
                             onClick={() => scrollToVideo('up')}
                             className="bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full p-3 transition-all duration-200 hover:scale-110"

@@ -18,8 +18,8 @@ export function Sidebar({ isCollapsed = false }: SidebarProps) {
     return (
         <aside
             className={clsx(
-                "bg-white border-r shadow-sm transition-all duration-300 ease-in-out",
-                isCollapsed ? "w-16 px-2 py-4" : "w-56 p-4" // <- smaller padding when collapsed
+                "bg-white border-r shadow-sm transition-all duration-300 ease-in-out hidden md:block",
+                isCollapsed ? "w-[53px] px-2 py-4" : "w-56 p-4" // <- smaller padding when collapsed
             )}
         >
             <nav className="space-y-2">
@@ -33,7 +33,7 @@ export function Sidebar({ isCollapsed = false }: SidebarProps) {
                             href={item.href}
                             className={clsx(
                                 "flex items-center rounded-md transition-colors",
-                                isCollapsed ? "justify-center gap-0 p-2" : "gap-2 p-2", // <- no gap when collapsed
+                                isCollapsed ? "justify-start gap-0 p-2" : "gap-2 p-2", // <- no gap when collapsed
                                 isActive
                                     ? "bg-blue-100 text-blue-600 font-medium"
                                     : "hover:bg-gray-100 text-gray-700"
@@ -41,7 +41,7 @@ export function Sidebar({ isCollapsed = false }: SidebarProps) {
                             aria-label={item.name}
                             title={isCollapsed ? item.name : undefined}
                         >
-                            <Icon className="h-5 w-5 shrink-0" />
+                            <Icon className={`h-5 w-5 shrink-0 `} />
 
                             {/* Label collapses width + fades, so icons stay visible */}
                             <span
