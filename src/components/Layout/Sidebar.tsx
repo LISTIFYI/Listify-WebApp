@@ -1,7 +1,7 @@
 // components/Layout/Sidebar.tsx
 "use client";
 
-import { Home, PlayCircle } from "lucide-react";
+import { Home, PlayCircle, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -12,7 +12,8 @@ export function Sidebar({ isCollapsed = false }: SidebarProps) {
     const pathname = usePathname();
     const navItems = [
         { name: "Properties", href: "/", icon: Home },
-        { name: "Explore Reels", href: "/explore/", icon: PlayCircle },
+        { name: "Explore", href: "/explore/", icon: PlayCircle },
+        { name: "Setting", href: "/setting/", icon: Settings },
     ];
 
     return (

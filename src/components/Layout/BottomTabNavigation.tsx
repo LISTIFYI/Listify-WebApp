@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { CgProfile } from "react-icons/cg";
+import { FaRegUser } from "react-icons/fa";
 
 interface BottomNavItem {
     id: string;
@@ -16,8 +17,8 @@ interface BottomNavItem {
 
 const navItems: BottomNavItem[] = [
     { id: "home", icon: Home, label: "Properties", href: "/" },
-    { id: "explore", icon: PlayCircle, label: "Explore Reels", href: "/explore/" },
-    { id: "settings", icon: CgProfile, label: "Settings", href: "/setting/" },
+    { id: "explore", icon: PlayCircle, label: "Explore", href: "/explore/" },
+    { id: "settings", icon: FaRegUser, label: "Settings", href: "/setting/" },
 ];
 
 export function BottomNavigation() {
