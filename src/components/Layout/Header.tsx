@@ -14,6 +14,9 @@ import { RxCross2 } from "react-icons/rx";
 import clsx from "clsx";
 import Logo from '../../assets/logo.png'
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 type HeaderProps = {
     isSidebarCollapsed?: boolean;
@@ -22,9 +25,13 @@ type HeaderProps = {
 
 const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) => {
     const [activeToggle, setActiveToggle] = useState("All");
+    const { user, openLogin, logout } = useAuth()
+    console.log("user", user);
+    const router = useRouter()
+
 
     return (
-        <div className="bg-white border border-b-[#EAEAEA]">
+        <div className="bg-white border h-[60px] border-b-[#EAEAEA]">
             <div className="flex flex-row  items-center">
                 {/* Left: Hamburger + Logo */}
                 <div className={`flex gap-3  items-center  transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[53px] justify-start" : "w-fit md:w-56 justify-between pr-4"}`}>
@@ -114,34 +121,95 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) =>
 
                     {/* Right: actions (unchanged) */}
                     <div className="flex flex-row gap-4 items-center justify-center">
-                        <div className="hideFilterTwo flex bg-[#F3F4F6] px-2 py-1.5 rounded-sm flex-row gap-2 justify-center items-center">
-                            <div className="bg-[#FEF08A] w-[20px] h-[20px] flex justify-center items-center rounded-[4px]">
-                                <IoIosCheckboxOutline color="black" size={14} />
-                            </div>
-                            <div className="text-[12px] text-black font-[400]">Post Property</div>
-                            <div className="text-[10px] text-black bg-[#25D5DB] px-[6px] rounded-[4px] py-[0.6px] font-[400]">
-                                Free
-                            </div>
-                        </div>
+                        {
+                            user &&
+                            <>
+                                <div
+                                    onClick={() => {
+                                        if (user?.roles?.includes("Builder") || user?.roles?.includes("Agent")) {
+                                            router.push("/property-listing");
+                                        } else {
+                                            router.push("/role");
+                                        }
+                                    }}
+                                    className="cursor-pointer hideFilterTwo flex bg-[#F3F4F6] px-2 py-1.5 rounded-sm flex-row gap-2 justify-center items-center">
+                                    <div className="bg-[#FEF08A] w-[20px] h-[20px] flex justify-center items-center rounded-[4px]">
+                                        <IoIosCheckboxOutline color="black" size={14} />
+                                    </div>
+                                    <div className="text-[12px] text-black font-[400]">Post Property</div>
+                                    <div className="text-[10px] text-black bg-[#25D5DB] px-[6px] rounded-[4px] py-[0.6px] font-[400]">
+                                        Free
+                                    </div>
+                                </div>
 
-                        <div className="hideFilterTwo w-[1px] bg-[#EBEBEB] h-[12px]" />
+                                <div className="hideFilterTwo w-[1px] bg-[#EBEBEB] h-[12px]" />
 
-                        <div className="hideFilterThree flex flex-row gap-2">
-                            <div className="border border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
-                                <LuMessageSquareText color="black" size={16} />
-                            </div>
-                            <div className="border border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
-                                <FiBell color="black" size={16} />
-                            </div>
-                        </div>
+                                <div className="hideFilterThree flex flex-row gap-2">
+                                    <div className="border border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
+                                        <LuMessageSquareText color="black" size={16} />
+                                    </div>
+                                    <div className="border border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
+                                        <FiBell color="black" size={16} />
+                                    </div>
+                                </div>
+                            </>
+                        }
 
-                        <div className="hideFilterThree w-[1px] bg-[#EBEBEB] h-[12px]" />
+                        {
+                            !user
+                                ? <>
+                                    <div className="hideFilterThree w-[1px] bg-[#EBEBEB] h-[12px]" />
+                                    <div
+                                        onClick={() => {
+                                            console.log("called");
 
-                        <div className="flex cursor-pointer flex-row gap-2 items-center justify-center pr-4">
-                            <div className="border overflow-hidden border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full" />
-                            <h1 className="text-[12px] md:block hidden text-black font-[700]">Vijendra Paliwal</h1>
-                            <IoChevronDown color="black" size={14} />
-                        </div>
+                                            openLogin()
+                                        }}
+                                        className="flex cursor-pointer flex-row gap-2 items-center justify-center pr-4">
+                                        <h1 className="text-[12px] md:block hidden text-black font-[700]">Login</h1>
+                                        {/* <IoChevronDown color="black" size={14} /> */}
+                                    </div>
+                                </> :
+                                <>
+                                    <div className="hideFilterThree w-[1px] bg-[#EBEBEB] h-[12px]" />
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <div className="flex cursor-pointer flex-row gap-2 items-center justify-center pr-4">
+                                                <div className="border overflow-hidden border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
+                                                    {/* Replace with user avatar if available */}
+                                                    <span className="text-[12px] font-bold">
+                                                        {user?.name?.[0] ?? "U"}
+                                                    </span>
+                                                </div>
+                                                <h1 className="text-[12px] md:block hidden text-black font-[700]">
+                                                    {user?.name}
+                                                </h1>
+                                                <IoChevronDown color="black" size={14} />
+                                            </div>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-40">
+                                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    // route to profile page
+                                                    // window.location.href = "/profile";
+                                                    router.push("/profile")
+                                                }}
+                                            >
+                                                Profile
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    logout();
+                                                }}
+                                            >
+                                                Logout
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </>
+                        }
                     </div>
                 </div>
             </div>

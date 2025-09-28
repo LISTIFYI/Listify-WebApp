@@ -1,8 +1,8 @@
-
 import type { Metadata } from "next";
 import "./globals.css";
 import { PostProvider } from "@/lib/postContext";
 import AppShell from "@/components/Layout/AppShell";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,11 +18,12 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="flex flex-col bg-gray-50">
-        <PostProvider>
-          <AppShell>{children}</AppShell>
-        </PostProvider>
-
+      <body className="flex flex-col bg-gray-50 h-screen">
+        <AuthProvider>
+          <PostProvider>
+            <AppShell>{children}</AppShell>
+          </PostProvider>
+        </AuthProvider>
       </body>
     </html>
   );

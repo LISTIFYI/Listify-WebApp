@@ -5,6 +5,8 @@ import VideoDetails from '@/components/VideoDetails/VideoDetails';
 import Image from 'next/image';
 import { usePostContext } from '@/lib/postContext';
 import axios from 'axios';
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
 
 // Update the Post interface
 type Post = {
@@ -92,6 +94,18 @@ const VideoScrollingUI = () => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const videoRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const videoElementRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+
+    const [isMobile, setIsMobile] = useState(false);
+    console.log("ismobile", isMobile);
+
+    useEffect(() => {
+        // Detect mobile based on screen width (you can refine this with UA sniffing if needed)
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
+        return () => window.removeEventListener("resize", checkMobile);
+    }, []);
+
 
     const getPosts = async (offset = 0) => {
         try {
@@ -259,6 +273,9 @@ const VideoScrollingUI = () => {
         }
     };
 
+    const [expanded, setExpanded] = useState(false);
+
+
     useEffect(() => {
         if (isDetailsOpen) {
             if (!selectedVideo || !selectedVideo.listing?.id) {
@@ -320,11 +337,14 @@ const VideoScrollingUI = () => {
         );
     }
 
+
+
+
     return (
-        <div className="h-full bg-gray-950 text-white overflow-hidden md:py-6 p-0">
+        <div className="h-full bg-white text-white overflow-hidden md:py-6 p-0">
             <div className="flex h-full relative">
                 {/* Video Scrolling Section */}
-                <div className={`h-full md:transition-all md:duration-700 md:ease-out ${isDetailsOpen ? 'w-1/2' : 'w-full'}`}>
+                <div className={`h-full md:transition-all  md:duration-700 md:ease-out  ${isDetailsOpen ? "w-1/2" : 'w-full'}`}>
                     <div
                         ref={scrollContainerRef}
                         className="h-full   overflow-y-auto snap-y snap-mandatory flex justify-center no-scrollbar"
@@ -400,52 +420,125 @@ const VideoScrollingUI = () => {
                                                     <h1 className='text-[14px] font-[500]'>{postData.user.name} <button className='text-[12px] border px-2 rounded-sm  font-semibold ml-1'>Follow</button></h1>
                                                 </div>
                                                 <h3 className="text-[16px] font-bold">{postData.post.title}</h3>
-                                                <h3 className="text-[12px] font-normal">{postData.post.description}</h3>
+                                                <div className="w-[80%] text-[12px] font-normal">
+                                                    {expanded || postData.post.description.length <= 80
+                                                        ? (
+                                                            <>
+                                                                {postData.post.description}{" "}
+                                                                {postData.post.description.length > 80 && (
+                                                                    <button
+                                                                        className="text-blue-500 font-medium"
+                                                                        onClick={() => setExpanded(false)}
+                                                                    >
+                                                                        See less
+                                                                    </button>
+                                                                )}
+                                                            </>
+                                                        )
+                                                        : (
+                                                            <>
+                                                                {postData.post.description.slice(0, 80)}{" "}
+                                                                <button
+                                                                    className="text-blue-500 font-medium"
+                                                                    onClick={() => setExpanded(true)}
+                                                                >
+                                                                    See more
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                </div>
+
+                                                {
+                                                    postData?.listing?.id &&
+                                                    <>
+                                                        {
+                                                            isMobile ?
+
+                                                                <Drawer>
+                                                                    <DrawerTrigger asChild>
+
+                                                                        {
+                                                                            postData?.listing &&
+                                                                            <Button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    if (!isMobile) {
+                                                                                        handleOpenDetails();
+                                                                                    }
+                                                                                }}
+                                                                                className="px-4 py-[10px] mt-2 bottom-0 backdrop-blur-md  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
+                                                                            >
+                                                                                View Details
+                                                                            </Button>
+                                                                        }
+                                                                        {/* <Button className="w-full">Open Drawer</Button> */}
+                                                                    </DrawerTrigger>
+                                                                    <DrawerContent showIndicator={false} className="sm:max-w-lg mx-auto overflow-hidden rounded-t-2xl">
+
+                                                                        <div className="max-h-[70vh] overflow-y-auto">
+                                                                            <VideoDetails
+                                                                                post={selectedVideo}
+                                                                                handleCloseDetails={handleCloseDetails}
+                                                                            />
+                                                                        </div>
+
+                                                                    </DrawerContent>
+                                                                </Drawer>
+                                                                :
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (!isMobile) {
+                                                                            handleOpenDetails();
+                                                                        }
+                                                                    }}
+                                                                    className="px-4 py-[10px] mt-2 bottom-0 backdrop-blur-md  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
+                                                                >
+                                                                    View Details
+                                                                </button>
+
+                                                        }
+                                                    </>
+                                                }
+
+
+
                                                 {/* {postData.post.location && (
                                                     <p className="text-[10px] text-gray-300 mt-1">📍 {postData.post.location}</p>
                                                 )} */}
-                                                {
-                                                    postData?.listing &&
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleOpenDetails();
-                                                        }}
-                                                        className="px-4 py-[10px] mt-2 bottom-0  backdrop-blur-md  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
-                                                    >
-                                                        View Details
-                                                    </button>
-                                                }
+
                                             </div>
 
+
+
                                             {/* Action Buttons */}
-                                            <div className="flex flex-col space-y-3 absolute bottom-[10px] md:-right-[30px] right-2">
-                                                <div className="flex flex-col space-y-2">
+                                            <div className="flex flex-col space-y-3 absolute bottom-[10px] md:-right-[40px] right-4">
+                                                <div className="flex flex-col space-y-6">
                                                     <button className="duration-200 ">
                                                         <Heart className={`w-8 h-8 ${postData.post.like_count > 0 ? 'fill-red-500 text-red-500' : ''}`} />
                                                         <span className="text-[18px]">
                                                             {formatNumber(postData.post.like_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200 ">
+                                                    <button className="duration-200  text-[#000]">
                                                         <MessageCircle className="w-8 h-8" />
                                                         <span className="text-[18px]">
                                                             {formatNumber(postData.post.comment_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  ">
+                                                    <button className="duration-200  text-[#000] ">
                                                         <EyeIcon className="w-8 h-8" />
                                                         <span className=" text-[18px]">
                                                             {formatNumber(postData.post.view_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  ">
+                                                    <button className="duration-200  text-[#000] ">
                                                         <Bookmark className="w-8 h-8" />
                                                         <span className=" text-[18px]">
                                                             {formatNumber(postData.post.save_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  ">
+                                                    <button className="duration-200 text-[#000]  ">
                                                         <Share className="w-8 h-8" />
                                                         <span className=" text-[18px]">
                                                             {formatNumber(postData.post.share_count ?? 0)}
@@ -454,6 +547,22 @@ const VideoScrollingUI = () => {
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div className="hidden  md:flex  fixed right-[6px] top-1/2 transform -translate-y-1/2 flex-col gap-2 z-10">
+                                        <button
+                                            onClick={() => scrollToVideo('up')}
+                                            className="bg-white/20 backdrop-blur-sm border border-slate-400  hover:bg-white/30 rounded-full p-3 transition-all duration-200 hover:scale-110"
+                                            disabled={loading}
+                                        >
+                                            <ChevronUp className="w-6 h-6 text-black" />
+                                        </button>
+                                        <button
+                                            onClick={() => scrollToVideo('down')}
+                                            className="bg-white/20 backdrop-blur-sm border border-slate-400  hover:bg-white/30 rounded-full p-3 transition-all duration-200 hover:scale-110"
+                                            disabled={loading}
+                                        >
+                                            <ChevronDown className="w-6 h-6 text-black" />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -466,36 +575,23 @@ const VideoScrollingUI = () => {
                             )}
                         </div>
                     </div>
-                    <div className="hidden md:flex absolute right-4 top-1/2 transform -translate-y-1/2 flex-col gap-2 z-10">
-                        <button
-                            onClick={() => scrollToVideo('up')}
-                            className="bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full p-3 transition-all duration-200 hover:scale-110"
-                            disabled={loading}
-                        >
-                            <ChevronUp className="w-6 h-6 text-white" />
-                        </button>
-                        <button
-                            onClick={() => scrollToVideo('down')}
-                            className="bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full p-3 transition-all duration-200 hover:scale-110"
-                            disabled={loading}
-                        >
-                            <ChevronDown className="w-6 h-6 text-white" />
-                        </button>
-                    </div>
                 </div>
 
                 {/* Details Panel */}
 
-                <div
-                    className={`h-full bg-gray-900 border-l border-gray-700 transition-transform duration-700 ease-out absolute top-0 right-0 w-1/2 ${isDetailsOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                >
-                    {selectedVideo && (
-                        <VideoDetails
-                            post={selectedVideo}
-                            handleCloseDetails={handleCloseDetails}
-                        />
-                    )}
-                </div>
+                {
+                    !isMobile &&
+                    <div
+                        className={`h-full bg-gray-900 border-l hidden md:flex border-gray-700 transition-transform duration-700 ease-out absolute top-0 w-1/2 ${isDetailsOpen ? 'translate-x-0  right-[60px]' : 'translate-x-full  right-[0px]'}`}
+                    >
+                        {selectedVideo && (
+                            <VideoDetails
+                                post={selectedVideo}
+                                handleCloseDetails={handleCloseDetails}
+                            />
+                        )}
+                    </div>
+                }
             </div>
         </div>
     );
