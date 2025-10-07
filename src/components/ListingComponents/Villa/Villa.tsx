@@ -1545,7 +1545,7 @@ const VillaForm1 = ({
                 </div>
                 <div className='flex flex-col flex-1'>
                     <label className="block text-sm font-medium text-gray-700">
-                        No of Villa's
+                        No of Villa&apos;s
                     </label>
                     <InputBox
                         name=" No of Villa's"

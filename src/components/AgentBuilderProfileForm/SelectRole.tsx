@@ -142,7 +142,7 @@ const SelectRole = ({ selectedTrue, setSelectedTrue, role, setRoleGlobally }: { 
                     :
                     <div>
                         <div className='flex flex-col gap-2 mb-2'>
-                            <h1 className='text-black font-[500] text-[18px] tracking-wide'>Let's get you started</h1>
+                            <h1 className='text-black font-[500] text-[18px] tracking-wide'>Let&apos;s get you started</h1>
                             <h2 className='text-black font-[500] text-[14px]'>Select your role</h2>
                         </div>
                         <div className="grid grid-cols-2 gap-4 max-w-3xl">

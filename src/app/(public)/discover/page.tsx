@@ -17,10 +17,57 @@ const Discover = () => {
   const [allAgents, setAllAgents] = useState<any[]>([])
   const [allBuilders, setAllBuilders] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const getLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocation({ lat: latitude, lng: longitude });
+        setLoading(false);
+        console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+        // Optional: Use this data to fetch nearby places, e.g., via an API call
+        // fetchNearbyPlaces(latitude, longitude);
+      },
+      (err) => {
+        setLoading(false);
+        switch (err.code) {
+          case err.PERMISSION_DENIED:
+            setError("Location access denied. Please enable it in browser settings.");
+            break;
+          case err.POSITION_UNAVAILABLE:
+            setError("Location information unavailable.");
+            break;
+          case err.TIMEOUT:
+            setError("Location request timed out.");
+            break;
+          default:
+            setError("An unknown error occurred.");
+        }
+      },
+      {
+        enableHighAccuracy: true, // Use GPS for better accuracy (slower)
+        timeout: 10000,           // 10 seconds max
+        maximumAge: 0,            // Always fetch fresh location (no cache)
+      }
+    );
+  };
+
+  useEffect(() => {
+    getLocation();
+  }, []);
 
 
   const getAllNearbyProperties = async () => {
-    setLoading(true);
     try {
 
       const res = await http.get(`/public/listings-v2/nearby?page=${1}&limit=${6}&lat=${Number("12.9735897")}&lng=${Number("77.7504179")}`);
@@ -31,12 +78,10 @@ const Discover = () => {
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     } finally {
-      setLoading(false);
     }
   };
 
   const getAllAgents = async () => {
-    setLoading(true)
     try {
       const res = await http.get(`/public/agents?page=${1}&limit=${6}`)
       const newAgents = res?.data?.agents || []
@@ -44,12 +89,10 @@ const Discover = () => {
     } catch (err) {
       console.error('Failed to fetch agents:', err)
     } finally {
-      setLoading(false)
     }
   }
 
   const getAllBuilders = async () => {
-    setLoading(true)
     try {
       const res = await http.get(`/public/builders?page=${1}&limit=${6}`)
       const newBuilders = res?.data?.builders || []
@@ -57,15 +100,17 @@ const Discover = () => {
     } catch (err) {
       console.error('Failed to fetch builders:', err)
     } finally {
-      setLoading(false)
     }
   }
 
   useEffect(() => {
+    setLoading(true)
     getAllNearbyProperties()
     getAllAgents()
     getAllBuilders()
-  }, [])
+    setLoading(false)
+
+  }, [location])
   const data = [
     { name: "John" },
     { name: "Anj" },
@@ -148,98 +193,101 @@ const Discover = () => {
 
   return (
     <div className="grid grid-cols-1 px-4 py-4 h-full overflow-y-auto flex-col ">
-      <div className=" ">
-        <div className="relative mx-auto ">
-          <div className="flex flex-row justify-between items-center py-0.5">
-            <h1 className="text-2xl font-semibold text-black">Nearby Properties</h1>
-            <button className="text-black hover:text-gray-800 duration-300 transition-all text-[16px] cursor-pointer"
-              onClick={() => router.push("/nearby-properties")}
+      {
+        !!allNearbyProperties.length &&
+        <div className=" ">
+          <div className="relative mx-auto ">
+            <div className="flex flex-row justify-between items-center py-0.5">
+              <h1 className="text-2xl font-semibold text-black">Nearby Properties</h1>
+              <button className="text-black hover:text-gray-800 duration-300 transition-all text-[16px] cursor-pointer"
+                onClick={() => router.push("/nearby-properties")}
 
-            >See All</button>
-          </div>
-          <Swiper {...swiperSettings} className="mySwiper ">
-            {
-              loading ?
-                <>
-                  {Array.from({ length: 4 }).map((_, idx) => (
-                    <SwiperSlide key={idx}>
-                      <CarouselCardLoader2 />
-                    </SwiperSlide>
-                  ))}
-                </>
-
-                :
-                <>
-                  {data?.map((item, index) => (
-                    <SwiperSlide key={index}>
-                      <div
-                        className="flex  flex-col my-4 flex-1 items-center shadow-sm bg-[#fff] rounded-[30px]  overflow-hidden"
-                      >
-                        <div className="h-[260px] overflow-hidden border w-full">
-                          <img src="https://is1-3.housingcdn.com/4f2250e8/7b8debc34e219b419bc9dd59c3aea1ce/v0/fs/prestige_finsbury_park-gummanahalli-bengaluru-prestige_projects_pvt_ltd.png" className='w-full h-full' alt="" />
-                        </div>
-
-                        <div className='w-full flex flex-col gap-1 p-4'>
-                          <div className='px-2 flex flex-row justify-between items-center w-full'>
-                            <h1>$34343443</h1>
-                            <h1><Heart size={20} /></h1>
-                          </div>
-                          <div className='px-2 flex flex-row gap-1 items-center w-full mb-2'>
-                            {/* <h1>$34343443</h1> */}
-                            <MapPin size={16} color='#4B5563' />
-                            <h1 className='truncate text-ellipsis text-sm text-[#4B5563]'>Lik sjdns jdnsjdns jnsd sdnds sdjnsde</h1>
-                          </div>
-                          <button className='cursor-pointer h-10 rounded-md text-[14px] border border-[#454545] px-4 font-medium flex justify-center items-center w-full  transition-all duration-300'>
-                            View Details
-                          </button>
-                        </div>
-                        {/* <button>View Details</button> */}
-
-                      </div>
-                    </SwiperSlide>
-                  ))}
-                </>
-            }
-          </Swiper>
-          {
-            isPropertiesScrollable &&
-            <div className="flex justify-center items-center gap-4 mb-2">
-              <button className="custom-swiper-button-prev bg-[rgba(0,0,0,0.2)] hover:bg-[rgba(0,0,0,0.3)] transition-all duration-300 cursor-pointer  text-white p-2 rounded-full">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              <button className="custom-swiper-button-next bg-[rgba(0,0,0,0.2)] hover:bg-[rgba(0,0,0,0.3)] transition-all duration-300 cursor-pointer  text-white p-2 rounded-full">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
+              >See All</button>
             </div>
-          }
+            <Swiper {...swiperSettings} className="mySwiper ">
+              {
+                loading ?
+                  <>
+                    {Array.from({ length: 4 }).map((_, idx) => (
+                      <SwiperSlide key={idx}>
+                        <CarouselCardLoader2 />
+                      </SwiperSlide>
+                    ))}
+                  </>
+
+                  :
+                  <>
+                    {allNearbyProperties?.map((item, index) => (
+                      <SwiperSlide key={index}>
+                        <div
+                          className="flex  flex-col my-4 flex-1 items-center shadow-sm bg-[#fff] rounded-[30px]  overflow-hidden"
+                        >
+                          <div className="h-[260px] overflow-hidden border w-full">
+                            <img src="https://is1-3.housingcdn.com/4f2250e8/7b8debc34e219b419bc9dd59c3aea1ce/v0/fs/prestige_finsbury_park-gummanahalli-bengaluru-prestige_projects_pvt_ltd.png" className='w-full h-full' alt="" />
+                          </div>
+
+                          <div className='w-full flex flex-col gap-1 p-4'>
+                            <div className='px-2 flex flex-row justify-between items-center w-full'>
+                              <h1>$34343443</h1>
+                              <h1><Heart size={20} /></h1>
+                            </div>
+                            <div className='px-2 flex flex-row gap-1 items-center w-full mb-2'>
+                              {/* <h1>$34343443</h1> */}
+                              <MapPin size={16} color='#4B5563' />
+                              <h1 className='truncate text-ellipsis text-sm text-[#4B5563]'>Lik sjdns jdnsjdns jnsd sdnds sdjnsde</h1>
+                            </div>
+                            <button className='cursor-pointer h-10 rounded-md text-[14px] border border-[#454545] px-4 font-medium flex justify-center items-center w-full  transition-all duration-300'>
+                              View Details
+                            </button>
+                          </div>
+                          {/* <button>View Details</button> */}
+
+                        </div>
+                      </SwiperSlide>
+                    ))}
+                  </>
+              }
+            </Swiper>
+            {
+              isPropertiesScrollable &&
+              <div className="flex justify-center items-center gap-4 mb-2">
+                <button className="custom-swiper-button-prev bg-[rgba(0,0,0,0.2)] hover:bg-[rgba(0,0,0,0.3)] transition-all duration-300 cursor-pointer  text-white p-2 rounded-full">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <button className="custom-swiper-button-next bg-[rgba(0,0,0,0.2)] hover:bg-[rgba(0,0,0,0.3)] transition-all duration-300 cursor-pointer  text-white p-2 rounded-full">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
         </div>
-      </div>
+      }
       {
         !!allAgents?.length &&
 

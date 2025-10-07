@@ -1,9 +1,7 @@
-// src/lib/http.ts
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { tokenStore } from './token';
 
 const API_BASE = 'https://listifyi-api-dev-1012443530727.asia-south1.run.app';
-// https://listifyi-api-dev-1012443530727.asia-south1.run.app
 
 let isRefreshing = false;
 let pendingQueue: Array<{
@@ -12,16 +10,16 @@ let pendingQueue: Array<{
 }> = [];
 
 function resolveQueue(token: string) {
-    pendingQueue.forEach(p => p.resolve(token));
+    pendingQueue.forEach((p) => p.resolve(token));
     pendingQueue = [];
 }
 
 function rejectQueue(err: unknown) {
-    pendingQueue.forEach(p => p.reject(err));
+    pendingQueue.forEach((p) => p.reject(err));
     pendingQueue = [];
 }
 
-// Helper to handle token refresh headers (mimicking useApi's handleTokenRefreshHeaders)
+// Helper to handle token refresh headers
 const handleTokenRefreshHeaders = (response: AxiosResponse) => {
     const headers = response.headers ?? {};
     const refreshed = String(headers['x-token-refreshed'] ?? '').trim().toLowerCase() === 'true';
@@ -52,17 +50,15 @@ export const http: AxiosInstance = axios.create({
 http.interceptors.request.use((config) => {
     const tokens = tokenStore.get();
     if (tokens?.accessToken) {
-        config.headers = {
-            ...config.headers,
-            Authorization: `Bearer ${tokens.accessToken}`,
-        };
+        // Use set method to update headers
+        config.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
     }
     return config;
 });
 
 http.interceptors.response.use(
     async (res) => {
-        // Check for refreshed tokens in successful responses (like useApi)
+        // Check for refreshed tokens in successful responses
         await handleTokenRefreshHeaders(res);
         return res;
     },
@@ -74,17 +70,14 @@ http.interceptors.response.use(
         if (status === 401 && !original?._retry) {
             original._retry = true;
 
-            // Check if the error response includes refreshed tokens (like useApi)
+            // Check if the error response includes refreshed tokens
             if (error.response && handleTokenRefreshHeaders(error.response)) {
                 // Tokens were refreshed in headers, retry with new tokens
-                original.headers = {
-                    ...original.headers,
-                    Authorization: `Bearer ${tokenStore.get()?.accessToken}`,
-                };
+                original.headers.set('Authorization', `Bearer ${tokenStore.get()?.accessToken}`);
                 return http(original);
             }
 
-            // Fallback to explicit refresh token request (existing http.ts behavior)
+            // Fallback to explicit refresh token request
             const currentTokens = tokenStore.get();
             if (!currentTokens?.refreshToken) {
                 tokenStore.clear();
@@ -99,7 +92,7 @@ http.interceptors.response.use(
                 return new Promise((resolve, reject) => {
                     pendingQueue.push({
                         resolve: (token) => {
-                            original.headers = { ...original.headers, Authorization: `Bearer ${token}` };
+                            original.headers.set('Authorization', `Bearer ${token}`);
                             resolve(http(original));
                         },
                         reject,
@@ -109,7 +102,7 @@ http.interceptors.response.use(
 
             isRefreshing = true;
             try {
-                // Call refresh endpoint (adjust to your API contract)
+                // Call refresh endpoint
                 const resp = await axios.post(`${API_BASE}/auth/refresh_token`, {
                     refreshToken: currentTokens.refreshToken,
                 });
@@ -117,7 +110,7 @@ http.interceptors.response.use(
                 const { accessToken, refreshToken, accessExp, refreshExp } = resp.data;
                 tokenStore.set({ accessToken, refreshToken, accessExp, refreshExp });
                 resolveQueue(accessToken);
-                original.headers = { ...original.headers, Authorization: `Bearer ${accessToken}` };
+                original.headers.set('Authorization', `Bearer ${accessToken}`);
                 return http(original);
             } catch (refreshErr) {
                 rejectQueue(refreshErr);

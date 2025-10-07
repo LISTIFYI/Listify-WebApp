@@ -598,7 +598,7 @@ const Testing = () => {
                 <ChipList amenities={option3} onChange={handleSelectionChangeChip} />
             </div>
 
-            <BasicDetails />
+            {/* <BasicDetails /> */}
         </div>
     );
 };

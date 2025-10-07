@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Home, PlayCircle, Settings } from "lucide-react";
+import { Home, PlayCircle, Search, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -18,7 +18,8 @@ interface BottomNavItem {
 const navItems: BottomNavItem[] = [
     { id: "home", icon: Home, label: "Properties", href: "/" },
     { id: "explore", icon: PlayCircle, label: "Explore", href: "/explore/" },
-    { id: "settings", icon: FaRegUser, label: "Settings", href: "/setting/" },
+    { id: "discover", icon: FaRegUser, label: "Settings", href: "/setting/" },
+    { id: "settings", icon: Search, label: "Settings", href: "/setting/" },
 ];
 
 export function BottomNavigation() {

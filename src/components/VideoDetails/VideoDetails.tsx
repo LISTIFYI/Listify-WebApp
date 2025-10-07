@@ -139,7 +139,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
         }
     }, [post?.listing?.id]);
 
-    let combinedMedia: any = [];
+    const combinedMedia: any[] = [];
 
     if (dataDetails?.media) {
         console.log(dataDetails?.media?.videos);
@@ -154,8 +154,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
         if (dataDetails.media.images) {
             combinedMedia.push(...dataDetails.media.images.map((image: any) => ({ type: 'image', content: image })));
         }
-    }
-
+    } ``
     console.log("p[[[[", combinedMedia);
 
     const images = [
@@ -434,16 +433,18 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                                 >
                                     All
                                 </button>
-                                {bhkTypes?.map((bhk: string) => (
-                                    <button
-                                        key={bhk}
-                                        className={`px-4 py-1 rounded-full text-sm cursor-pointer ${selectedBHK === bhk ? 'bg-blue-600 text-white' : 'bg-gray-800 text-white'
-                                            }`}
-                                        onClick={() => setSelectedBHK(bhk)}
-                                    >
-                                        {bhk}
-                                    </button>
-                                ))}
+                                <div>
+                                    {bhkTypes?.map((bhk: any) => (
+                                        <button
+                                            key={bhk}
+                                            className={`px-4 py-1 rounded-full text-sm cursor-pointer ${selectedBHK === bhk ? 'bg-blue-600 text-white' : 'bg-gray-800 text-white'
+                                                }`}
+                                            onClick={() => setSelectedBHK(bhk)}
+                                        >
+                                            {bhk}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             <div className="p-4 border-b border-neutral-800 relative pb-[80px]">

@@ -45,7 +45,7 @@ const PropetiesCard = ({ item, onDelete }: any) => {
                                 <DialogHeader>
                                     <DialogTitle>Confirm Deletion</DialogTitle>
                                     <DialogDescription>
-                                        Are you sure you want to delete the property "{item.propertyName || 'this property'}"? This action cannot be undone.
+                                        Are you sure you want to delete the property &quot;{item.propertyName || 'this property'}&quot;? This action cannot be undone.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <DialogFooter>
@@ -70,7 +70,6 @@ const PropetiesCard = ({ item, onDelete }: any) => {
                     !!item?.media?.images?.length ?
                         <img alt={item.propertyName} src={item?.media?.images[0]} className='w-full h-full object-cover' />
                         :
-                        // <img alt={item.propertyName} src={"https://www.google.com/search?q=no+image+available&sca_esv=861dc178219c5a10&rlz=1C1CHBD_enIN1130IN1130&udm=2&biw=1536&bih=826&sxsrf=AE3TifMxZIoal2kHiaImoRtZJoArqduTsw%3A1759024201967&ei=SZTYaP_qOpmG4-EPtdjn8QI&oq=no+image+av&gs_lp=Egtnd3Mtd2l6LWltZyILbm8gaW1hZ2UgYXYqAggAMgoQABiABBhDGIoFMgoQABiABBhDGIoFMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgARI1AtQb1iKBXABeACQAQCYAfEBoAHRBKoBBTAuMi4xuAEByAEA-AEBmAIEoAL8BMICDRAAGIAEGLEDGEMYigXCAgYQABgHGB6YAwCIBgGSBwUxLjIuMaAHmxCyBwUwLjIuMbgH7QTCBwUyLTIuMsgHIQ&sclient=gws-wiz-img#vhid=adRgxP47ko1kpM&vssid=mosaic"} className='w-full h-full object-cover' />
                         <div className='bg-gray-200 w-full h-full flex flex-col justify-center items-center'>
                             <ImageOff className='text-gray-400' size={42} />
                             <h1 className='text-sm font-medium text-gray-400 '>No Image Available</h1>

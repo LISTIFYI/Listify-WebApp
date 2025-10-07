@@ -26,6 +26,7 @@ import { useAuth } from '@/context/AuthContext';
 import ContactForm from '@/components/Forms/ContacFormCommon';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { http } from '@/lib/http';
 
 
 // Interface for form data
@@ -881,7 +882,7 @@ const Flat = ({
                 videos: galleryFiles.filter((url: any) =>
                     url.match(/\.(mp4|mov|avi|mkv|webm)$/i)
                 ),
-                floorPlan: brochure
+                floorPlan: [brochure]
             }
         };
 
@@ -890,10 +891,10 @@ const Flat = ({
             description: formData.description,
             video_url: coverVideo,
             thumbnail_url: "",
-            duration_seconds: coverVideo?.duration,
-            tags: "#jignes",
-            mentions: ["user123", "user456"],
-            visibility: "PUBLIC",
+            duration_seconds: 4,
+            // tags: "#jignes",
+            // mentions: ["user123", "user456"],
+            // visibility: "PUBLIC",
             //   location: location.formatted || "Udaipur, Rajasthan - IN",
             comments_disabled: false,
             //   ...(draft === 'DRAFT' ? { status: 'DRAFT' } : { status: 'PUBLISHED' }),
@@ -907,7 +908,7 @@ const Flat = ({
             if (formDataa.entityType) {
 
                 // Flow with formData: Create listing and post
-                const listingRes = await axios.post<any>(`https://listifyi-dev-api-1012443530727.asia-south1.run.app/listings-v2`, formDataa, {
+                const listingRes = await http.post(`/listings-v2`, formDataa, {
                     headers: {
                         Authorization: `Bearer ${tk?.accessExp}`
                     }
@@ -918,7 +919,7 @@ const Flat = ({
                     throw new Error("Failed to retrieve listing ID");
                 }
 
-                const postResponse = await axios.post<any>(`https://listifyi-dev-api-1012443530727.asia-south1.run.app/posts`, payload,
+                const postResponse = await http.post(`/posts`, payload,
                     {
                         headers: {
                             Authorization: `Bearer ${tk?.accessExp}`
@@ -935,8 +936,7 @@ const Flat = ({
                     postIds: [postId],
                 };
 
-                await axios.post<any>(
-                    `/listings-v2/${listingId}/attach-posts`,
+                await http.post(`/listings-v2/${listingId}/attach-posts`,
                     listingPayload, {
                     headers: {
                         Authorization: `Bearer ${tk?.accessExp}`
@@ -946,7 +946,7 @@ const Flat = ({
                 router.push("/properties/")
             } else {
                 // Flow without formData: Create post only
-                const postResponse = await axios.post<any>(`https://listifyi-api-1012443530727.asia-south1.run.app/posts`, payload, {
+                const postResponse = await http.post(`/posts`, payload, {
                     headers: {
                         Authorization: `Bearer ${tk?.accessExp}`
 
@@ -979,28 +979,47 @@ const Flat = ({
     return (
         <>
             <div className='h-full'>
+                {
+                    formCount === 6 &&
+                    <div className='shadow-sm h-full gap-6 flex flex-row '>
+                        <div className="flex flex-1 p-4">
+                            <div className="flex-1 w-full  flex flex-col">
+                                <div className=" flex-1  flex items-center justify-center">
+                                    <div className='w-[300px] h-full rounded-sm overflow-hidden'>
+                                        <video src={coverVideo} className='w-full h-full object-cover'></video>
+                                    </div>
+                                </div>
 
-                <div className='shadow-sm h-full gap-6 flex flex-row '>
-                    <div className="flex flex-1 p-4">
-                        <div className="border  flex-1 w-full  flex flex-col">
-                            <div className=" flex-1  border flex items-center justify-center">
-                                <div className='w-[300px] border-[4px]'>
-
+                                <div className="flex flex-col gap-2 p-4">
+                                    <h1 className="text-sm font-normal text-black">{formData?.propertyName}</h1>
+                                    <h1 className="text-sm font-normal text-black">{formData?.description}</h1>
+                                    <h1 className="text-sm font-normal text-black">{formData?.address}</h1>
+                                    {/* <h1 className="text-sm font-normal text-black">Tags</h1> */}
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="flex flex-col gap-2 p-4 border-t">
-                                <h1 className="text-sm font-normal text-black">Property Name</h1>
-                                <h1 className="text-sm font-normal text-black">Description</h1>
-                                <h1 className="text-sm font-normal text-black">Location</h1>
-                                <h1 className="text-sm font-normal text-black">Tags</h1>
+                        <div className='flex flex-1 flex-col border-l p-4'>
+                            <div className=" flex-1  flex items-center justify-center">
+
+                                <div className='w-[300px] bg-gray-200 flex-row overflow-x-auto h-full rounded-sm overflow-hidden'>
+                                    {/* {
+    galleryFiles.images.map(()=>{
+
+    })
+} */}
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-2 p-4">
+                                <h1 className="text-sm font-normal text-black">{formData?.propertyName}</h1>
+                                <h1 className="text-sm font-normal text-black">{formData?.description}</h1>
+                                <h1 className="text-sm font-normal text-black">${priceRange}</h1>
+                                {/* <h1 className="text-sm font-normal text-black">Tags</h1> */}
                             </div>
                         </div>
+
                     </div>
-
-                    <div className='flex flex-1 border-l p-4'>Your Listing</div>
-
-                </div>
+                }
                 {
                     Number(formCount) === Number(2) &&
                     <div className=''>
@@ -1216,7 +1235,7 @@ const Flat = ({
                         if (formCount < totalSteps) {
                             setFormCount((prev: any) => prev + 1);
                         } else {
-                            setIsDialogOpen(true);
+                            handleSubmits();
                         }
                     }}
                     title={formCount < totalSteps ? "Next" : "Continue"}
@@ -2987,10 +3006,10 @@ const FormDetailsFour = ({
     )
 }
 
-const MediaUploadForm = () => {
-    return (
-        <div>
-            <MediaUpload />
-        </div>
-    )
-}
+// const MediaUploadForm = () => {
+//     return (
+//         <div>
+//             <MediaUpload />
+//         </div>
+//     )
+// }

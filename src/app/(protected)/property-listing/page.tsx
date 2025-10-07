@@ -29,8 +29,8 @@ const ListingPage = () => {
             placeholder: 'Select entity type',
             options: [
                 { value: "flat", label: "Flat" },
-                { value: "villa", label: "Villa" },
-                { value: "plot", label: "Plot" },
+                // { value: "villa", label: "Villa" },
+                // { value: "plot", label: "Plot" },
             ],
         },
     ]
@@ -197,7 +197,7 @@ const ListingProgress = ({ animatedProgress }: { animatedProgress: number }) => 
             {/* Progress Bar */}
             <div className="h-3 bg-gray-200 rounded-full overflow-hidden relative shadow-inner">
                 <motion.div
-                    className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+                    className="h-full bg-gradient-to-r from-black via-gray-700 to-gray-500 shadow-[0_0_10px_#444]"
                     initial={{ width: 0 }}
                     animate={{ width: `${animatedProgress}%` }}
                     transition={{ duration: 0.8, ease: "easeInOut" }}
