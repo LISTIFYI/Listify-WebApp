@@ -1,52 +1,54 @@
-// components/Layout/Sidebar.tsx
 "use client";
 
-import { Home, PlayCircle, Bell, Send, UserStar, List } from "lucide-react";
+import { Home, PlayCircle, Bell, Send, UserStar, List, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 
-type SidebarProps = { isCollapsed?: boolean };
 
-export function Sidebar({ isCollapsed = false }: SidebarProps) {
+type SidebarProps = {
+    isCollapsed?: boolean,
+    setIsSheetOpen: (value: boolean) => void,
+    isSheetOpen: boolean
+};
+
+export function Sidebar({ isCollapsed = false, isSheetOpen, setIsSheetOpen }: SidebarProps) {
     const { isAdmin, toggleAdminMode } = useAuth();
-    console.log("Sidebar isAdmin:", isAdmin); // Debug isAdmin value
-    console.log("Sidebar toggleAdminMode:", toggleAdminMode); // Debug toggle function
-    const [loading, setLoading] = useState(false)
+    console.log("Sidebar isAdmin:", isAdmin);
+    console.log("Sidebar toggleAdminMode:", toggleAdminMode);
+    const [loading, setLoading] = useState(false);
 
     const pathname = usePathname();
-    const router = useRouter()
+    const router = useRouter();
     const navItems = [
         { name: "Properties", href: "/", icon: Home },
         { name: "Explore", href: "/explore/", icon: PlayCircle },
         { name: "Messages", href: "/messages/", icon: Send },
-        { name: "Notification", href: "/notifications/", icon: Bell },
+        { name: "Discover", href: "/discover/", icon: Search },
     ];
 
     const navItems2 = [
         { name: "Dashboard", href: "/dashboard/", icon: Home },
         { name: "Properties", href: "/properties/", icon: List },
         { name: "Messages", href: "/messages/", icon: Send },
-        { name: "Notification", href: "/notifications/", icon: Bell },
     ];
 
     const activeNavItems = isAdmin ? navItems2 : navItems;
-    console.log("Sidebar activeNavItems:", activeNavItems); // Debug activeNavItems
+    console.log("Sidebar activeNavItems:", activeNavItems);
 
     return (
         <aside
             className={clsx(
-                "bg-white border-r shadow-sm transition-all duration-300 ease-in-out hidden md:block",
-                isCollapsed ? "w-[53px] px-2 py-4" : "w-56 p-4"
+                "bg-white z-20 border-r shadow-sm transition-all duration-300 ease-in-out hidden md:block",
+                isCollapsed ? "w-[64px] px-2 py-4" : "w-56 p-4"
             )}
         >
             <nav className="space-y-2">
                 {activeNavItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href;
-
                     return (
                         <Link
                             key={item.href}
@@ -61,7 +63,7 @@ export function Sidebar({ isCollapsed = false }: SidebarProps) {
                             aria-label={item.name}
                             title={isCollapsed ? item.name : undefined}
                         >
-                            <Icon className="h-5 w-5 shrink-0" />
+                            <Icon className="h-5 w-5 shrink-0 z-20" />
                             <span
                                 className={clsx(
                                     "whitespace-nowrap overflow-hidden transition-all duration-200",
@@ -78,20 +80,18 @@ export function Sidebar({ isCollapsed = false }: SidebarProps) {
                 <button
                     onClick={() => {
                         console.log("Toggle button clicked, isAdmin before:", isAdmin);
-                        setLoading(true)
+                        setLoading(true);
                         if (!isAdmin) {
                             setTimeout(() => {
                                 toggleAdminMode();
-                                setLoading(false)
-                                router.push("/dashboard/")
-
+                                setLoading(false);
+                                router.push("/dashboard/");
                             }, 500);
                         } else {
                             setTimeout(() => {
                                 toggleAdminMode();
-                                setLoading(false)
-                                router.push("/")
-
+                                setLoading(false);
+                                router.push("/");
                             }, 500);
                         }
                         console.log("Toggle button clicked, isAdmin after:", isAdmin);
@@ -112,6 +112,8 @@ export function Sidebar({ isCollapsed = false }: SidebarProps) {
                     </h1>
                 </button>
             </div>
+
+
         </aside>
     );
 }

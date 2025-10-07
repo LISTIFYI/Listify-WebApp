@@ -55,12 +55,12 @@ const MediaUpload = ({ setCoverVideo, setGalleryFiles, coverVideo, galleryFiles,
                 <div className="flex text-sm items-center gap-2 mb-3 font-semibold">
                     <Video className="w-4 h-4" />Upload Property Walkthrough Video
                 </div>
-                <div className="flex flex-col items-center justify-center text-center space-y-3">
+                <div className="flex flex-col items-center  h-[300px] justify-center text-center space-y-3">
                     {coverVideo ? (
                         <video
                             src={coverVideo}
                             controls
-                            className="w-full h-[300px] rounded-lg object-cover"
+                            className="w-full h-[260px] rounded-lg object-cover"
                         />
                     ) : (
                         <div className="text-sm text-muted-foreground ">

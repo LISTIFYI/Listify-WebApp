@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Heart, MessageCircle, Share, EyeIcon, Bookmark, ChevronUp, ChevronDown } from 'lucide-react';
+import { Play, Heart, MessageCircle, Share, EyeIcon, Bookmark, ChevronUp, ChevronDown, Minimize2, Maximize2 } from 'lucide-react';
 import VideoDetails from '@/components/VideoDetails/VideoDetails';
 import Image from 'next/image';
 import { usePostContext } from '@/lib/postContext';
@@ -90,6 +90,7 @@ const VideoScrollingUI = () => {
         offset: 0
     });
     const [userPausedVideos, setUserPausedVideos] = useState<Set<string>>(new Set());
+    const [fullScreenVideoId, setFullScreenVideoId] = useState<string | null>(null);
 
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const videoRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -171,6 +172,34 @@ const VideoScrollingUI = () => {
         }
         return num.toString();
     };
+
+
+    const toggleFullScreen = (postId: string, videoElement: HTMLVideoElement | null) => {
+        if (!videoElement) return;
+
+        if (fullScreenVideoId === postId) {
+            // Exit full-screen
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(err => console.log("Exit fullscreen failed:", err));
+            }
+            setFullScreenVideoId(null);
+        } else {
+            // Enter full-screen
+            videoElement.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+            setFullScreenVideoId(postId);
+        }
+    };
+
+    useEffect(() => {
+        const handleFullScreenChange = () => {
+            if (!document.fullscreenElement) {
+                setFullScreenVideoId(null);
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullScreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
+    }, []);
 
     // Intersection Observer to detect which video is in view and handle autoplay
     useEffect(() => {
@@ -363,8 +392,8 @@ const VideoScrollingUI = () => {
                                             ref={(el) => { videoElementRefs.current[postData.post.id] = el; }}
                                             src={postData.post.video_url}
                                             poster={postData.post.thumbnail_url}
-                                            className="w-full h-full object-cover"
-                                            loop
+                                            // className="w-full h-full object-cover"
+                                            loop={true}
                                             muted={false}
                                             playsInline
                                             preload="metadata"
@@ -381,7 +410,21 @@ const VideoScrollingUI = () => {
                                         {formatDuration(postData.post.duration_seconds)}
                                     </div> */}
 
-
+                                    {/* <div className="absolute top-4 right-4 bg-black/60 px-2 py-1 rounded pointer-events-auto">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleFullScreen(postData.post.id, videoElementRefs.current[postData.post.id]);
+                                            }}
+                                            className="flex items-center justify-center"
+                                        >
+                                            {fullScreenVideoId === postData.post.id ? (
+                                                <Minimize2 className="w-5 h-5 text-white" />
+                                            ) : (
+                                                <Maximize2 className="w-5 h-5 text-white" />
+                                            )}
+                                        </button>
+                                    </div> */}
                                     {/* Play/Pause Button - only shows when video is paused */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <button
@@ -420,7 +463,7 @@ const VideoScrollingUI = () => {
                                                     <h1 className='text-[14px] font-[500]'>{postData.user.name} <button className='text-[12px] border px-2 rounded-sm  font-semibold ml-1'>Follow</button></h1>
                                                 </div>
                                                 <h3 className="text-[16px] font-bold">{postData.post.title}</h3>
-                                                <div className="w-[80%] text-[12px] font-normal">
+                                                <div className="w-[80%] text-[12px] font-light tracking-wide">
                                                     {expanded || postData.post.description.length <= 80
                                                         ? (
                                                             <>
@@ -466,7 +509,7 @@ const VideoScrollingUI = () => {
                                                                                         handleOpenDetails();
                                                                                     }
                                                                                 }}
-                                                                                className="px-4 py-[10px] mt-2 bottom-0 backdrop-blur-md  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
+                                                                                className="px-4 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
                                                                             >
                                                                                 View Details
                                                                             </Button>
@@ -492,7 +535,7 @@ const VideoScrollingUI = () => {
                                                                             handleOpenDetails();
                                                                         }
                                                                     }}
-                                                                    className="px-4 py-[10px] mt-2 bottom-0 backdrop-blur-md  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
+                                                                    className="px-4 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
                                                                 >
                                                                     View Details
                                                                 </button>
@@ -509,37 +552,35 @@ const VideoScrollingUI = () => {
 
                                             </div>
 
-
-
                                             {/* Action Buttons */}
                                             <div className="flex flex-col space-y-3 absolute bottom-[10px] md:-right-[40px] right-4">
-                                                <div className="flex flex-col space-y-6">
-                                                    <button className="duration-200 ">
-                                                        <Heart className={`w-8 h-8 ${postData.post.like_count > 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                                                <div className="flex flex-col space-y-3">
+                                                    <button className="duration-200 text-[#000] cursor-pointer">
+                                                        <Heart size={30} className={`${postData.post.like_count > 0 ? 'fill-red-500 text-red-500' : ''}`} />
                                                         <span className="text-[18px]">
                                                             {formatNumber(postData.post.like_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  text-[#000]">
-                                                        <MessageCircle className="w-8 h-8" />
+                                                    <button className="duration-200  text-[#000] cursor-pointer">
+                                                        <MessageCircle size={30} />
                                                         <span className="text-[18px]">
                                                             {formatNumber(postData.post.comment_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  text-[#000] ">
-                                                        <EyeIcon className="w-8 h-8" />
+                                                    <button className="duration-200  text-[#000] cursor-pointer ">
+                                                        <EyeIcon size={30} />
                                                         <span className=" text-[18px]">
                                                             {formatNumber(postData.post.view_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  text-[#000] ">
-                                                        <Bookmark className="w-8 h-8" />
+                                                    <button className="duration-200  text-[#000] cursor-pointer ">
+                                                        <Bookmark size={30} />
                                                         <span className=" text-[18px]">
                                                             {formatNumber(postData.post.save_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200 text-[#000]  ">
-                                                        <Share className="w-8 h-8" />
+                                                    <button className="duration-200 text-[#000] cursor-pointer  ">
+                                                        <Share size={30} />
                                                         <span className=" text-[18px]">
                                                             {formatNumber(postData.post.share_count ?? 0)}
                                                         </span>
@@ -551,17 +592,17 @@ const VideoScrollingUI = () => {
                                     <div className="hidden  md:flex  fixed right-[6px] top-1/2 transform -translate-y-1/2 flex-col gap-2 z-10">
                                         <button
                                             onClick={() => scrollToVideo('up')}
-                                            className="bg-white/20 backdrop-blur-sm border border-slate-400  hover:bg-white/30 rounded-full p-3 transition-all duration-200 hover:scale-110"
+                                            className="bg-[rgba(0,0,0,0.2)] border   rounded-full p-3 transition-all duration-200 hover:scale-110"
                                             disabled={loading}
                                         >
-                                            <ChevronUp className="w-6 h-6 text-black" />
+                                            <ChevronUp className="w-6 h-6 text-white" />
                                         </button>
                                         <button
                                             onClick={() => scrollToVideo('down')}
-                                            className="bg-white/20 backdrop-blur-sm border border-slate-400  hover:bg-white/30 rounded-full p-3 transition-all duration-200 hover:scale-110"
+                                            className="bg-[rgba(0,0,0,0.2)] border   rounded-full p-3 transition-all duration-200 hover:scale-110"
                                             disabled={loading}
                                         >
-                                            <ChevronDown className="w-6 h-6 text-black" />
+                                            <ChevronDown className="w-6 h-6 text-white" />
                                         </button>
                                     </div>
                                 </div>

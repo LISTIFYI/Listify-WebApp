@@ -21,21 +21,22 @@ import { useRouter } from "next/navigation";
 type HeaderProps = {
     isSidebarCollapsed?: boolean;
     onToggleSidebar?: () => void;
+    isSheetOpen: any
+    setIsSheetOpen: any
 };
 
-const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) => {
-    const [activeToggle, setActiveToggle] = useState("All");
-    const { user, openLogin, logout } = useAuth()
+const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setIsSheetOpen }: HeaderProps) => {
+    const [activeToggle, setActiveToggle] = useState("all");
+    const { user, openLogin, logout, addFilters, setOpenFilter } = useAuth()
     console.log("user", user);
     const router = useRouter()
 
 
     return (
-        <div className="bg-white border h-[60px] border-b-[#EAEAEA]">
+        <div className="bg-white border z-0 h-[60px] border-b-[#EAEAEA]">
             <div className="flex flex-row  items-center">
                 {/* Left: Hamburger + Logo */}
                 <div className={`flex gap-3  items-center  transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[53px] justify-start" : "w-fit md:w-56 justify-between pr-4"}`}>
-
                     <div className={`hidden md:flex   flex-row items-center  gap-2 justify-start transition-all duration-300 ${isSidebarCollapsed ? "px-2" : "px-4"}`}>
                         <Image src={Logo} alt="logo" className="max-w-[32px] h-[32px] border " />
                         <h1 className={`text-[22px]  text-black font-[700] text-nowrap  text-start ${isSidebarCollapsed ? "hidden" : "flex"}`}>Listifyi</h1>
@@ -49,7 +50,7 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) =>
 
                 {/* Middle: filters/search (your existing UI) */}
                 <div className="flex p-2 flex-1 flex-row justify-between items-center">
-                    <div className="flex mx-auto md:ml-0 items-center flex-row gap-4 hideFilterOne">
+                    <div className="flex md:ml-0 items-center flex-row gap-4 hideFilterOne">
                         <div className="hidden md:block  ">
                             <button
                                 onClick={onToggleSidebar}
@@ -66,11 +67,16 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) =>
                             <div
                                 className={clsx(
                                     "px-4 flex flex-row justify-center items-center gap-1 py-2 text-[12px] rounded-full cursor-pointer",
-                                    activeToggle === "All"
+                                    activeToggle === "all"
                                         ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
                                         : "border-gray-300"
                                 )}
-                                onClick={() => setActiveToggle("All")}
+                                onClick={() => {
+                                    setActiveToggle("all")
+                                    addFilters({
+                                        type: "all"
+                                    })
+                                }}
                             >
                                 <RiHome6Line className="text-[#989CA0]" size={14} />
                                 All
@@ -79,32 +85,44 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) =>
                             <div
                                 className={clsx(
                                     "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
-                                    activeToggle === "Sale"
+                                    activeToggle === "sale"
                                         ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
                                         : "border-gray-300"
                                 )}
-                                onClick={() => setActiveToggle("Sale")}
+                                onClick={() => {
+                                    setActiveToggle("sale")
+                                    addFilters({
+                                        type: "sale"
+                                    })
+
+                                }}
                             >
                                 <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
                                 Sale
                             </div>
 
                             <div
+
                                 className={clsx(
                                     "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
-                                    activeToggle === "Resale"
+                                    activeToggle === "resale"
                                         ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
                                         : "border-gray-300"
                                 )}
-                                onClick={() => setActiveToggle("Resale")}
+                                onClick={() => {
+                                    setActiveToggle("resale")
+                                    addFilters({
+                                        type: "resale"
+                                    })
+                                }}
                             >
                                 <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
                                 Resale
                             </div>
                         </div>
-
-
-                        <div className="border hideSearchbar rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-1.5 px-2.5 border-[#E7ECEE]">
+                    </div>
+                    <div className="flex flex-row gap-3">
+                        <div className="border hideSearchbar rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-2 px-2.5 border-[#E7ECEE]">
                             <IoSearch className="text-[#989CA0]" size={14} />
                             <input
                                 placeholder="Whitefield, banglore"
@@ -113,14 +131,15 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) =>
                             <RxCross2 className="text-[#989CA0]" size={14} />
                         </div>
 
-                        <div className="border  rounded-full bg-[#F9FAFB] hidden md:flex flex-row justify-center items-center gap-1 py-1.5 px-4 border-[#E7ECEE]">
+                        <div onClick={() => {
+                            setOpenFilter(true)
+                        }} className="border cursor-pointer rounded-full bg-[#F9FAFB] hidden md:flex flex-row justify-center items-center gap-1 py-2 px-4 border-[#E7ECEE]">
                             <IoFilter className="text-[#989CA0]" size={14} />
                             <h1 className="text-[12px] hideFilterText font-[400] text-[#989CA0]">Filter</h1>
                         </div>
                     </div>
-
                     {/* Right: actions (unchanged) */}
-                    <div className="flex flex-row gap-4 items-center justify-center">
+                    <div className="flex flex-row gap-4  items-center justify-center">
                         {
                             user &&
                             <>
@@ -148,8 +167,11 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) =>
                                     <div className="border border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
                                         <LuMessageSquareText color="black" size={16} />
                                     </div>
-                                    <div className="border border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
+                                    <div onClick={() => {
+                                        setIsSheetOpen(true)
+                                    }} className="border cursor-pointer border-[#EBEBEB] relative flex justify-center items-center w-[34px] h-[34px] rounded-full">
                                         <FiBell color="black" size={16} />
+                                        <div className="border w-[18px] h-[18px] bg-black absolute -top-1 -right-1 rounded-full text-[9px] flex justify-center items-center text-white">+6</div>
                                     </div>
                                 </div>
                             </>
@@ -175,16 +197,16 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) =>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <div className="flex cursor-pointer flex-row gap-2 items-center justify-center pr-4">
-                                                <div className="border overflow-hidden border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
+                                                <div className="border hover:bg-gray-100  transition-all duration-300 overflow-hidden border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
                                                     {/* Replace with user avatar if available */}
                                                     <span className="text-[12px] font-bold">
                                                         {user?.name?.[0] ?? "U"}
                                                     </span>
                                                 </div>
-                                                <h1 className="text-[12px] md:block hidden text-black font-[700]">
+                                                {/* <h1 className="text-[12px] md:block hidden text-black font-[700]">
                                                     {user?.name}
                                                 </h1>
-                                                <IoChevronDown color="black" size={14} />
+                                                <IoChevronDown color="black" size={14} /> */}
                                             </div>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent className="w-40">

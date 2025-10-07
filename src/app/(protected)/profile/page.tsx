@@ -42,10 +42,9 @@ const ProfilePage: NextPage = () => {
         try {
             const tk = tokenStore.get();
             const res = await axios.get(
-                `https://listifyi-api-1012443530727.asia-south1.run.app/posts/my-posts?page=${currentPage}&limit=20`,
+                `https://listifyi-api-1012443530727.asia-south1.run.app/posts/my-posts?page=${currentPage}&limit=20&?pricingType=all&status=published`,
                 { headers: { Authorization: `Bearer ${tk?.accessToken}` } }
             );
-
             const newPosts = res?.data?.posts || [];
 
             // ✅ ensure uniqueness by filtering with IDs

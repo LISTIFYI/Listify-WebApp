@@ -12,6 +12,12 @@ import { RiHome6Line } from "react-icons/ri";
 import { PiBuildingOfficeThin } from "react-icons/pi";
 import { IoFilter, IoSearch } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
+import PropertiesHomeCard from "@/components/Loader/PropertyHomeLoader";
+import { useAuth } from "@/context/AuthContext";
+import { http } from "@/lib/http";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import FilterComponent from "@/components/FilterComponent/FilterComponent";
 
 // Update the Post interface
 type Post = {
@@ -81,221 +87,132 @@ type ApiResponse = {
 };
 
 const Home = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [currentOffset, setCurrentOffset] = useState(0);
-  const loaderRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState("");
-  const router = useRouter();
-  const { setSelectedPost } = usePostContext();
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const isInitialMount = useRef(true);
-
-  const limit = 20;
 
   const tags = [
+    "All",
     "Flat",
     "Villa",
     "Plot",
   ];
 
-  // Cancel any ongoing requests
-  const cancelOngoingRequests = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-  }, []);
 
-  // Reset all pagination state
-  const resetPaginationState = useCallback(() => {
-    setPosts([]);
-    setCurrentOffset(0);
-    setHasMore(true);
-    setLoading(false);
-    cancelOngoingRequests();
-  }, [cancelOngoingRequests]);
+  const { filters, addFilters, openFilter, setOpenFilter } = useAuth()
+  console.log("filters----", filters);
 
-  const getPosts = useCallback(async (offset: number = 0, reset: boolean = false) => {
-    // Prevent multiple simultaneous requests
-    if (loading && !reset) return;
+  const [selected, setSelected] = useState("");
+  const [allProperties, setAllProperties] = useState<any[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [totalProperties, setTotalProperties] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const limit = 25;
 
-    // If no more data and not resetting, don't make request
-    if (!hasMore && !reset) return;
+  const getAllProperties = async (currentOffset: number, appliedFilters?: any) => {
 
+    const filterQuery = appliedFilters
+      ? Object.entries(appliedFilters)
+        .filter(([_, value]) => {
+          // Include only non-empty strings, numbers, or booleans
+          return (
+            (typeof value === "string" && value.trim() !== "") ||
+            typeof value === "number" ||
+            typeof value === "boolean"
+          );
+        })
+        .map(([key, value]) => {
+          return `${key}=${encodeURIComponent(String(value))}`;
+        })
+        .join("&")
+      : "";
+    console.log("filters", filterQuery);
+
+    setLoading(true);
+    let res
     try {
-      // Cancel previous request
-      cancelOngoingRequests();
-
-      // Create new AbortController for this request
-      abortControllerRef.current = new AbortController();
-
-      setLoading(true);
-
-      const res = await axios.get<ApiResponse>(
-        `https://listifyi-api-1012443530727.asia-south1.run.app/public/posts/feed?limit=${limit}&offset=${offset}
-        }`,
-        {
-          signal: abortControllerRef.current.signal
-        }
-      );
-
-      if (res.data && res.data.posts) {
-        const newPosts = res.data.posts;
-
-        setPosts((prev) => {
-          if (reset) return newPosts;
-
-          // Ensure no duplicates by filtering based on post.id
-          const existingIds = new Set(prev.map((post) => post.post.id));
-          const uniqueNewPosts = newPosts.filter((post: Post) => !existingIds.has(post.post.id));
-          return [...prev, ...uniqueNewPosts];
-        });
-
-        const pagination = res.data.pagination;
-        if (pagination) {
-          const newOffset = offset + limit;
-          setCurrentOffset(newOffset);
-          setHasMore(newOffset < pagination.totalCount);
-        } else {
-          setHasMore(false);
-        }
+      let res;
+      if (filterQuery?.length > 0) {
+        // call search api
+        res = await http.get(`/public/posts/search?offset=${currentOffset}&limit=${limit}&${filterQuery}`);
       } else {
-        console.log("No posts found in response");
-        setHasMore(false);
+        // call feed api with pagination
+        res = await http.get(
+          `/public/posts/feed?offset=${currentOffset}&limit=${limit}`
+        );
       }
-    } catch (error) {
-      // Don't log error if request was aborted
-      if (axios.isCancel(error)) {
-        console.log("Request cancelled");
-        return;
+
+      console.log("nice", res);
+
+      const newProperties = filterQuery?.length > 0 ? res?.data : res?.data?.posts || [];
+      console.log('new', newProperties);
+      setAllProperties((prevProperties) => {
+        const existingIds = new Set(prevProperties.map(p => p?.post?.id));
+        const filteredNewNotifications = newProperties.filter((p: any) => !existingIds.has(p?.post?.id));
+        return [...prevProperties, ...filteredNewNotifications];
+      });
+
+      if (currentOffset === 1) {
+        const total = res?.data?.pagination?.totalCount || 0;
+        console.log('Total Notifications:', total);
+        setTotalProperties(total);
       }
-      console.error("Error fetching posts:", error);
-      setHasMore(false);
+
+      setHasMore(newProperties?.length > 0 && allProperties?.length + newProperties?.length < res?.data?.pagination?.totalCount);
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
     } finally {
       setLoading(false);
     }
-  }, [loading, hasMore, selected, limit, cancelOngoingRequests]);
-
-  // Initial load and tag change effect
-  useEffect(() => {
-    resetPaginationState();
-    getPosts(0, true);
-  }, [selected]); // Remove getPosts and resetPaginationState from deps to avoid infinite loop
-
-  // Component mount effect - reset everything when component mounts
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      resetPaginationState();
-      getPosts(0, true);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      cancelOngoingRequests();
-    };
-  }, []);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading && posts.length > 0) {
-          getPosts(currentOffset);
-        }
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '10px'
-      }
-    );
-
-    const currentLoaderRef = loaderRef.current;
-    if (currentLoaderRef) {
-      observer.observe(currentLoaderRef);
-    }
-
-    return () => {
-      if (currentLoaderRef) {
-        observer.unobserve(currentLoaderRef);
-      }
-      observer.disconnect();
-    };
-  }, [hasMore, loading, currentOffset, posts.length, getPosts]);
-
-  const handleClick = (post: Post) => {
-    setSelectedPost(post);
-    router.push("/explore");
   };
 
 
-  const [activeToggle, setActiveToggle] = useState("All");
+  useEffect(() => {
+    setAllProperties([]);
+    setOffset(0); // Reset offset on mount
+    setHasMore(true);
+    let subscribed = true;
+    (async () => {
+      if (subscribed) {
+        await getAllProperties(0, filters); // Initial fetch with offset 0
+      }
+    })();
+    return () => {
+      subscribed = false;
+    };
+  }, [filters]);
+
+  const handleLoadMoreData = () => {
+    if (loading || !hasMore) return;
+    setOffset((prevOffset) => {
+      const nextOffset = prevOffset + limit; // Increment offset by limit
+      getAllProperties(nextOffset, filters);
+      return nextOffset;
+    });
+  };
+
 
   return (
-    <div className="w-[100%] py-4">
+    <div className="h-full">
 
-      <div className="flex md:hidden lg:px-6 px-4 mb-4 mx-auto md:ml-0 flex-row gap-4 hideFilterOne ">
-        <div className="bg-[#F9FAFB]  flex flex-row justify-center items-center rounded-full p-[4px]">
-          <div
-            className={clsx(
-              "px-4 flex flex-row justify-center items-center gap-1 py-2 text-[12px] rounded-full cursor-pointer",
-              activeToggle === "All"
-                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
-                : "border-gray-300"
-            )}
-            onClick={() => setActiveToggle("All")}
-          >
-            <RiHome6Line className="text-[#989CA0]" size={14} />
-            All
-          </div>
+      <Dialog open={openFilter} onOpenChange={() => {
+        setOpenFilter(false)
+      }}
 
-          <div
-            className={clsx(
-              "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
-              activeToggle === "Sale"
-                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
-                : "border-gray-300"
-            )}
-            onClick={() => setActiveToggle("Sale")}
-          >
-            <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
-            Sale
-          </div>
+      >
+        <DialogContent showCloseButton={false} className="p-2 fixed h-[80%] sm:max-w-full w-[900px]">
+          <FilterComponent />
+        </DialogContent>
 
-          <div
-            className={clsx(
-              "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
-              activeToggle === "Resale"
-                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
-                : "border-gray-300"
-            )}
-            onClick={() => setActiveToggle("Resale")}
-          >
-            <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
-            Resale
-          </div>
-        </div>
-
-
-        <div className="border hideSearchbar rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-1.5 px-2.5 border-[#E7ECEE]">
-          <IoSearch className="text-[#989CA0]" size={14} />
-          <input
-            placeholder="Whitefield, banglore"
-            className="text-[12px] font-[400] outline-none px-0.5 border-none text-[#989CA0] placeholder:text-[#989CA0] max-w-[210px] w-[100%]"
-          />
-          <RxCross2 className="text-[#989CA0]" size={14} />
-        </div>
-
-        <div className="border rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-1.5 px-4 border-[#E7ECEE]">
-          <IoFilter className="text-[#989CA0]" size={14} />
-          <h1 className="text-[12px] hideFilterText font-[400] text-[#989CA0]">Filter</h1>
-        </div>
-      </div>
-      <div className="lg:px-6 px-4 flex w-full overflow-x-auto gap-2 no-scrollbar">
+      </Dialog>
+      <div className="lg:px-6  pt-4 px-4 flex w-full overflow-x-auto gap-2 no-scrollbar">
         {tags.map((tag, index) => (
           <div
-            onClick={() => setSelected(tag)}
+            onClick={() => {
+              setSelected(tag)
+              addFilters({
+                type: tag === "All" ? "" : tag?.toLowerCase()
+
+              })
+            }}
             key={index}
             className={`px-[16px] cursor-pointer py-[4px] text-[12px] border-[1px] border-[#EAEAEA] transition-all rounded-full ${selected === tag ? "bg-[#F8F8F8]" : "bg-[#fff]"
               }`}
@@ -304,175 +221,109 @@ const Home = () => {
           </div>
         ))}
       </div>
+      <div className="w-[100%] flex flex-col overflow-y-scroll pb-4  h-full ">
+        <InfiniteScroll
+          dataLength={allProperties.length}
+          next={handleLoadMoreData}
+          hasMore={hasMore}
+          loader={
+            <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 lg:p-6 p-4">
+              {
+                Array.from({ length: 16 }).map((_, idx) => (
+                  <PropertiesHomeCard key={idx} />
+                ))}
+            </div>
 
-      {/* Loading state for initial load */}
-      {loading && posts.length === 0 ? (
-        <div className="flex justify-center items-center h-64">
-          <p>Loading properties...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 lg:p-6 p-4">
-          {posts.map((post: Post) => (
-            <div
-              onClick={() => handleClick(post)}
-              key={post.post.id}
-              className="rounded-[20px] cursor-pointer"
-            >
-              <div className="h-[360px] rounded-[14px] relative overflow-hidden">
-                <Image
-                  className="object-cover w-full h-full"
-                  alt={post?.post.title || "Property image"}
-                  src={post?.post.thumbnail_url || "https://via.placeholder.com/300x280?text=Image+Not+Available"}
-                  width={300}
-                  height={460}
-                />
+          }
+          endMessage={<p className="text-center py-4">No more properties to load.</p>}
+          scrollableTarget="scrollableDiv"
+          className=""
+        >
 
-                {/* {
-                  post?.post.view_count > 0 && */}
-                <h2 className="absolute top-2 font-[600] text-[16px] flex flex-row items-center gap-2  left-1 px-2 py-0.5 rounded-full text-white">
-                  <Play size={18} color="#fff" /> {post?.post.view_count || 0}
-                </h2>
-                {/* } */}
-                <div
-                  style={{
-                    boxShadow: "inset 0 -10px 24px -2px rgba(0, 0, 0, 0.8)",
-                  }}
-                  className="absolute flex flex-row gap-[10px] bottom-0 bg-opacity-80 backdrop-blur-[2px] w-full left-0 items-center px-4 py-2 text-black text-[8px]"
-                >
-                  {/* <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <CiHeart color="#fff" size={18} />
-                    <h1 className="text-white text-[12px]">{post?.post?.like_count || 0}</h1>
-                  </div>
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <MessageCircle color="#fff" size={14} />
-                    <h1 className="text-white text-[12px]">{post?.post?.comment_count || 0}</h1>
-                  </div>
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <CiShare2 color="#fff" size={16} />
-                    <h1 className="text-white text-[12px]">{post?.post?.share_count || 0}</h1>
-                  </div>
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <CiBookmark color="#fff" size={14} />
-                    <h1 className="text-white text-[12px]">{post?.post.save_count || 0}</h1>
-                  </div>
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <Eye color="#fff" size={12} />
-                    <h1 className="text-white text-[12px]">{post?.post.view_count || 0}</h1>
-                  </div> */}
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <BedDouble color="#fff" size={18} />
-                    <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.bedroom || 0}</h1>
-                  </div>
+          <div className={`grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 ${!loading && !!allProperties.length ? "lg:p-6 p-4" : "lg:p-0 p-0"}`} >
+            {allProperties.map((property) => (
+              <div
+                // onClick={() => handleClick(property)}
+                key={property.post.id}
+                className="rounded-[20px] cursor-pointer"
+              >
+                <div className="h-[360px] rounded-[14px] relative overflow-hidden">
+                  <Image
+                    className="object-cover w-full h-full"
+                    alt={property?.post.title || "Property image"}
+                    src={property?.post.thumbnail_url || "https://via.placeholder.com/300x280?text=Image+Not+Available"}
+                    width={300}
+                    height={460}
+                  />
 
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <Bath color="#fff" size={14} />
-                    <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.bathroom || 0}</h1>
-                  </div>
-
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <Sofa color="#fff" size={16} />
-                    <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.hall || 0}</h1>
-                  </div>
-
-                  <div className="flex flex-row gap-[4px] justify-center items-center">
-                    <BrickWall color="#fff" size={14} />
-                    <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.totalFloor || 0}</h1>
-                  </div>
-                  {post?.listing?.propertyValues?.sqft_area &&
-                    <div className="flex flex-row gap-[4px] justify-center items-center">
-                      <TriangleRight color="#fff" size={12} />
-                      <h1 className="text-white text-[12px]">{post?.listing?.propertyValues?.sqft_area || 0}</h1>
-                    </div>
-                  }
-                </div>
-              </div>
-              <div className="px-2 py-[4px]">
-                <div className="flex flex-col">
-                  {/* Left: Title + Price */}
-                  <div className="flex flex-row justify-between w-full">
-                    <h2 className="text-black flex-1 text-[14px] font-[600] text-ellipsis truncate">
-                      {post?.post.title || "Untitled Property"}
+                  {
+                    property?.post.view_count > 0 &&
+                    <h2 className="absolute top-2 font-[600] text-[16px] flex flex-row items-center gap-2  left-1 px-2 py-0.5 rounded-full text-white">
+                      <Play size={18} color="#fff" /> {property?.post.view_count || 0}
                     </h2>
-                    {/* <div className="flex w-[20%] justify-end flex-row gap-1 items-center pr-2 text-black">
+                  }
+                  <div
+                    className="absolute flex flex-row gap-[10px] bottom-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent w-full left-0 items-center px-4 py-2 text-black text-[8px]"
+                  >
+                    <div className="flex flex-row gap-[4px] justify-center items-center">
+                      <BedDouble color="#fff" size={18} />
+                      <h1 className="text-white text-[12px]">{property?.listing?.propertyValues?.bedroom || 0}</h1>
+                    </div>
+
+                    <div className="flex flex-row gap-[4px] justify-center items-center">
+                      <Bath color="#fff" size={14} />
+                      <h1 className="text-white text-[12px]">{property?.listing?.propertyValues?.bathroom || 0}</h1>
+                    </div>
+                    <div className="flex flex-row gap-[4px] justify-center items-center">
+                      <Sofa color="#fff" size={16} />
+                      <h1 className="text-white text-[12px]">{property?.listing?.propertyValues?.hall || 0}</h1>
+                    </div>
+
+                    <div className="flex flex-row gap-[4px] justify-center items-center">
+                      <BrickWall color="#fff" size={14} />
+                      <h1 className="text-white text-[12px]">{property?.listing?.propertyValues?.totalFloor || 0}</h1>
+                    </div>
+                    {property?.listing?.propertyValues?.sqft_area &&
+                      <div className="flex flex-row gap-[4px] justify-center items-center">
+                        <TriangleRight color="#fff" size={12} />
+                        <h1 className="text-white text-[12px]">{property?.listing?.propertyValues?.sqft_area || 0}</h1>
+                      </div>
+                    }
+                  </div>
+
+                </div>
+                <div className="px-2 py-[4px]">
+                  <div className="flex flex-col">
+                    <div className="flex flex-row justify-between w-full">
+                      <h2 className="text-black flex-1 text-[14px] font-[600] text-ellipsis truncate">
+                        {property?.post.title || "Untitled Property"}
+                      </h2>
+                      {/* <div className="flex w-[20%] justify-end flex-row gap-1 items-center pr-2 text-black">
                       <Heart size={16} />
                       <span className="text-[14px] font-medium">{post?.post.view_count || 0}</span>
                     </div> */}
-                    {post?.listing?.pricing?.amount && (
-                      <div className="text-black text-[14px] w-fit text-end font-[500] truncate">
-                        ₹{post?.listing?.pricing?.amount.toLocaleString("en-IN")}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex   flex-row justify-between ">
-                    <h2 className="text-black w-[80%]   text-[12px] font-[600] line-clamp-2">
-                      {post?.post?.description}
-                    </h2>
-                    <div className="flex w-[20%]  justify-end flex-row gap-1  items-start - text-black">
-                      <Heart size={16} />
-                      <span className="text-[14px] font-medium">{post?.post.view_count || 0}</span>
+                      {property?.listing?.pricing?.amount && (
+                        <div className="text-black text-[14px] w-fit text-end font-[500] truncate">
+                          ₹{property?.listing?.pricing?.amount.toLocaleString("en-IN")}
+                        </div>
+                      )}
                     </div>
-
+                    <div className="flex flex-row justify-between items-center">
+                      <h2 className="text-black w-[80%]   text-[12px] font-[600] line-clamp-2">
+                        {property?.post?.description}
+                      </h2>
+                      <div className="flex w-[20%] justify-end flex-row gap-1 items-start text-black">
+                        <Heart size={16} />
+                        <span className="text-[14px] font-medium">{property?.post.view_count || 0}</span>
+                      </div>
+                    </div>
                   </div>
-
-
-                  {/* Right: Views */}
-
                 </div>
-
-                {/* <div className="flex flex-row gap-[4px] mt-[6px]">
-                  <div className="flex flex-row justify-start items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
-                    <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                      <BedDouble color="#000" size={12} />
-                    </div>
-                    <h1 className="text-black text-[12px] px-[6px]">{post?.listing?.propertyValues?.bedroom || 0}</h1>
-                  </div>
-                  <div className="flex flex-row justify-center items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
-                    <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                      <Bath color="#000" size={12} />
-                    </div>
-                    <h1 className="text-black text-[12px] px-[6px]">{post?.listing?.propertyValues?.bathroom || 0}</h1>
-                  </div>
-                  <div className="flex flex-row justify-center items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
-                    <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                      <Sofa color="#000" size={12} />
-                    </div>
-                    <h1 className="text-black text-[12px] px-[6px]">{post?.listing?.propertyValues?.hall || 0}</h1>
-                  </div>
-                  <div className="flex flex-row justify-center items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
-                    <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                      <BrickWall color="#000" size={12} />
-                    </div>
-                    <h1 className="text-black text-[12px] px-[6px]">{post?.listing?.propertyValues?.totalFloor || 0}</h1>
-                  </div>
-                  {post?.listing?.propertyValues?.sqft_area && (
-                    <div className="flex flex-row justify-center items-center bg-[#F8F8F8] border-[#EAEAEA] border-[1px] rounded-full">
-                      <div className="flex flex-col justify-center items-center w-[20px] bg-white border-[#EAEAEA] border-[1px] h-[20px] rounded-full">
-                        <TriangleRight color="#000" size={12} />
-                      </div>
-                      <h1 className="text-black text-[12px] px-[6px]">{`${post?.listing?.propertyValues?.sqft_area ?? ""} sqft` || "N/A"}</h1>
-                    </div>
-                  )}
-                </div> */}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Infinite scroll loader */}
-      {hasMore && posts.length > 0 && (
-        <div ref={loaderRef} className="flex justify-center items-center h-16">
-          {loading && <p>Loading more properties...</p>}
-        </div>
-      )}
-
-      {/* No more data message */}
-      {!hasMore && posts.length > 0 && (
-        <div className="flex justify-center items-center h-16">
-          <p className="text-gray-500">No more properties to load</p>
-        </div>
-      )}
+            ))}
+          </div>
+        </InfiniteScroll>
+      </div>
     </div>
   );
 };

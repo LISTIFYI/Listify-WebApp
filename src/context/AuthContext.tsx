@@ -4,6 +4,10 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { http } from '@/lib/http';
 import { tokenStore, Tokens } from '@/lib/token';
+import { log } from 'node:console';
+export interface Filters {
+    [key: string]: any;
+}
 
 type User = {
     id: string;
@@ -34,7 +38,12 @@ type AuthState = {
     clearRole: () => void;
     setRoleGlobally: (role: string) => void;
     toggleAdminMode: () => void; // Added toggleAdminMode
-    isAdmin: boolean
+    isAdmin: boolean,
+    filters: Filters;
+    addFilters: (filters: Filters) => void;
+    removeAllFilters: () => void;
+    setOpenFilter: (value: boolean) => void
+    openFilter: boolean
 
 };
 
@@ -52,7 +61,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     const [showLogin, setShowLogin] = useState<boolean>(false);
     const [role, setRole] = useState<string | null>("Builder");
     const [isAdmin, setIsAdmin] = useState<boolean>(false); // Initialize isAdmin
-    console.log("isAdmn", isAdmin);
+    const [filters, setFilters] = useState<Filters>({});
+    const [openFilter, setOpenFilter] = useState(false)
+
+    console.log("filters", filters);
 
     // Try load user if tokens exist
     useEffect(() => {
@@ -143,6 +155,20 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         setIsAdmin(prev => !prev);
     };
 
+
+
+    // filters
+    const addFilters = (newFilters: Filters) => {
+        setFilters((prev) => ({
+            ...prev,
+            ...newFilters,
+        }));
+    };
+
+    const removeAllFilters = () => {
+        setFilters({});
+    };
+
     const value = useMemo<AuthState>(() => ({
         user, tokens, loading, showLogin,
         startPhoneLogin,
@@ -155,8 +181,14 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         setRoleGlobally,
         role,
         toggleAdminMode,
-        isAdmin
-    }), [user, tokens, loading, showLogin, isAdmin]);
+        isAdmin,
+
+        addFilters,
+        filters,
+        removeAllFilters,
+        openFilter,
+        setOpenFilter
+    }), [user, tokens, loading, showLogin, isAdmin, filters, openFilter]);
 
     return (
         <AuthCtx.Provider value={value}>

@@ -14,10 +14,12 @@ import ContactFormCommon from '@/components/Forms/ContacFormCommon';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import ContactForm from '@/components/Forms/ContacFormCommon';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { tokenStore } from '@/lib/token';
-import { UploadPhoto } from '@/utils/api';
+import { getAgentById, UploadPhoto } from '@/utils/api';
 import { IoDocument } from 'react-icons/io5';
+import { useAuth } from '@/context/AuthContext';
+import ButtonCommon from '@/components/CustomFields/Button';
 
 // Interface for form data
 interface FormData {
@@ -58,6 +60,7 @@ interface FlatProps {
     setShowNext: (value: boolean) => void
     coverVideo: any
     galleryFiles: any
+    role: string
 }
 
 const Plot = ({
@@ -66,7 +69,8 @@ const Plot = ({
     showNext,
     setShowNext,
     coverVideo,
-    galleryFiles
+    galleryFiles,
+    role
 
 }: FlatProps) => {
     const [useLocationSearch, setUseLocationSearch] = useState<boolean>(false);
@@ -464,8 +468,8 @@ const Plot = ({
             label: 'Water Availablity',
             placeholder: 'Water availablity',
             options: [
-                { value: 'Immediate', label: 'Immediate' },
-                { value: 'Future', label: 'Future', },
+                { value: '24 Hours Available', label: '24 Hours Available' },
+                { value: 'Limited Hours', label: 'Limited Hours', },
             ],
         },
         {
@@ -673,7 +677,9 @@ const Plot = ({
     }
 
     const fileInputRef = useRef<HTMLInputElement | null>(null)
-
+    const removePdf = () => {
+        setBrochure("")
+    }
     const handleClick = () => {
         fileInputRef.current?.click()
     }
@@ -746,50 +752,239 @@ const Plot = ({
         }
     };
 
+    const { user } = useAuth()
+    const [roleAB, setRoleAB] = useState<any>(null)
+    console.log("roleAB", roleAB);
+
+
+    useEffect(() => {
+        const fetchAgentOrBuilder = async () => {
+            console.log("called");
+
+            try {
+                const token = tokenStore.get();
+                const id = user?.builderProfile
+                    ? user?.builderProfile?.id
+                    : user?.agentProfile?.id;
+
+                if (!id) {
+                    console.warn("No profile id found");
+                    return;
+                }
+
+                const type = user?.builderProfile ? "builder" : "agent";
+
+                const res = await getAgentById(id, type, token?.accessToken ?? "");
+                setRoleAB(res);
+            } catch (error) {
+                console.error("Error fetching agent/builder:", error);
+            }
+        };
+
+        fetchAgentOrBuilder();
+    }, [user]);
+    const handleSubmits = () => {
+        const formDataa = {
+            entityType: entityType,
+            listingType: user?.builderProfile ? "builder" : "agent",
+            title: formData.propertyName,
+            description: formData.description,
+            details: {
+                approvals: approvalAuthority,
+                reraNumber: reraNumber,
+                facing: facingDirection,
+                priceRange: priceRange,
+                unitSizeRange: unitSize,
+                purpose: purpose,
+                loanApprovedBanks: banks,
+                propertyType: entityType,
+                reraRegistered: reraNumber ? true : false,
+                ownership: ownership,
+                plotArea: Number(plotArea),
+                booking_amount: Number(bookingAmount),
+                waterAvailability: waterAvailablity,
+                electricityStatus: electricityStatus,
+                availability: availablityStatus,
+                plotLength: plotLength,
+                plotWidth: plotWidth,
+                plotType: plotType,
+                // plotPlanningPricing: plotPlans,
+                boundaryWall: boundaryWall === "Yes" ? true : boundaryWall === "No" ? false : "",
+                gatedCommunity: gatedCommunity === "Yes" ? true : gatedCommunity === "No" ? false : "",
+                numberOfOpenSides: noOfOpenSides,
+                landUseZone: landUseZone,
+                widthOfFacingRoad: widthFacingRoad,
+                roadWidth: roadWidth,
+                cornerPlot: cornerPlot === "Yes" ? true : false,
+                amount: amount,
+                bookingAmount: Number(bookingAmount),
+            },
+
+            location: {
+                address: formData.address,
+                city: formData.city,
+                state: formData.state,
+                pincode: formData.pincode,
+                coordinates: [
+                    formData.location?.lat,
+                    formData.location?.lng,
+                ],
+                landmarks: formData.landmarks
+            },
+            pricing: {
+                ...(transactionType && { type: transactionType }),
+                pricePerSqft: Number(pricePerSqFT) || 0,
+                amount: Number(amount),
+            },
+            amenities: setAmenitiesdata,
+            tags: highlights,
+            availableOffers: availableOffers,
+            status: "pending_approval",
+            featured: false,
+            contact: {
+                name: roleAB?.builderName ? roleAB?.builderName : roleAB?.agentName,
+                phone: roleAB?.contactPhone,
+                email: roleAB?.contactEmail,
+                whatsapp: roleAB?.contactPhone,
+                isAgent: roleAB?.agentProfile ? true : false,
+                agentId: roleAB?._id
+            },
+            //   additionalContacts: submittedContacts,
+            media: {
+                images: galleryFiles.filter((url: any) =>
+                    url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                ),
+                videos: galleryFiles.filter((url: any) =>
+                    url.match(/\.(mp4|mov|avi|mkv|webm)$/i)
+                ),
+                floorPlan: brochure
+            }
+        };
+
+        console.log("formdata", formData);
+
+    };
+
     return (
         <>
             <div className='mt-3 space-y-3' >
+                {
+                    showNext ?
+                        <PlotForm2 dropdownConfigs={dropdownConfigs}
+                            amenitiesdata={amenitiesdata}
+                            approvalAuthority={approvalAuthority}
+                            availableOffers={availableOffers}
+                            availablityStatus={availablityStatus}
+                            banks={banks}
+                            boundaryWall={boundaryWall}
+                            cornerPlot={cornerPlot}
+                            electricityStatus={electricityStatus}
+                            gatedCommunity={gatedCommunity}
+                            highlights={highlights}
+                            landUseZone={landUseZone}
+                            noOfOpenSides={noOfOpenSides}
+                            ownership={ownership}
+                            plotType={plotType}
+                            purpose={purpose}
+                            roadWidth={roadWidth}
+                            setAmenitiesdata={setAmenitiesdata}
+                            setApprovalAuthority={setApprovalAuthority}
+                            setAvailableOffers={setAvailableOffers}
+                            setAvailablityStatus={setAvailablityStatus}
+                            setBanks={setBanks}
+                            setBoundaryWall={setBoundaryWall}
+                            setCornerPlot={setCornerPlot}
+                            setElectricityStatus={setElectricityStatus}
+                            setGatedCommunity={setGatedCommunity}
+                            setHighlights={setHighlights}
+                            setLandUseZone={setLandUseZone}
+                            setNoOfOpenSides={setNoOfOpenSides}
+                            setOwnership={setOwnership}
+                            setPlotType={setPlotType}
+                            setPurpose={setPurpose}
+                            setRoadWidth={setRoadWidth}
+                            setWaterAvailablity={setWaterAvailablity}
+                            setWidthFacingRoad={setWidthFacingRoad}
+                            waterAvailablity={waterAvailablity}
+                            widthFacingRoad={widthFacingRoad}
+                            role={role}
+                            transactionType={transactionType}
+                            amenities={amenities}
+                            option={option}
+                        // amenitiesdata={amenitiesdata}
+                        // highlights={highlights}
 
-                <PlotForm2 dropdownConfigs={dropdownConfigs}
-                    amenitiesdata={amenitiesdata}
-                    approvalAuthority={approvalAuthority}
-                    availableOffers={availableOffers}
-                    availablityStatus={availablityStatus}
-                    banks={banks}
-                    boundaryWall={boundaryWall}
-                    cornerPlot={cornerPlot}
-                    electricityStatus={electricityStatus}
-                    gatedCommunity={gatedCommunity}
-                    highlights={highlights}
-                    landUseZone={landUseZone}
-                    noOfOpenSides={noOfOpenSides}
-                    ownership={ownership}
-                    plotType={plotType}
-                    purpose={purpose}
-                    roadWidth={roadWidth}
-                    setAmenitiesdata={setAmenitiesdata}
-                    setApprovalAuthority={setApprovalAuthority}
-                    setAvailableOffers={setAvailableOffers}
-                    setAvailablityStatus={setAvailablityStatus}
-                    setBanks={setBanks}
-                    setBoundaryWall={setBoundaryWall}
-                    setCornerPlot={setCornerPlot}
-                    setElectricityStatus={setElectricityStatus}
-                    setGatedCommunity={setGatedCommunity}
-                    setHighlights={setHighlights}
-                    setLandUseZone={setLandUseZone}
-                    setNoOfOpenSides={setNoOfOpenSides}
-                    setOwnership={setOwnership}
-                    setPlotType={setPlotType}
-                    setPurpose={setPurpose}
-                    setRoadWidth={setRoadWidth}
-                    setWaterAvailablity={setWaterAvailablity}
-                    setWidthFacingRoad={setWidthFacingRoad}
-                    waterAvailablity={waterAvailablity}
-                    widthFacingRoad={widthFacingRoad}
+                        />
 
-                />
+                        :
+                        <PlotForm1
+                            addLandmark={addLandmark}
+                            amount={amount}
+                            bookingAmount={bookingAmount}
+                            brochure={brochure}
+                            dropdownConfigs={dropdownConfigs}
+                            errors={errors}
+                            facingDirection={facingDirection}
+                            fileInputRef={fileInputRef}
+                            formData={formData}
+                            handleChange={handleChange}
+                            handleClick={handleClick}
+                            handleFileChange={handleFileChange}
+                            handleSearchInput={handleSearchInput}
+                            handleSubmit={handleSubmit}
+                            isLoading={isLoading}
+                            landmarkInput={landmarkInput}
+                            plotArea={plotArea}
+                            plotLength={plotLength}
+                            plotWidth={plotWidth}
+                            pricePerSqFT={pricePerSqFT}
+                            priceRange={priceRange}
+                            removeLandmark={removeLandmark}
+                            removePdf={removePdf}
+                            reraNumber={reraNumber}
+                            setAmount={setAmount}
+                            setBookingAmount={setBookingAmount}
+                            setFacingDirection={setFacingDirection}
+                            setLandmarkInput={setLandmarkInput}
+                            setPlotArea={setPlotArea}
+                            setPlotLength={setPlotLength}
+                            setPlotWidth={setPlotWidth}
+                            setPricePerSqT={setPricePerSqT}
+                            setPriceRange={setPriceRange}
+                            setReraNumber={setReraNumber}
+                            setUnitSize={setUnitSize}
+                            setUseLocationSearch={setUseLocationSearch}
+                            suggestions={suggestions}
+                            unitSize={unitSize}
+                            useLocationSearch={useLocationSearch}
+                            role={role}
+                            transactionType={transactionType}
 
+                        />
+                }
+
+                <div className='border flex flex-row transition-all duration-300 gap-4 w-full mt-4'>
+                    {
+                        showNext &&
+                        <ButtonCommon
+                            onClick={() => {
+                                setShowNext(false)
+                            }}
+                            title='Back' />
+                    }
+                    <ButtonCommon
+                        onClick={() => {
+                            if (showNext) {
+                                // setShowNext(true)
+                                // alert("Final call")
+                                handleSubmits()
+                            } else {
+                                setShowNext(true)
+
+                            }
+                        }}
+                        title={showNext ? "Continue" : "Next"} />
+                </div>
             </div>
         </>
     );
@@ -803,8 +998,6 @@ interface FormPlot1Props {
     reraNumber: string,
     setReraNumber: (value: string) => void,
     dropdownConfigs: any,
-    unitType: string,
-    setUnitType: (value: string) => void
     amount: string,
     setAmount: (value: string) => void,
     priceRange: string,
@@ -841,6 +1034,8 @@ interface FormPlot1Props {
     setPlotLength: any,
     bookingAmount: any,
     setBookingAmount: any,
+    role: string,
+    transactionType: any
 }
 
 const PlotForm1 = ({
@@ -860,7 +1055,6 @@ const PlotForm1 = ({
     isLoading,
     landmarkInput,
     pricePerSqFT,
-    priceRange,
     removeLandmark,
     removePdf,
     reraNumber,
@@ -869,11 +1063,10 @@ const PlotForm1 = ({
     setLandmarkInput,
     setPricePerSqT,
     setPriceRange,
+    priceRange,
     setReraNumber,
-    setUnitType,
     setUseLocationSearch,
     suggestions,
-    unitType,
     useLocationSearch,
     bookingAmount,
     plotArea,
@@ -884,7 +1077,7 @@ const PlotForm1 = ({
     setPlotLength,
     setPlotWidth,
     setUnitSize,
-    unitSize
+    unitSize, role, transactionType
 
 }: FormPlot1Props) => {
     return (
@@ -934,6 +1127,17 @@ const PlotForm1 = ({
                             className="mt-1"
                         />
                     </div>
+                    <div className='flex flex-col flex-1'>
+                        <DropdownMenuCustom
+                            key={dropdownConfigs[20].key}
+                            options={dropdownConfigs[20].options}
+                            value={unitSize}
+                            onChange={setUnitSize}
+                            placeholder={dropdownConfigs[20].placeholder}
+                            label={dropdownConfigs[20].label}
+                        />
+                    </div>
+
                 </div>
 
                 <div className='flex flex-row gap-4'>
@@ -983,7 +1187,7 @@ const PlotForm1 = ({
                         <InputBox
                             name="Booking Amount"
                             value={bookingAmount}
-                            onChange={bookingAmount}
+                            onChange={setBookingAmount}
                             placeholder="Booking amount"
                             className="mt-1"
                         />
@@ -1097,7 +1301,10 @@ interface FormPlot2Props {
     setAmenitiesdata: any,
     highlights: any,
     setHighlights: any,
-
+    role: string,
+    transactionType: any
+    amenities: any,
+    option: any
 
 }
 const PlotForm2 = ({
@@ -1138,6 +1345,10 @@ const PlotForm2 = ({
     setAmenitiesdata,
     highlights,
     setHighlights,
+    role,
+    transactionType,
+    amenities,
+    option,
 }: FormPlot2Props) => {
     return (
         <div className='mt-3 space-y-3'>
@@ -1259,30 +1470,55 @@ const PlotForm2 = ({
                 </div>
             </div>
             <div className='flex flex-row gap-4'>
-                <div className='flex flex-col flex-1'>
-                    <MultiSelectDropdown
-                        key={dropdownConfigs[27].key}
-                        options={dropdownConfigs[27].options}
-                        // value={extraRoom}
-                        // onChange={(value) => setExtraRoom(value as string[])} // ✅ store array
-                        placeholder={dropdownConfigs[27].placeholder}
-                        label={dropdownConfigs[27].label}
-                        className="max-w-sm"
-                    />
-                </div>
+                {
+                    role === "Agent" &&
+                    <div className='flex flex-col flex-1'>
+                        <DropdownMenuCustom
+                            key={dropdownConfigs[27].key}
+                            options={dropdownConfigs[27].options}
+                            value={cornerPlot}
+                            onChange={setCornerPlot}
+                            placeholder={dropdownConfigs[27].placeholder}
+                            label={dropdownConfigs[27].label}
+                        />
+                    </div>
+                }
                 <div className='flex flex-col flex-1'>
                     <MultiSelectDropdown
                         key={dropdownConfigs[28].key}
                         options={dropdownConfigs[28].options}
-                        // value={extraRoom}
-                        // onChange={(value) => setExtraRoom(value as string[])} // ✅ store array
+                        value={approvalAuthority}
+                        onChange={setApprovalAuthority} // ✅ store array
                         placeholder={dropdownConfigs[28].placeholder}
                         label={dropdownConfigs[28].label}
                         className="max-w-sm"
                     />
                 </div>
             </div>
+            <div className='flex flex-row gap-4'>
+                <div className='flex flex-col flex-1'>
+                    <MultiSelectDropdown
+                        key={dropdownConfigs[19].key}
+                        options={dropdownConfigs[19].options}
+                        value={electricityStatus}
+                        onChange={setElectricityStatus} // ✅ store array
+                        placeholder={dropdownConfigs[19].placeholder}
+                        label={dropdownConfigs[19].label}
+                        className="max-w-sm"
+                    />
+                </div>
+                <div className='flex flex-col flex-1'>
+                    <DropdownMenuCustom
+                        key={dropdownConfigs[12].key}
+                        options={dropdownConfigs[12].options}
+                        value={ownership}
+                        onChange={setOwnership}
+                        placeholder={dropdownConfigs[12].placeholder}
+                        label={dropdownConfigs[12].label}
+                    />
+                </div>
 
+            </div>
             <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
                     <MultiSelectDropdown
@@ -1313,7 +1549,11 @@ const PlotForm2 = ({
                     <label className="block text-sm mb-1 font-medium text-gray-700">
                         Amenities
                     </label>
-                    {/* <ChipList amenities={amenities} onChange={handleSelectionChangeChip} /> */}
+                    <ChipList
+
+                        amenities={amenities}
+                        onChange={(selected) => console.log("Selected chips:", selected)}
+                    />
                 </div>
             </div>
 
@@ -1322,7 +1562,10 @@ const PlotForm2 = ({
                     <label className="block text-sm mb-1 font-medium text-gray-700">
                         Highlight Tags
                     </label>
-                    {/* <ChipList amenities={option} onChange={handleSelectionChangeChip} /> */}
+                    <ChipList
+                        amenities={option}
+                        onChange={(selected) => console.log("Selected chips:", selected)}
+                    />
                 </div>
             </div>
 

@@ -12,14 +12,16 @@ import MultiSelectDropdown from '@/components/CustomFields/MultiDropdown';
 import { ChipList } from '@/components/CustomFields/ChipList';
 import FloorPlanningPricing, { FloorPlan, initialPlan } from '@/components/AdditionalComponents/FloorPlanningPricing';
 import { Bath, Bed, Edit2, Pencil, Plus, Sun, Trash2, X } from 'lucide-react';
-import { formatIndianCurrency } from '@/utils/commonFn/common';
+import { formatAmount, formatIndianCurrency } from '@/utils/commonFn/common';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { IoDocument } from 'react-icons/io5';
 import { tokenStore } from '@/lib/token';
-import { UploadPhoto } from '@/utils/api';
+import { getAgentById, UploadPhoto } from '@/utils/api';
 import ButtonCommon from '@/components/CustomFields/Button';
 import { DialogDescription, DialogTrigger } from '@radix-ui/react-dialog';
 import ContactForm from '@/components/Forms/ContacFormCommon';
+import { format } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
 
 // Interface for form data
 interface FormData {
@@ -60,13 +62,15 @@ interface FlatProps {
     setShowNext: (value: boolean) => void
     coverVideo: any
     galleryFiles: any
+    role: string
 }
 
 const Villa = ({ transactionType, entityType,
     showNext,
     setShowNext,
     coverVideo,
-    galleryFiles
+    galleryFiles,
+    role
 }: FlatProps) => {
     const [useLocationSearch, setUseLocationSearch] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -393,7 +397,7 @@ const Villa = ({ transactionType, entityType,
         {
             key: 'Ownership?',
             label: 'Ownership',
-            placeholder: ' Sample flat',
+            placeholder: 'Ownership',
             options: [
                 { value: 'Freehold', label: 'Freehold', },
                 { value: 'Leasehold', label: 'Leasehold' },
@@ -463,8 +467,8 @@ const Villa = ({ transactionType, entityType,
             label: 'Water Availablity',
             placeholder: 'Water availablity',
             options: [
-                { value: 'Immediate', label: 'Immediate' },
-                { value: 'Future', label: 'Future', },
+                { value: '24 Hours Available', label: '24 Hours Available' },
+                { value: 'Limited Hours', label: 'Limited Hours', },
             ],
         },
         {
@@ -737,7 +741,151 @@ const Villa = ({ transactionType, entityType,
         }
     }
 
+    const { user } = useAuth()
+    const [roleAB, setRoleAB] = useState<any>(null)
+    console.log("roleAB", roleAB);
 
+
+    useEffect(() => {
+        const fetchAgentOrBuilder = async () => {
+
+            try {
+                const token = tokenStore.get();
+                const id = user?.builderProfile
+                    ? user?.builderProfile?.id
+                    : user?.agentProfile?.id;
+
+                if (!id) {
+                    console.warn("No profile id found");
+                    return;
+                }
+                const type = user?.builderProfile ? "builder" : "agent";
+
+                const res = await getAgentById(id, type, token?.accessToken ?? "");
+
+                setRoleAB(res);
+            } catch (error) {
+                console.error("Error fetching agent/builder:", error);
+            }
+        };
+
+        fetchAgentOrBuilder();
+    }, [entityType]);
+
+    useEffect(() => {
+        if (amount || floorPlans?.length > 0) {
+            let text = '';
+            if (amount) {
+                text = formatAmount(Number(amount));
+            } else if (floorPlans.length === 1) {
+                text = formatAmount(Number(floorPlans[0].amount));
+            } else {
+                text = `${formatAmount(Number(floorPlans[0].amount))} - ${formatAmount(
+                    Number(floorPlans[floorPlans.length - 1].amount)
+                )}`;
+            }
+
+            setPriceRange(text);
+        } else {
+            setPriceRange('');
+        }
+    }, [amount, floorPlans]);
+
+    // api call final subnmit
+    const handleSubmits = () => {
+        const formDataa = {
+            entityType: entityType,
+            listingType: user?.builderProfile ? "builder" : "agent",
+            title: formData.propertyName,
+            description: formData.description,
+            details: {
+                approvals: approvalAuthority ? approvalAuthority.split(/[, ]+/).filter(Boolean) : [],
+                possessionDate: possessionDate ? format(possessionDate, 'yyyy-MM-dd') : '',
+                propertyCategory: constructionStatus,
+                reraNumber: reraNumber,
+                facing: facingDirection,
+                ...(unitType && { bhkType: unitType }),
+                priceRange: priceRange,
+                towers: totalUnits,
+                unitSizeRange: unitSizeRange,
+                area: Number(area),
+                carpetArea: Number(carpetArea),
+                propertySize: Number(propertySize),
+                plotArea: Number(plotArea),
+                purpose: purpose,
+                certification: certification,
+                totalFloors: totalNo,
+                ageOfProperty: propertyage,
+                furnished: furnishingStatus,
+                floor: floorNo,
+                sampleFlatAvailable: sampleFlat,
+                additionalRooms: extraRoomTypes,
+                loanApprovedBanks: banks,
+                ...(totalBedroom && { bedrooms: totalBedroom }),
+                ...(totalBathroom && { bathrooms: totalBathroom }),
+                ...(totalBalcony && { balconies: totalBalcony }),
+                floorPlanningPricing: floorPlans,
+                propertyType: entityType,
+                reraRegistered: reraNumber ? true : false,
+                coveredParking: coveredParking,
+                ownership: ownership,
+                bookingAmount: Number(bookingAmount),
+                waterAvailability: waterAvailablity,
+                electricityStatus: electricityStatus,
+                greenQuality: certification
+                // availability: availabl,
+                // parking: parking
+
+            },
+
+            location: {
+                address: formData.address,
+                city: formData.city,
+                state: formData.state,
+                pincode: formData.pincode,
+                coordinates: [
+                    formData.location?.lat,
+                    formData.location?.lng,
+                ],
+                landmarks: formData.landmarks
+            },
+            pricing: {
+                ...(transactionType && { type: transactionType }),
+                pricePerSqft: Number(pricePerSqFT) || 0,
+                amount: Number(amount),
+                negotiable: n ? true : false,
+                maintenanceCharges: Number(maintainenceCharges),
+            },
+            amenities: setAmenitiesdata,
+            tags: highlights,
+            availableOffers: availableOffers,
+            status: "pending_approval",
+            featured: false,
+            contact: {
+                name: roleAB?.builderName ? roleAB?.builderName : roleAB?.agentName,
+                phone: roleAB?.contactPhone,
+                email: roleAB?.contactEmail,
+                whatsapp: roleAB?.contactPhone,
+                isAgent: roleAB?.agentProfile ? true : false,
+                agentId: roleAB?._id
+            },
+            //   additionalContacts: submittedContacts,
+            media: {
+                images: galleryFiles.filter((url: any) =>
+                    url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                ),
+                videos: galleryFiles.filter((url: any) =>
+                    url.match(/\.(mp4|mov|avi|mkv|webm)$/i)
+                ),
+                floorPlan: brochure
+            },
+            additionalContacts: savedContacts,
+
+        };
+
+        console.log("formdata", formDataa);
+
+    };
     return (
         <>
 
@@ -817,7 +965,8 @@ const Villa = ({ transactionType, entityType,
                         unitSizeRange={unitSizeRange}
                         unitType={unitType}
                         waterAvailablity={waterAvailablity}
-
+                        role={role}
+                        transactionType={transactionType}
                     /> :
 
                     <VillaForm2
@@ -868,6 +1017,8 @@ const Villa = ({ transactionType, entityType,
                         totalBathroom={totalBathroom}
                         totalBedroom={totalBedroom}
                         totalNo={totalNo}
+                        role={role}
+                        transactionType={transactionType}
 
                     />
             }
@@ -886,6 +1037,7 @@ const Villa = ({ transactionType, entityType,
                     onClick={() => {
                         if (showNext) {
                             // setShowNext(true)
+                            handleSubmits()
                             alert("Final call")
                         } else {
                             setShowNext(true)
@@ -974,6 +1126,8 @@ interface FormVilla1Props {
     handleAddOrUpdate: any
     open: any,
     setOpen: any,
+    role: string,
+    transactionType: any
 
 }
 const VillaForm1 = ({
@@ -1046,7 +1200,7 @@ const VillaForm1 = ({
     setUnitSizeRange,
     unitSizeRange,
     carpetArea,
-    setCarpetArea
+    setCarpetArea, role, transactionType
 }: FormVilla1Props) => {
     return (
         <div className='mt-3 space-y-3'>
@@ -1079,66 +1233,76 @@ const VillaForm1 = ({
                         className="mt-1"
                     />
                 </div>
-                <div className='flex flex-col flex-1'>
-                    <DropdownMenuCustom
-                        key={dropdownConfigs[0].key}
-                        options={dropdownConfigs[0].options}
-                        value={unitType}
-                        onChange={setUnitType}
-                        placeholder={dropdownConfigs[0].placeholder}
-                        label={dropdownConfigs[0].label}
-                    />
-                </div>
+                {
+                    (transactionType === "resale" || role === "Agent") &&
+                    <div className='flex flex-col flex-1'>
+                        <DropdownMenuCustom
+                            key={dropdownConfigs[0].key}
+                            options={dropdownConfigs[0].options}
+                            value={unitType}
+                            onChange={setUnitType}
+                            placeholder={dropdownConfigs[0].placeholder}
+                            label={dropdownConfigs[0].label}
+                        />
+                    </div>
+                }
             </div>
 
-            <div onClick={() => {
-                setOpen(true)
-                setCurrentPlan({ ...initialPlan }); // Reset to initial empty state
-                setEditIndex(null);
-            }}
-                className='cursor-pointer my-4 flex flex-row gap-1 justify-center items-center  border border-gray-300 py-2 rounded-sm bg-gray-100 hover:bg-gray-50 transition-all duration-300'>
-                <Plus size={18} />
-                <h1 className='text-sm text-black font-normal '>Add Floor Planning & Pricing</h1>
-            </div>
-            <div className="flex flex-row gap-3 py-2 overflow-x-auto">
-                {floorPlans?.map((i: any, index: any) => (
-                    <div
-                        key={index}
-                        className="py-4  w-[180px] shadow-sm border rounded-md shrink-0"
-                        onClick={() => handleEditPlan(index)}
-                    >
-                        <div className='flex flex-col gap-2 px-4'>
-                            <p className="text-sm font-normal">
-                                {formatIndianCurrency(i?.amount)}
-                            </p>
-                            <p className="text-sm font-normal">
-                                {i?.bhkType} - {i.superArea} {i.unitSize}
-                            </p>
-                            {/* <p className="text-sm font-normal">Amount: {i?.amount}</h1> */}
-                            <div className='flex flex-row gap-4 items-center '>
-                                <h1 className='text-xs flex flex-row gap-0.5'><Bed size={14} />{i.noOfBedroom}</h1>
-                                <h1 className='text-xs flex flex-row gap-0.5'><Bath size={14} />{i.noOfBathroom}</h1>
-                                <h1 className='text-xs flex flex-row gap-0.5'><Sun size={14} />{i.noOfBedroom}</h1>
+            {
+                (transactionType === "sale" && role === "Builder") &&
+                <div onClick={() => {
+                    setOpen(true)
+                    setCurrentPlan({ ...initialPlan }); // Reset to initial empty state
+                    setEditIndex(null);
+                }}
+                    className='cursor-pointer my-4 flex flex-row gap-1 justify-center items-center  border border-gray-300 py-2 rounded-sm bg-gray-100 hover:bg-gray-50 transition-all duration-300'>
+                    <Plus size={18} />
+                    <h1 className='text-sm text-black font-normal '>Add Floor Planning & Pricing</h1>
+                </div>
+
+            }
+            {
+                !!floorPlans?.length &&
+                <div className="flex flex-row gap-3 py-2 overflow-x-auto">
+                    {floorPlans?.map((i: any, index: any) => (
+                        <div
+                            key={index}
+                            className="py-4  w-[180px] shadow-sm border rounded-md shrink-0"
+                            onClick={() => handleEditPlan(index)}
+                        >
+                            <div className='flex flex-col gap-2 px-4'>
+                                <p className="text-sm font-normal">
+                                    {formatIndianCurrency(i?.amount)}
+                                </p>
+                                <p className="text-sm font-normal">
+                                    {i?.bhkType} - {i.superArea} {i.unitSize}
+                                </p>
+                                {/* <p className="text-sm font-normal">Amount: {i?.amount}</h1> */}
+                                <div className='flex flex-row gap-4 items-center '>
+                                    <h1 className='text-xs flex flex-row gap-0.5'><Bed size={14} />{i.noOfBedroom}</h1>
+                                    <h1 className='text-xs flex flex-row gap-0.5'><Bath size={14} />{i.noOfBathroom}</h1>
+                                    <h1 className='text-xs flex flex-row gap-0.5'><Sun size={14} />{i.noOfBedroom}</h1>
+                                </div>
+                            </div>
+                            <div className="flex flex-row gap-2 mt-2 py-2 overflow-x-auto px-4">
+                                {i?.floorPlanImages?.map((img: any, idx: any) => (
+                                    <div key={idx} className="w-[80px] h-[80px] overflow-hidden shadow-md rounded-md shrink-0">
+                                        <img
+                                            src={img}
+                                            alt=""
+                                            className="object-cover w-full h-full"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                            <div className='flex flex-row gap-2 mt-4 px-4'>
+                                <button ><Trash2 color='red' size={16} /></button>
+                                <button><Pencil color='black' size={16} /></button>
                             </div>
                         </div>
-                        <div className="flex flex-row gap-2 mt-2 py-2 overflow-x-auto px-4">
-                            {i?.floorPlanImages?.map((img: any, idx: any) => (
-                                <div key={idx} className="w-[80px] h-[80px] overflow-hidden shadow-md rounded-md shrink-0">
-                                    <img
-                                        src={img}
-                                        alt=""
-                                        className="object-cover w-full h-full"
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div className='flex flex-row gap-2 mt-4 px-4'>
-                            <button ><Trash2 color='red' size={16} /></button>
-                            <button><Pencil color='black' size={16} /></button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            }
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
@@ -1238,28 +1402,33 @@ const VillaForm1 = ({
                     </div> */}
             </div>
             <div className='flex flex-row gap-4'>
-                <div className='flex flex-col flex-1'>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Amount
-                    </label>
-                    <InputBox
-                        name="Amount"
-                        value={amount}
-                        onChange={setAmount}
-                        placeholder="Amount"
-                        className="mt-1"
-                    />
-                </div>
+                {
+                    (transactionType === "resale" || role === "Agent") &&
+                    <div className='flex flex-col flex-1'>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Amount
+                        </label>
+                        <InputBox
+                            name="Amount"
+                            value={amount}
+                            onChange={setAmount}
+                            placeholder="Amount"
+                            className="mt-1"
+                        />
+                    </div>
+                }
                 <div className='flex flex-col flex-1'>
                     <label className="block text-sm font-medium text-gray-700">
                         Price Range
                     </label>
                     <InputBox
                         name="Price range"
-                        value={priceRange}
+                        value={priceRange ?? 0}
                         onChange={setPriceRange}
                         placeholder="Price range"
                         className="mt-1"
+                        disabled
+
                     />
                 </div>
             </div>
@@ -1276,18 +1445,22 @@ const VillaForm1 = ({
                         className="mt-1"
                     />
                 </div>
-                <div className='flex flex-col flex-1'>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Booking Amount
-                    </label>
-                    <InputBox
-                        name="Booking Amount"
-                        value={bookingAmount}
-                        onChange={setBookingAmount}
-                        placeholder="Booking amount"
-                        className="mt-1"
-                    />
-                </div>
+                {
+                    transactionType === "sale" &&
+                    <div className='flex flex-col flex-1'>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Booking Amount
+                        </label>
+                        <InputBox
+                            name="Booking Amount"
+                            value={bookingAmount}
+                            onChange={setBookingAmount}
+                            placeholder="Booking Amount"
+                            className="mt-1"
+                        />
+                    </div>
+                }
+
 
             </div>
 
@@ -1302,19 +1475,36 @@ const VillaForm1 = ({
                         label={dropdownConfigs[2].label}
                     />
                 </div>
-                <div className='flex flex-col flex-1'>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Possession Date
-                    </label>
-                    <DatePickerCustom
-                        value={possessionDate ? new Date(possessionDate) : undefined}
-                        onChange={(date) => setPossessionDate(date ? date.toISOString() : "")}
-                        disabled={(date) => date < new Date()}
-                        placeholder="Possession date"
-                        className="mt-1"
-                    />
-                </div>
+                {
+                    constructionStatus === "Ready to Move" &&
+                    <div className='flex flex-col flex-1'>
+                        <DropdownMenuCustom
+                            key={dropdownConfigs[1].key}
+                            options={dropdownConfigs[1].options}
+                            value={propertyage}
+                            onChange={setPropertyAge}
+                            placeholder={dropdownConfigs[1].placeholder}
+                            label={dropdownConfigs[1].label}
+                        />
+                    </div>
 
+                }
+
+                {
+                    constructionStatus === "New/Under Construction" &&
+                    <div className='flex flex-col flex-1'>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Possession Date
+                        </label>
+                        <DatePickerCustom
+                            value={possessionDate ? new Date(possessionDate) : undefined}
+                            onChange={(date) => setPossessionDate(date ? date.toISOString() : "")}
+                            disabled={(date) => date < new Date()}
+                            placeholder="Possession date"
+                            className="mt-1"
+                        />
+                    </div>
+                }
             </div>
             <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
@@ -1360,7 +1550,7 @@ const VillaForm1 = ({
                     <InputBox
                         name=" No of Villa's"
                         value={totalUnits}
-                        onChange={totalUnits}
+                        onChange={setTotalUnits}
                         placeholder=" No of villa's"
                         className="mt-1"
                     />
@@ -1390,29 +1580,34 @@ const VillaForm1 = ({
                 </div>
 
             </div>
-            <div className='flex flex-row gap-4'>
-                <div className='flex flex-col flex-1'>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Maintenance Charges
-                    </label>
-                    <InputBox
-                        name="Maintenance Charges"
-                        value={maintainenceCharges}
-                        onChange={setMaintainenceCharges}
-                        placeholder="Maintenance charges"
-                        className="mt-1"
-                    />
-                </div>
-                <div className='flex flex-col flex-1'>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Rent Negotiable
-                    </label>
-                    <div className='h-8 flex flex-row gap-4 items-center mt-1 '>
-                        <Switch checked={n} onCheckedChange={setN} />
-                        <h1 className='text-sm font-normal'>{n ? "Yes" : "No"}</h1>
+            {
+                transactionType === "resale" &&
+                <div className='flex flex-row gap-4'>
+                    <div className='flex flex-col flex-1'>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Maintenance Charges
+                        </label>
+                        <InputBox
+                            name="Maintenance Charges"
+                            value={maintainenceCharges}
+                            onChange={setMaintainenceCharges}
+                            placeholder="Maintenance charges"
+                            className="mt-1"
+                        />
+                    </div>
+
+                    <div className='flex flex-col flex-1'>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Rent Negotiable
+                        </label>
+                        <div className='h-8 flex flex-row gap-4 items-center mt-1 '>
+                            <Switch checked={n} onCheckedChange={setN} />
+                            <h1 className='text-sm font-normal'>{n ? "Yes" : "No"}</h1>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
+
 
             <div className='flex flex-row gap-4'>
                 <div className="flex flex-col flex-1">
@@ -1507,6 +1702,9 @@ interface FormVilla2Props {
     setSavedContacts: any,
     flooring: any
     setFlooring: any
+    role: string
+    transactionType: any
+
 
 }
 const VillaForm2 = ({
@@ -1554,7 +1752,7 @@ const VillaForm2 = ({
     savedContacts,
     setSavedContacts,
     flooring,
-    setFlooring
+    setFlooring, role, transactionType
 }: FormVilla2Props) => {
     return (
         <div className='mt-3 space-y-3'>
@@ -1581,53 +1779,56 @@ const VillaForm2 = ({
                 </div>
             </div>
 
-            <div className='flex flex-row gap-4'>
+            {
+                (transactionType === "resale" || role === "Agent") &&
+                <>
+                    <div className='flex flex-row gap-4'>
+                        <div className='flex flex-col flex-1'>
+                            <DropdownMenuCustom
+                                key={dropdownConfigs[6].key}
+                                options={dropdownConfigs[6].options}
+                                value={floorNo}
+                                onChange={setFloorNo}
+                                placeholder={dropdownConfigs[6].placeholder}
+                                label={dropdownConfigs[6].label}
+                            />
+                        </div>
+                        <div className='flex flex-col flex-1'>
+                            <DropdownMenuCustom
+                                key={dropdownConfigs[7].key}
+                                options={dropdownConfigs[7].options}
+                                value={totalBedroom}
+                                onChange={setTotalBedroom}
+                                placeholder={dropdownConfigs[7].placeholder}
+                                label={dropdownConfigs[7].label}
+                            />
+                        </div>
+                    </div>
+                    <div className='flex flex-row gap-4'>
+                        <div className='flex flex-col flex-1'>
+                            <DropdownMenuCustom
+                                key={dropdownConfigs[8].key}
+                                options={dropdownConfigs[8].options}
+                                value={totalBathroom}
+                                onChange={setTotalBathroom}
+                                placeholder={dropdownConfigs[8].placeholder}
+                                label={dropdownConfigs[8].label}
+                            />
+                        </div>
+                        <div className='flex flex-col flex-1'>
+                            <DropdownMenuCustom
+                                key={dropdownConfigs[9].key}
+                                options={dropdownConfigs[9].options}
+                                value={totalBalcony}
+                                onChange={setTotalBalcony}
+                                placeholder={dropdownConfigs[9].placeholder}
+                                label={dropdownConfigs[9].label}
+                            />
+                        </div>
+                    </div>
+                </>
 
-                <div className='flex flex-col flex-1'>
-                    <DropdownMenuCustom
-                        key={dropdownConfigs[6].key}
-                        options={dropdownConfigs[6].options}
-                        value={floorNo}
-                        onChange={setFloorNo}
-                        placeholder={dropdownConfigs[6].placeholder}
-                        label={dropdownConfigs[6].label}
-                    />
-                </div>
-                <div className='flex flex-col flex-1'>
-                    <DropdownMenuCustom
-                        key={dropdownConfigs[7].key}
-                        options={dropdownConfigs[7].options}
-                        value={totalBedroom}
-                        onChange={setTotalBedroom}
-                        placeholder={dropdownConfigs[7].placeholder}
-                        label={dropdownConfigs[7].label}
-                    />
-                </div>
-            </div>
-            <div className='flex flex-row gap-4'>
-                <div className='flex flex-col flex-1'>
-                    <DropdownMenuCustom
-                        key={dropdownConfigs[8].key}
-                        options={dropdownConfigs[8].options}
-                        value={totalBathroom}
-                        onChange={setTotalBathroom}
-                        placeholder={dropdownConfigs[8].placeholder}
-                        label={dropdownConfigs[8].label}
-                    />
-                </div>
-                <div className='flex flex-col flex-1'>
-                    <DropdownMenuCustom
-                        key={dropdownConfigs[9].key}
-                        options={dropdownConfigs[9].options}
-                        value={totalBalcony}
-                        onChange={setTotalBalcony}
-                        placeholder={dropdownConfigs[9].placeholder}
-                        label={dropdownConfigs[9].label}
-                    />
-                </div>
-            </div>
-
-            <div className='flex flex-row gap-4'>
+            }            <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
                     <DropdownMenuCustom
                         key={dropdownConfigs[10].key}
@@ -1638,7 +1839,7 @@ const VillaForm2 = ({
                         label={dropdownConfigs[10].label}
                     />
                 </div>
-                <div className='flex flex-col flex-1'>
+                {/* <div className='flex flex-col flex-1'>
                     <DropdownMenuCustom
                         key={dropdownConfigs[11].key}
                         options={dropdownConfigs[11].options}
@@ -1647,10 +1848,7 @@ const VillaForm2 = ({
                         placeholder={dropdownConfigs[11].placeholder}
                         label={dropdownConfigs[11].label}
                     />
-                </div>
-            </div>
-
-            <div className='flex flex-row gap-4'>
+                </div> */}
                 <div className='flex flex-col flex-1'>
                     <DropdownMenuCustom
                         key={dropdownConfigs[12].key}
@@ -1661,6 +1859,10 @@ const VillaForm2 = ({
                         label={dropdownConfigs[12].label}
                     />
                 </div>
+            </div>
+
+            <div className='flex flex-row gap-4'>
+
                 <div className='flex flex-col flex-1'>
                     <DropdownMenuCustom
                         key={dropdownConfigs[13].key}
@@ -1671,10 +1873,6 @@ const VillaForm2 = ({
                         label={dropdownConfigs[13].label}
                     />
                 </div>
-            </div>
-
-
-            <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
                     <MultiSelectDropdown
                         key={dropdownConfigs[14].key}
@@ -1686,6 +1884,11 @@ const VillaForm2 = ({
                         className="max-w-sm"
                     />
                 </div>
+            </div>
+
+
+            <div className='flex flex-row gap-4'>
+
                 <div className='flex flex-col flex-1'>
                     <label className="block text-sm font-medium text-gray-700">
                         Certification
@@ -1698,8 +1901,6 @@ const VillaForm2 = ({
                         className="mt-1"
                     />
                 </div>
-            </div>
-            <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
                     <MultiSelectDropdown
                         key={dropdownConfigs[15].key}
@@ -1711,6 +1912,9 @@ const VillaForm2 = ({
                         className="max-w-sm"
                     />
                 </div>
+            </div>
+            <div className='flex flex-row gap-4'>
+
                 <div className='flex flex-col flex-1'>
                     <MultiSelectDropdown
                         key={dropdownConfigs[16].key}
@@ -1722,9 +1926,6 @@ const VillaForm2 = ({
                         className="max-w-sm"
                     />
                 </div>
-            </div>
-
-            <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
                     <MultiSelectDropdown
                         key={dropdownConfigs[21].key}
@@ -1735,6 +1936,10 @@ const VillaForm2 = ({
                         label={dropdownConfigs[21].label}
                     />
                 </div>
+            </div>
+
+            <div className='flex flex-row gap-4'>
+
             </div>
 
             <div className='flex flex-row gap-4'>

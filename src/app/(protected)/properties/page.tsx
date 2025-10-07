@@ -8,7 +8,7 @@ import PropetiesCard from '@/components/CommonCards/PropetiesCard';
 import PropertyCardLoader from '@/components/Loader/PropertyCardLoader';
 
 // Define the API base URL and routes
-const API_BASE_URL = 'https://listifyi-api-1012443530727.asia-south1.run.app';
+const API_BASE_URL = 'https://listifyi-api-dev-1012443530727.asia-south1.run.app';
 const API_ROUTES = {
     getAllListing: '/listings-v2/my-listings',
 };
@@ -65,6 +65,28 @@ const Properties: React.FC = () => {
         }
     };
 
+
+    // Function to delete a listing
+    const deleteListing = async (listingId: string): Promise<boolean> => {
+        const tk = tokenStore.get();
+        try {
+            await axios.delete(
+                `${API_BASE_URL}/listings-v2/${listingId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${tk?.accessToken}`,
+                    },
+                }
+            );
+            return true;
+        } catch (err: any) {
+            setError('Failed to delete listing. Please try again.');
+            console.error(err.response);
+            return false;
+        }
+    };
+
+
     // Fetch listings when activeTab or pageNum changes
     useEffect(() => {
         fetchListings();
@@ -78,7 +100,7 @@ const Properties: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col w-full p-4">
-            <h1 className="text-2xl font-bold mb-4">Properties</h1>
+            <h1 className="text-2xl font-semibold mb-4">Your Properties</h1>
 
             <div className='w-full'>
                 <div className="flex  flex-nowrap gap-x-2 items-center">
@@ -104,7 +126,14 @@ const Properties: React.FC = () => {
                         ))
                     ) : listings.length > 0 ? (
                         listings.map((item, index) => (
-                            <PropetiesCard item={item} key={index} />
+                            <PropetiesCard item={item} key={index}
+                                onDelete={async () => {
+                                    const success = await deleteListing(item.id);
+                                    if (success) {
+                                        await fetchListings();
+                                    }
+                                }}
+                            />
                         ))
                     ) : (
                         <p className="text-center text-gray-500 col-span-full">

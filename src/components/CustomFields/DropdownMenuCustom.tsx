@@ -41,7 +41,7 @@ const DropdownMenuCustom: React.FC<DropdownMenuCustomProps> = ({
                 </label>
             )}
             <Select value={value} onValueChange={onChange} disabled={disabled}>
-                <SelectTrigger className="w-full text-sm rounded-sm bg-white" style={{ height: "32px" }}>
+                <SelectTrigger className="w-full text-sm rounded-sm bg-white" style={{ height: "38px" }}>
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent>

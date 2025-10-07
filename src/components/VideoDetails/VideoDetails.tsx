@@ -5,6 +5,8 @@ import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '../ui/carousel';
 import axios from 'axios';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { useRouter } from 'next/navigation';
 
 // Shared interfaces (ideally move to types/index.ts)
 interface Location {
@@ -81,7 +83,7 @@ interface ApiResponse {
 
 type VideoDetailsProps = {
     handleCloseDetails: () => void;
-    post: ApiResponse;
+    post: any;
 };
 
 interface AutoCarouselProps {
@@ -137,6 +139,24 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
         }
     }, [post?.listing?.id]);
 
+    let combinedMedia: any = [];
+
+    if (dataDetails?.media) {
+        console.log(dataDetails?.media?.videos);
+        console.log(dataDetails?.media?.images);
+
+        // Add videos to combinedMedia with type 'video'
+        if (dataDetails.media.videos) {
+            combinedMedia.push(...dataDetails.media.videos.map((video: any) => ({ type: 'video', content: video })));
+        }
+
+        // Add images to combinedMedia with type 'image'
+        if (dataDetails.media.images) {
+            combinedMedia.push(...dataDetails.media.images.map((image: any) => ({ type: 'image', content: image })));
+        }
+    }
+
+    console.log("p[[[[", combinedMedia);
 
     const images = [
         post.post.thumbnail_url ||
@@ -169,7 +189,36 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
     console.log(post);
 
+    const router = useRouter()
 
+    const [open, setOpen] = useState(false)
+    const [selectedBHK, setSelectedBHK] = useState<string>('All'); // State to track selected BHK type
+    // Get unique BHK types for buttons
+    const bhkTypes = Array.from(
+        new Set(dataDetails?.details?.floorPlanningPricing?.map((item: any) => `${item?.noOfBathroom || 1} BHK`))
+    );
+
+    // Filter floor plans based on selected BHK type
+    const filteredFloorPlans =
+        selectedBHK === 'All'
+            ? dataDetails?.details?.floorPlanningPricing
+            : dataDetails?.details?.floorPlanningPricing?.filter(
+                (item: any) => `${item?.noOfBathroom || 1} BHK` === selectedBHK
+            );
+
+
+    console.log("post", post?.user?.id);
+    console.log("post", post?.user?.name);
+    console.log("post", dataDetails?.id);
+    console.log("post--", dataDetails?.title);
+
+
+    // username: post?.user?.name,
+    //     contentID: post?.user?.id,
+    //     profilePic: "",
+    //     listingId: listingId,
+    //     propertyName: propertyName,
+    //     id: previousChatId
     return (
         <>
             {/* {
@@ -180,10 +229,10 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     </div>
                     : */}
             <div className="h-full flex flex-col  overflow-y-auto transition-all bg-black md:py-0 py-6">
-                <div className="absolute hidden md:flex top-0 right-[20px] z-50">
+                <div className="absolute hidden md:flex top-2 right-[20px] z-50">
                     <button
                         onClick={handleCloseDetails}
-                        className="p-2 hover:bg-gray-700 bg-gray-600 cursor-pointer rounded-full transition-colors duration-200"
+                        className="p-2 bg-[rgba(0,0,0,0.4)]  cursor-pointer rounded-full transition-colors duration-200"
                     >
                         <X className="w-6 h-6" />
                     </button>
@@ -205,7 +254,9 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                                     />
                                     {/* Play button overlay */}
                                     <button className="absolute inset-0 flex items-center justify-center">
-                                        <div className="bg-black bg-opacity-50 p-4 rounded-full">
+                                        <div onClick={() => {
+                                            setOpen(true)
+                                        }} className="bg-black bg-opacity-50 p-4 rounded-full">
                                             <Play size={32} className="text-white" />
                                         </div>
                                     </button>
@@ -228,6 +279,74 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         </button>
                     </div>
 
+
+                    <Dialog open={open} onOpenChange={() => {
+                        setOpen(false)
+                    }}
+
+                    >
+                        <DialogContent showCloseButton={false} className="p-2 fixed h-[90%] sm:max-w-full w-[1000px]" >
+                            <div className="relative w-full h-full overflow-hidden">
+
+                                <div
+                                    // ref={slideRef}
+                                    className="flex transition-transform duration-700 ease-in-out w-full h-full"
+                                >
+                                    <button onClick={() => {
+                                        setOpen(false)
+                                    }} className='flex cursor-pointer justify-center items-center z-50 rounded-full bg-[rgba(0,0,0,0.4)] h-[50px] w-[50px] m-2 absolute right-0 top-0'>
+                                        <X size={38} color='#fff' />
+                                    </button>
+                                    {combinedMedia?.map((img: any, index: any) => (
+                                        <div key={index} className="flex-shrink-0 w-full h-full relative">
+
+                                            {/* <Image
+                                            
+                                                src={img}
+                                                alt={`Slide ${index + 1}`}
+                                                fill
+                                                className="object-cover w-full h-full"
+                                            /> */}
+                                            {
+                                                img?.type === "video" ?
+                                                    <video loop={true} controls={false} autoPlay src={img?.content} className='w-full h-full object-cover'></video>
+                                                    :
+
+                                                    <img src={img?.content} className='w-full h-full object-cover'></img>
+
+                                            }
+                                            {/* Play button overlay */}
+                                            {/* <button className="absolute inset-0 flex items-center justify-center">
+                                                <div onClick={() => {
+                                                    setOpen(true)
+                                                }} className="bg-black bg-opacity-50 p-4 rounded-full">
+                                                    <Play size={32} className="text-white" />
+                                                </div>
+                                            </button> */}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Previous / Next Arrows */}
+                                {combinedMedia?.length > 1 &&
+                                    <>
+                                        <button
+                                            onClick={handlePrev}
+                                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-800 p-2 rounded-full z-20"
+                                        >
+                                            <ChevronLeft size={24} className="text-white" />
+                                        </button>
+                                        <button
+                                            onClick={handleNext}
+                                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-800 p-2 rounded-full z-20"
+                                        >
+                                            <ChevronRight size={24} className="text-white" />
+                                        </button>
+                                    </>
+                                }
+                            </div>
+                        </DialogContent>
+                    </Dialog>
 
                     {/* Details */}
                     <div className="p-4 space-y-4 pb-28">
@@ -256,7 +375,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
                             <div className="flex flex-wrap gap-2 mt-4">
                                 {post?.post?.tags?.length > 0
-                                    && post?.post?.tags?.map((tag) => (
+                                    && post?.post?.tags?.map((tag: any) => (
                                         <span key={tag} className="px-3 py-1 rounded-full bg-gray-800 text-[12px]">
                                             {tag}
                                         </span>
@@ -272,7 +391,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         </div>
 
                         {/* Builder */}
-                        <div className="bg-gray-900 p-3 rounded-xl flex items-center justify-between ">
+                        {/* <div className="bg-gray-900 p-3 rounded-xl flex items-center justify-between ">
                             <div className="flex items-center gap-3">
                                 <Image
                                     src={post.user.profile_photo || "/builder.jpg"}
@@ -301,32 +420,46 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                             <button className="bg-gray-800 p-2 rounded-full">
                                 <MessageCircle size={18} />
                             </button>
-                        </div>
+                        </div> */}
 
                         {/* BHK Sizes */}
                         <div className=''>
                             <h2 className="font-semibold text-[16px]">Floor Planning & Pricing</h2>
 
                             <div className="flex gap-3 mb-1 mt-3">
-                                <button className="px-4 py-1 rounded-full bg-gray-800 text-sm cursor-pointer">All</button>
-                                <button className="px-4 py-1 rounded-full bg-gray-800 text-sm cursor-pointer">{`${post?.listing?.propertyValues?.bedroom || 1
-                                    } BHK`}</button>
+                                <button
+                                    className={`px-4 py-1 rounded-full text-sm cursor-pointer ${selectedBHK === 'All' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-white'
+                                        }`}
+                                    onClick={() => setSelectedBHK('All')}
+                                >
+                                    All
+                                </button>
+                                {bhkTypes?.map((bhk: string) => (
+                                    <button
+                                        key={bhk}
+                                        className={`px-4 py-1 rounded-full text-sm cursor-pointer ${selectedBHK === bhk ? 'bg-blue-600 text-white' : 'bg-gray-800 text-white'
+                                            }`}
+                                        onClick={() => setSelectedBHK(bhk)}
+                                    >
+                                        {bhk}
+                                    </button>
+                                ))}
                             </div>
-
 
                             <div className="p-4 border-b border-neutral-800 relative pb-[80px]">
                                 <Carousel className="w-full">
                                     <CarouselContent className="flex gap-4">
-                                        {Array.from({ length: 5 }).map((_, i) => (
+                                        {filteredFloorPlans?.map((_: any, i: any) => (
                                             <CarouselItem key={i} className="basis-auto">
                                                 <div className="bg-gray-900 p-3 rounded-xl min-w-[340px] inline-flex ">
                                                     <div className='flex flex-row gap-4'>
-                                                        <div className='border h-[90px] w-[120px] rounded-md'> </div>
+                                                        <div className='overflow-hidden h-[90px] w-[120px] rounded-md'>
+                                                            <img src={_?.floorPlanImages[0]} className='w-full h-full object-cover' alt="" /> </div>
                                                         <div>
                                                             <p className="text-[14px] text-gray-400 flex-1">Super Area</p>
-                                                            <p className="text-white text-[14px]">{`${post?.listing?.propertyValues?.sqft_area || 100} Sqft | ${post?.listing?.propertyValues?.bedroom || 1
+                                                            <p className="text-white text-[14px]">{`${_?.superArea || 100} ${_?.unitSize}  | ${_?.noOfBathroom || 1
                                                                 } BHK`}</p>
-                                                            <p className="text-white text-[14px]">₹{post?.listing?.pricing?.amount.toLocaleString() || "N/A"} Onwards</p>
+                                                            <p className="text-white text-[14px]">₹{_?.amount.toLocaleString() || "N/A"} Onwards</p>
                                                             <p className="text-white text-[14px]"></p>
                                                             {/* <a href="#" className="underline text-[14px] mt-2 inline-block">
                                                                 See all properties
@@ -336,6 +469,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                                                 </div>
                                             </CarouselItem>
                                         ))}
+
                                     </CarouselContent>
 
                                     {/* Bottom Centered Arrows */}
@@ -364,7 +498,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         <div className=''>
                             <h2 className="font-semibold text-[16px]">Interior Details</h2>
                             <div className="mt-2 text-[14px]">
-                                <div className="flex justify-between py-1">
+                                <div className="justify-between py-1  grid grid-cols-2">
                                     <span>Extra Rooms</span>
                                     <span className="font-semibold">
                                         {dataDetails?.details?.additionalRooms?.length
@@ -372,11 +506,11 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                                             : "—"}
                                     </span>
                                 </div>
-                                <div className="flex justify-between py-1">
+                                <div className="justify-between py-1 grid grid-cols-2">
                                     <span>Furnishing Status</span>
                                     <span className="font-semibold">{dataDetails?.details?.furnished}</span>
                                 </div>
-                                <div className="flex justify-between py-1">
+                                <div className="justify-between py-1 grid grid-cols-2">
                                     <span>Green Quality</span>
                                     <span className="font-semibold">{dataDetails?.details?.greenQuality}</span>
                                 </div>
@@ -512,25 +646,28 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     </div> */}
 
                         {/* Similar Properties */}
-                        <div className="p-4 border-b border-neutral-800 relative pb-[80px]">
-                            <h3 className="text-[16px] font-semibold mb-3">Similar Properties</h3>
+                        {
+                            !!similarProperties?.length &&
+                            <div className="p-4 border-b border-neutral-800 relative pb-[80px]">
+                                <h3 className="text-[16px] font-semibold mb-3">Similar Properties</h3>
 
-                            <Carousel className="w-full">
-                                <CarouselContent className="flex gap-4">
-                                    {Array.from({ length: 5 }).map((_, i) => (
-                                        <CarouselItem key={i} className="basis-auto">
-                                            <div className="h-[190px] cursor-pointer w-[280px] border rounded-lg bg-neutral-900 shrink-0"></div>
-                                        </CarouselItem>
-                                    ))}
-                                </CarouselContent>
+                                <Carousel className="w-full">
+                                    <CarouselContent className="flex gap-4">
+                                        {Array.from({ length: 5 }).map((_, i) => (
+                                            <CarouselItem key={i} className="basis-auto">
+                                                <div className="h-[190px] cursor-pointer w-[280px] border rounded-lg bg-neutral-900 shrink-0"></div>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
 
-                                {/* Bottom Centered Arrows */}
-                                <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 flex gap-4 z-10">
-                                    <CarouselPrevious className="bg-neutral-800 text-white rounded-full p-2 hover:bg-neutral-700" />
-                                    <CarouselNext className="bg-neutral-800 text-white rounded-full p-2 hover:bg-neutral-700" />
-                                </div>
-                            </Carousel>
-                        </div>
+                                    {/* Bottom Centered Arrows */}
+                                    <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 flex gap-4 z-10">
+                                        <CarouselPrevious className="bg-neutral-800 text-white rounded-full p-2 hover:bg-neutral-700" />
+                                        <CarouselNext className="bg-neutral-800 text-white rounded-full p-2 hover:bg-neutral-700" />
+                                    </div>
+                                </Carousel>
+                            </div>
+                        }
 
 
                         {/* Branding */}
@@ -552,20 +689,24 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     </div>
 
                     {/* Bottom Actions */}
-                    {/* <div className="fixed bottom-0 left-0 w-full bg-black p-4 flex justify-around border-t border-gray-800">
-                                <button className="flex flex-col items-center">
-                                    <MessageCircle size={18} />
-                                    <span className="text-xs mt-1">Message</span>
-                                </button>
-                                <button className="flex flex-col items-center text-green-500">
-                                    <Calendar size={18} />
-                                    <span className="text-xs mt-1">Schedule</span>
-                                </button>
-                                <button className="flex flex-col items-center">
-                                    <Phone size={18} />
-                                    <span className="text-xs mt-1">Call</span>
-                                </button>
-                            </div> */}
+                    <div className="fixed bottom-0 left-0 w-full bg-black p-4 flex justify-around border-t border-gray-800">
+                        <button
+                            onClick={() => {
+                                router.push("/messages/")
+                            }}
+                            className=" cursor-pointer flex flex-col items-center hover:text-gray-400  transition-all duration-300">
+                            <MessageCircle size={18} />
+                            <span className="text-xs mt-1">Message</span>
+                        </button>
+                        <button className=" cursor-pointer flex flex-col items-center  hover:text-gray-400  transition-all duration-300">
+                            <Calendar size={18} />
+                            <span className="text-xs mt-1">Schedule</span>
+                        </button>
+                        <button className=" cursor-pointer flex flex-col items-center hover:text-gray-400  transition-all duration-300">
+                            <Phone size={18} />
+                            <span className="text-xs mt-1">Call</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             {/* } */}

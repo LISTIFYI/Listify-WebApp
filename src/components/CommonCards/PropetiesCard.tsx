@@ -1,12 +1,71 @@
-import { Bath, Bed, ImageOff, LocateIcon, Map, MapPin, Sun } from 'lucide-react';
-import React from 'react'
+'use client'
 
-const PropetiesCard = ({ item }: any) => {
+import { Bath, Bed, EllipsisVertical, FlipVertical, ImageOff, LocateIcon, Map, MapPin, Sun } from 'lucide-react';
+import React, { useState } from 'react'
+import { RxDotsVertical } from 'react-icons/rx';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { IoChevronDown } from 'react-icons/io5';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Button } from '../ui/button';
+
+const PropetiesCard = ({ item, onDelete }: any) => {
     console.log(item);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
     return (
-        <div className=' shadow-sm flex justify-between flex-col rounded-md   lg:max-w-[220px] w-[100%] h-[340px] mx-auto'>
+        <div className='cursor-pointer shadow-sm flex justify-between flex-col rounded-md   lg:max-w-[220px] w-[100%] h-[340px] mx-auto'>
             <div className='h-[80%] rounded-md overflow-hidden relative'>
 
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <div className="flex  absolute right-0 cursor-pointer flex-row gap-2 items-center justify-center pr-2 mt-1">
+                            <div style={{ backgroundColor: "rgba(0,0,0,0.8)" }} className="border border-gray-50 overflow-hidden shadow-md flex justify-center items-center w-[25px] h-[25px] rounded-full">
+                                <span className="text-[12px] font-bold">
+                                    <EllipsisVertical color='#fff' size={16} />
+                                </span>
+                            </div>
+                        </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-40">
+                        <DropdownMenuItem
+                            onClick={() => {
+                                // route to profile page
+                                // window.location.href = "/profile";
+                            }}
+                        >
+                            Edit
+                        </DropdownMenuItem>
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    Delete
+                                </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Confirm Deletion</DialogTitle>
+                                    <DialogDescription>
+                                        Are you sure you want to delete the property "{item.propertyName || 'this property'}"? This action cannot be undone.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={async () => {
+                                            await onDelete();
+                                            setIsDialogOpen(false);
+                                        }}
+                                    >
+                                        Delete
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 {
                     !!item?.media?.images?.length ?
                         <img alt={item.propertyName} src={item?.media?.images[0]} className='w-full h-full object-cover' />
