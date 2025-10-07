@@ -3005,11 +3005,3 @@ const FormDetailsFour = ({
         </div>
     )
 }
-
-// const MediaUploadForm = () => {
-//     return (
-//         <div>
-//             <MediaUpload />
-//         </div>
-//     )
-// }
