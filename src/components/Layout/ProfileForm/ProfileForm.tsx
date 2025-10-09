@@ -256,7 +256,7 @@ export default function ProfileForm({
                                 value={formData.phone}
                                 onChange={handleChange}
                                 className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                                disabled={!!formData.phone}
+                            // disabled={!!formData.phone}
                             />
                         </div>
                     </div>

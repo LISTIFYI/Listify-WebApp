@@ -74,7 +74,7 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                                 onClick={() => {
                                     setActiveToggle("all")
                                     addFilters({
-                                        type: "all"
+                                        type: ""
                                     })
                                 }}
                             >

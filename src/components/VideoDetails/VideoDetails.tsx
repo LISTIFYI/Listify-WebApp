@@ -286,7 +286,6 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     >
                         <DialogContent showCloseButton={false} className="p-2 fixed h-[90%] sm:max-w-full w-[1000px]" >
                             <div className="relative w-full h-full overflow-hidden">
-
                                 <div
                                     // ref={slideRef}
                                     className="flex transition-transform duration-700 ease-in-out w-full h-full"

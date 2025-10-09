@@ -122,51 +122,61 @@ const SelectRole = ({ selectedTrue, setSelectedTrue, role, setRoleGlobally }: { 
 
     const handleClick = (id: string, disabled: boolean): void => {
         if (!disabled) {
-            setRoleGlobally(id);
             setSelected(id)
         }
     };
     const router = useRouter()
     const ContinueClick = () => {
-        // router.push("/property-listing")
+        setRoleGlobally(selected);
         setSelectedTrue(true)
     }
 
     return (
-        <div className='flex flex-col w-full m-5'>
-            {
-                !selectedTrue ?
-                    <>
+        <div className="flex flex-col max-w-[620px] p-10 m-auto rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full">
+            <div>
+                <div className="flex flex-col gap-2 mb-4">
+                    <h1 className="text-black font-[500] text-[18px] tracking-wide">
+                        Let&apos;s get you started
+                    </h1>
+                    <h2 className="text-black font-[500] text-[14px]">
+                        Select your role
+                    </h2>
+                </div>
 
-                    </>
-                    :
-                    <div>
-                        <div className='flex flex-col gap-2 mb-2'>
-                            <h1 className='text-black font-[500] text-[18px] tracking-wide'>Let&apos;s get you started</h1>
-                            <h2 className='text-black font-[500] text-[14px]'>Select your role</h2>
+                {/* Responsive Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
+                    {boxes.map((box) => (
+                        <div
+                            key={box.id}
+                            onClick={() => handleClick(box.id, box.disabled)}
+                            className={`
+              group relative flex flex-col justify-center items-center rounded-lg border p-4
+              cursor-pointer transition-all duration-300
+              ${selected === box.id ? 'shadow-lg  text-black' : 'bg-white text-black'}
+              ${box.disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}
+              aspect-square   /* ✅ keeps height = width dynamically */
+            `}
+                        >
+                            <div className="flex flex-col justify-center items-center">
+                                {box.icon}
+                                <p className="font-semibold text-[15px] mt-2">{box.label}</p>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 max-w-3xl">
-                            {boxes.map((box) => (
-                                <div
-                                    key={box.id}
-                                    className={`
-            p-6 border  h-[140px] w-[140px] rounded-lg flex flex-col justify-center  items-center cursor-pointer transition-all duration-300 text-center
-            ${selected === box.id ? 'shadow-lg text-black ' : 'bg-white text-black '}
-            ${box.disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}
-          `}
-                                    onClick={() => handleClick(box.id, box.disabled)}
-                                >
-                                    {box.icon}
-                                    <p className="font-semibold text-[15px]">{box.label}</p>
-                                </div>
-                            ))}
-                        </div>
-                        <button disabled={!selected} onClick={ContinueClick} className={`cursor-pointer bg-black text-white text-[15px] rounded-md h-[42px] w-full mt-5 font-medium disabled:bg-gray-200 disabled:text-gray-400`}>Continue</button>
+                    ))}
+                </div>
 
-                    </div>
-            }
+                {/* Continue Button */}
+                <button
+                    disabled={!selected}
+                    onClick={ContinueClick}
+                    className="cursor-pointer bg-black text-white text-[15px] rounded-md h-[42px] w-full mt-5 font-medium disabled:bg-gray-200 disabled:text-gray-400"
+                >
+                    Continue
+                </button>
+            </div>
         </div>
     );
+
 };
 
 export default SelectRole

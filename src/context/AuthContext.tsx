@@ -59,7 +59,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     const [tokens, setTokens] = useState<Tokens | null>(tokenStore.get());
     const [loading, setLoading] = useState<boolean>(true);
     const [showLogin, setShowLogin] = useState<boolean>(false);
-    const [role, setRole] = useState<string | null>("Builder");
+    const [role, setRole] = useState<string | null>("");
+
+    console.log("roleee", role);
+
     const [isAdmin, setIsAdmin] = useState<boolean>(false); // Initialize isAdmin
     const [filters, setFilters] = useState<Filters>({});
     const [openFilter, setOpenFilter] = useState(false)
@@ -130,7 +133,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     };
 
     const completeProfile = async (payload: Required<Pick<User, 'name' | 'email' | 'age' | 'gender'>>) => {
-        const res = await http.post('/users/profile', payload);
+        const res = await http.put('/users/profile', payload);
         setUser(res.data);
         setShowLogin(false);
     };
@@ -182,13 +185,12 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         role,
         toggleAdminMode,
         isAdmin,
-
         addFilters,
         filters,
         removeAllFilters,
         openFilter,
         setOpenFilter
-    }), [user, tokens, loading, showLogin, isAdmin, filters, openFilter]);
+    }), [user, tokens, loading, showLogin, isAdmin, filters, openFilter, role]);
 
     return (
         <AuthCtx.Provider value={value}>

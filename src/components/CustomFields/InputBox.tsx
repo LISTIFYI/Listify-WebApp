@@ -35,7 +35,7 @@ const InputBox: React.FC<InputBoxProps> = ({
                 className={`
           w-full px-3 h-[38px] text-sm  border border-gray-300 rounded-sm
           focus:border-black focus:ring-0 focus:outline-none
-          transition-colors duration-200 bg-white text-gray-900
+          transition-colors duration-300 bg-white text-gray-900
           disabled:bg-gray-100 disabled:cursor-not-allowed
           ${className}
         `}

@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import InputBox from '../CustomFields/InputBox'
 import TextAreaBox from '../CustomFields/TextAreaBox'
 import { ChipList } from '../CustomFields/ChipList';
-import { Plus } from 'lucide-react';
+import { ChevronLeft, Plus } from 'lucide-react';
 
 // Define the form data type
 interface FormData {
@@ -39,11 +39,13 @@ interface FormBasicDetails1Props {
     handleInputChange: <K extends keyof FormData>(key: K, value: FormData[K]) => void;
     role: string
     errors: Partial<Record<keyof FormData, string>>; // Add errors prop
+    selectedTrue: any
+    setSelectedTrue: any
 }
 
 
 
-const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors }: FormBasicDetails1Props) => {
+const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, selectedTrue, setSelectedTrue }: FormBasicDetails1Props) => {
 
     const [localityInput, setLocalityInput] = useState("");
 
@@ -67,7 +69,15 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors }: 
     };
     return (
         <div className='w-full mx-auto'>
-            <h1 className='text-lg font-semibold mb-6'>Create your {role === "Builder" ? "Builder" : "Agent"} Profile</h1>
+            <h1
+
+                className='text-lg cursor-pointer flex flex-row items-center gap-1 font-semibold mb-6'>
+                <button
+                    onClick={() => {
+                        setSelectedTrue(false)
+                    }}
+                    className='cursor-pointer'><ChevronLeft size={28} /></button>
+                Create your {role === "Builder" ? "Builder" : "Agent"} Profile</h1>
             <div className="space-y-4">
                 <div className='flex flex-row gap-4'>
                     <div className='w-full'>
@@ -345,7 +355,7 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors }: 
                         />
                         <button
                             type="button"
-                            className="px-3 py-2 bg-black text-white rounded-md"
+                            className="px-3 h-9 bg-black text-white rounded-md"
                             onClick={() => {
                                 if (localityInput.trim()) {
                                     handleInputChange("localitiesOfOperation", [

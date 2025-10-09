@@ -152,9 +152,16 @@ const Home = () => {
 
       if (currentOffset === 1) {
         const total = res?.data?.pagination?.totalCount || 0;
-        console.log('Total Notifications:', total);
         setTotalProperties(total);
       }
+
+
+      console.log("Start=======");
+
+      console.log(newProperties.length);
+      console.log(allProperties.length);
+      console.log(allProperties.length + newProperties.length);
+      console.log(res?.data?.pagination?.totalCount);
 
       setHasMore(newProperties?.length > 0 && allProperties?.length + newProperties?.length < res?.data?.pagination?.totalCount);
     } catch (err) {
@@ -163,6 +170,7 @@ const Home = () => {
       setLoading(false);
     }
   };
+
 
 
   useEffect(() => {
@@ -203,7 +211,7 @@ const Home = () => {
         </DialogContent>
 
       </Dialog>
-      <div className="lg:px-6  pt-4 px-4 flex w-full overflow-x-auto gap-2 no-scrollbar">
+      <div className="lg:px-6 py-3 border-b px-4 flex w-full overflow-x-auto gap-2 no-scrollbar">
         {tags.map((tag, index) => (
           <div
             onClick={() => {
@@ -214,7 +222,7 @@ const Home = () => {
               })
             }}
             key={index}
-            className={`px-[16px] cursor-pointer py-[4px] text-[12px] border-[1px] border-[#EAEAEA] transition-all rounded-full ${selected === tag ? "bg-[#F8F8F8]" : "bg-[#fff]"
+            className={`px-[16px] cursor-pointer py-[4px] text-[12px] border-[1px] border-[#EAEAEA] transition-all rounded-full ${selected === tag ? "bg-gray-200" : "bg-[#fff]"
               }`}
           >
             {tag}
@@ -229,7 +237,7 @@ const Home = () => {
           loader={
             <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 lg:p-6 p-4">
               {
-                Array.from({ length: 16 }).map((_, idx) => (
+                Array.from({ length: 10 }).map((_, idx) => (
                   <PropertiesHomeCard key={idx} />
                 ))}
             </div>
