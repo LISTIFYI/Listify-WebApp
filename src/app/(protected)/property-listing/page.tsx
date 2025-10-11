@@ -157,7 +157,7 @@ const ListingPage = () => {
                                             className="flex mb-5 justify-center items-center   flex-col gap-6 w-full">
                                             <div className="text-center mb-8 ">
                                                 <h2 className="text-2xl font-semibold text-gray-800">
-                                                    Great! Let's set up your listing 👋
+                                                    Great! Let&apos;s s set up your listing 👋
                                                 </h2>
                                                 <p className="text-gray-500 text-sm mt-2">
                                                     Start by selecting your transaction type and the kind of property you’re listing.
@@ -241,7 +241,7 @@ const ListingPage = () => {
                                         setDirection(1);
                                         setFormCount((prev: any) => prev + 1);
                                     } else {
-                                        finalSubmit();
+                                        // finalSubmit();
                                     }
                                 }}
                             />
