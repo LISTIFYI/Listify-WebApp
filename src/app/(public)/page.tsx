@@ -97,7 +97,6 @@ const Home = () => {
 
 
   const { filters, addFilters, openFilter, setOpenFilter } = useAuth()
-  console.log("filters----", filters);
   const { setSelectedPost } = usePostContext();
   const router = useRouter()
 
