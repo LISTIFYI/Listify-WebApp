@@ -13,7 +13,7 @@ import { ChipList } from '@/components/CustomFields/ChipList';
 import { tree } from 'next/dist/build/templates/app-page';
 import ButtonCommon from '@/components/CustomFields/Button';
 import { tokenStore } from '@/lib/token';
-import { Bath, Bed, Cross, CrossIcon, Delete, DeleteIcon, Edit2, Pencil, Plus, Sun, SunMoonIcon, Trash2, X } from 'lucide-react';
+import { Bath, Bed, Cross, CrossIcon, Delete, DeleteIcon, Edit2, FileText, Home, IndianRupee, MapPin, Pencil, Plus, Sun, SunMoonIcon, Trash2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import FloorPlanningPricing, { FloorPlan, initialPlan } from '@/components/AdditionalComponents/FloorPlanningPricing';
 import MediaUpload from '@/components/MediaUpload/MediaUpload';
@@ -27,6 +27,8 @@ import ContactForm from '@/components/Forms/ContacFormCommon';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { http } from '@/lib/http';
+import { AnimatePresence, motion } from 'framer-motion';
+import { log } from 'node:console';
 
 
 // Interface for form data
@@ -72,19 +74,30 @@ interface FlatProps {
     formCount: number,
     setFormCount: any
     totalSteps: any
+    direction: any
+    finalSubmit: any
 }
 const Flat = ({
     transactionType,
     entityType,
     showNext,
     setShowNext,
-    role, formCount, setFormCount, totalSteps
+    role,
+    formCount,
+    setFormCount,
+    totalSteps,
+    direction,
+    finalSubmit
 
 }: FlatProps) => {
+    console.log("roleeeee", role);
 
 
 
     const [coverVideo, setCoverVideo] = useState<any>(null)
+
+    console.log("coverVideo", coverVideo);
+
     const [galleryFiles, setGalleryFiles] = useState<string[]>([])
     const removeGalleryItem = (index: number) => {
         setGalleryFiles((prev: any) => prev.filter((_: any, i: any) => i !== index))
@@ -528,7 +541,10 @@ const Flat = ({
     ];
 
 
-
+    // for post payload
+    const [title, setTitle] = useState("")
+    const [description, setDescription] = useState("")
+    const [disabled, setDisabled] = useState(false);
 
     // all states
     // part 1
@@ -887,78 +903,78 @@ const Flat = ({
         };
 
         const payload = {
-            title: formData.propertyName,
-            description: formData.description,
-            video_url: coverVideo,
+            title: title ? title : formData?.propertyName,
+            description: description ? description : formData.description,
+            video_url: coverVideo?.url,
             thumbnail_url: "",
-            duration_seconds: 4,
+            duration_seconds: coverVideo?.duration,
             // tags: "#jignes",
             // mentions: ["user123", "user456"],
-            // visibility: "PUBLIC",
-            //   location: location.formatted || "Udaipur, Rajasthan - IN",
-            comments_disabled: false,
+            visibility: "PUBLIC",
+            location: formData.address,
+            comments_disabled: disabled,
             //   ...(draft === 'DRAFT' ? { status: 'DRAFT' } : { status: 'PUBLISHED' }),
             status: 'PUBLISHED',
         };
         console.log("formdata", formData);
+        finalSubmit(formDataa, payload)
+
+        // if (formDataa) {
+        //     const tk = tokenStore.get()
+        //     if (formDataa.entityType) {
+
+        //         // Flow with formData: Create listing and post
+        //         const listingRes = await http.post(`/listings-v2`, formDataa, {
+        //             headers: {
+        //                 Authorization: `Bearer ${tk?.accessExp}`
+        //             }
+        //         });
+        //         const listingId = listingRes?.data?.data?.id;
+
+        //         if (!listingId) {
+        //             throw new Error("Failed to retrieve listing ID");
+        //         }
+
+        //         const postResponse = await http.post(`/posts`, payload,
+        //             {
+        //                 headers: {
+        //                     Authorization: `Bearer ${tk?.accessExp}`
+        //                 }
+        //             }
+        //         );
+        //         const postId = postResponse?.data?._id;
+
+        //         if (!postId) {
+        //             throw new Error("Failed to create post");
+        //         }
+
+        //         const listingPayload = {
+        //             postIds: [postId],
+        //         };
+
+        //         await http.post(`/listings-v2/${listingId}/attach-posts`,
+        //             listingPayload, {
+        //             headers: {
+        //                 Authorization: `Bearer ${tk?.accessExp}`
+        //             }
+        //         }
+        //         );
+        //         router.push("/properties/")
+        //     } else {
+        //         // Flow without formData: Create post only
+        //         const postResponse = await http.post(`/posts`, payload, {
+        //             headers: {
+        //                 Authorization: `Bearer ${tk?.accessExp}`
+
+        //             }
+        //         });
+        //         if (!postResponse?.data?._id) {
+        //             throw new Error("Failed to create post");
+        //         }
+        //     }
 
 
-        if (formDataa) {
-            const tk = tokenStore.get()
-            if (formDataa.entityType) {
-
-                // Flow with formData: Create listing and post
-                const listingRes = await http.post(`/listings-v2`, formDataa, {
-                    headers: {
-                        Authorization: `Bearer ${tk?.accessExp}`
-                    }
-                });
-                const listingId = listingRes?.data?.data?.id;
-
-                if (!listingId) {
-                    throw new Error("Failed to retrieve listing ID");
-                }
-
-                const postResponse = await http.post(`/posts`, payload,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${tk?.accessExp}`
-                        }
-                    }
-                );
-                const postId = postResponse?.data?._id;
-
-                if (!postId) {
-                    throw new Error("Failed to create post");
-                }
-
-                const listingPayload = {
-                    postIds: [postId],
-                };
-
-                await http.post(`/listings-v2/${listingId}/attach-posts`,
-                    listingPayload, {
-                    headers: {
-                        Authorization: `Bearer ${tk?.accessExp}`
-                    }
-                }
-                );
-                router.push("/properties/")
-            } else {
-                // Flow without formData: Create post only
-                const postResponse = await http.post(`/posts`, payload, {
-                    headers: {
-                        Authorization: `Bearer ${tk?.accessExp}`
-
-                    }
-                });
-                if (!postResponse?.data?._id) {
-                    throw new Error("Failed to create post");
-                }
-            }
-
-
-        };
+        // };
     }
 
 
@@ -974,274 +990,365 @@ const Flat = ({
     };
     const mediaUrl = galleryFiles?.[0];
 
+    const variants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 100 : -100,
+            opacity: 0,
+            position: "absolute",
+        }),
+        center: {
+            x: 0,
+            opacity: 1,
+            position: "relative",
+        },
+        exit: (direction: number) => ({
+            x: direction > 0 ? -100 : 100,
+            opacity: 0,
+            position: "absolute",
+        }),
+    };
+    const scrollRef = useRef<HTMLDivElement>(null);
 
+    const isDown = useRef(false);
+    const startX = useRef(0);
+    const scrollLeft = useRef(0);
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        isDown.current = true;
+        scrollRef.current!.classList.add("cursor-grabbing");
+        startX.current = e.pageX - scrollRef.current!.offsetLeft;
+        scrollLeft.current = scrollRef.current!.scrollLeft;
+    };
+
+    const handleMouseLeave = () => {
+        isDown.current = false;
+        scrollRef.current!.classList.remove("cursor-grabbing");
+    };
+
+    const handleMouseUp = () => {
+        isDown.current = false;
+        scrollRef.current!.classList.remove("cursor-grabbing");
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDown.current) return;
+        e.preventDefault();
+        const x = e.pageX - scrollRef.current!.offsetLeft;
+        const walk = (x - startX.current) * 1.2; // scroll speed
+        scrollRef.current!.scrollLeft = scrollLeft.current - walk;
+    };
+
+    const details = [
+        {
+            label: "Property Name",
+            value: formData.propertyName,
+            icon: <Home className="w-4 h-4 text-black" />,
+        },
+        {
+            label: "Description",
+            value: formData.description,
+            icon: <FileText className="w-4 h-4 text-black" />,
+        },
+        {
+            label: "Address",
+            value: `${formData.address}, ${formData.state} - ${formData.city}`,
+            icon: <MapPin className="w-4 h-4 text-black" />,
+        },
+        {
+            label: "Amount",
+            value: `₹ ${priceRange}`,
+            icon: <IndianRupee className="w-4 h-4 text-black" />,
+        },
+    ];
 
     return (
-        <>
-            <div className='h-full'>
-                {
-                    formCount === 6 &&
-                    <div className='shadow-sm h-full gap-6 flex flex-row '>
-                        <div className="flex flex-1 p-4">
-                            <div className="flex-1 w-full  flex flex-col">
-                                <div className=" flex-1  flex items-center justify-center">
-                                    <div className='w-[300px] h-full rounded-sm overflow-hidden'>
-                                        <video src={coverVideo} className='w-full h-full object-cover'></video>
+        <div className="flex flex-1 overflow-hidden h-full  ">
+            <div className="w-full h-full relative  flex justify-center items-center ">
+                <AnimatePresence custom={direction} mode='wait'>
+                    <motion.div
+                        key={formCount}
+                        custom={direction}
+                        variants={variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{
+                            x: { type: "spring", stiffness: 300, damping: 30 },
+                            opacity: { duration: 0.3 },
+                        }}
+                        className="h-full w-full px-4 py-4 overflow-y-auto"
+
+                    >
+                        {
+                            formCount === 6 &&
+                            <div className='h-full flex flex-row'>
+                                <div className='w-[50%] h-full'>
+                                    <h1 className='text-lg font-semibold text-black tracking-wide bg-gray-100 py-2 px-4 rounded-l-md'>Your Post</h1>
+                                    <div className='flex flex-col p-4 gap-2'>
+                                        <div className='flex flex-col gap-1'>
+                                            <div className='w-[140px] h-[180px]  rounded-md mt-1 bg-red-300'>
+                                                <video
+                                                    src={coverVideo?.url}
+                                                    controls
+                                                    className="w-full h-full rounded-lg object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='flex flex-col gap-2.5 flex-1'>
+                                            <div className='w-full'>
+                                                <label className="block text-sm font-medium text-gray-700">Title</label>
+                                                <InputBox
+                                                    placeholder="Title"
+                                                    value={title ? title : formData?.propertyName}
+                                                    onChange={(text) => setTitle(text)}
+                                                    className="mt-1"
+                                                />
+
+                                            </div>
+
+                                            <div className='w-full'>
+                                                <label className="block text-sm font-medium text-gray-700">Description</label>
+                                                <InputBox
+                                                    placeholder="Description"
+                                                    value={description ? description : formData?.description}
+                                                    onChange={(text) => setDescription(text)}
+                                                    className="mt-1"
+                                                />
+                                            </div>
+
+                                            <div className="w-full">
+                                                <label className="block text-sm mb-1 font-medium text-gray-700">
+                                                    Disable Comment
+                                                </label>
+                                                <div className="flex items-center gap-3">
+                                                    <Switch checked={disabled} onCheckedChange={setDisabled} />
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        {disabled ? "Yes" : "No"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
+                                <div className='w-[50%]'>
+                                    <h1 className='text-lg font-semibold text-black tracking-wide bg-gray-100 py-2 px-4 rounded-r-md'>Your Listing</h1>
+                                    <div className="w-full p-4">
+                                        <div
+                                            ref={scrollRef}
+                                            onMouseDown={handleMouseDown}
+                                            onMouseLeave={handleMouseLeave}
+                                            onMouseUp={handleMouseUp}
+                                            onMouseMove={handleMouseMove}
+                                            className="flex gap-4 overflow-x-auto border-2 rounded-lg p-3 scrollbar-hide cursor-grab select-none"
+                                        >
+                                            {galleryFiles && galleryFiles.length > 0 ? (
+                                                galleryFiles.map((fileUrl: string, i: number) => {
+                                                    const isVideo = fileUrl.match(/\.(mp4|webm|ogg)$/i);
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            className="flex-shrink-0 w-[90px] h-[90px] border rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"
+                                                        >
+                                                            {isVideo ? (
+                                                                <video
+                                                                    src={fileUrl}
+                                                                    className="w-full h-full object-cover rounded-lg"
+                                                                    controls={false}
 
-                                <div className="flex flex-col gap-2 p-4">
-                                    <h1 className="text-sm font-normal text-black">{formData?.propertyName}</h1>
-                                    <h1 className="text-sm font-normal text-black">{formData?.description}</h1>
-                                    <h1 className="text-sm font-normal text-black">{formData?.address}</h1>
-                                    {/* <h1 className="text-sm font-normal text-black">Tags</h1> */}
+                                                                />
+                                                            ) : (
+                                                                <img
+                                                                    src={fileUrl}
+                                                                    alt={`media-${i}`}
+                                                                    className="w-full h-full object-cover rounded-lg"
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <p className="text-gray-400 text-sm mx-auto">No media uploaded yet</p>
+                                            )}
+                                        </div>
+                                        <div className=" w-full mt-2">
+                                            <div className="flex flex-col divide-y divide-gray-100">
+                                                {details.map((item, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-start gap-3 py-2 hover:bg-gray-50 rounded-lg px-2 transition"
+                                                    >
+                                                        <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
+                                                        <div>
+                                                            <p className="text-sm text-gray-500 font-medium">{item.label}</p>
+                                                            <p className="text-sm text-gray-900 font-normal mt-0.5">
+                                                                {item.value || "—"}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+
                                 </div>
+                                <div></div>
                             </div>
-                        </div>
-
-                        <div className='flex flex-1 flex-col border-l p-4'>
-                            <div className=" flex-1  flex items-center justify-center">
-
-                                <div className='w-[300px] bg-gray-200 flex-row overflow-x-auto h-full rounded-sm overflow-hidden'>
-                                    {/* {
-    galleryFiles.images.map(()=>{
-
-    })
-} */}
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-2 p-4">
-                                <h1 className="text-sm font-normal text-black">{formData?.propertyName}</h1>
-                                <h1 className="text-sm font-normal text-black">{formData?.description}</h1>
-                                <h1 className="text-sm font-normal text-black">${priceRange}</h1>
-                                {/* <h1 className="text-sm font-normal text-black">Tags</h1> */}
-                            </div>
-                        </div>
-
-                    </div>
-                }
-                {
-                    Number(formCount) === Number(2) &&
-                    <div className=''>
-                        <FormDetailsTwo
-                            addLandmark={addLandmark}
-                            errors={errors}
-                            formData={formData}
-                            handleChange={handleChange}
-                            handleSearchInput={handleSearchInput}
-                            handleSubmit={handleSubmit}
-                            isLoading={isLoading}
-                            landmarkInput={landmarkInput}
-                            removeLandmark={removeLandmark}
-                            setLandmarkInput={setLandmarkInput}
-                            setUseLocationSearch={setUseLocationSearch}
-                            suggestions={suggestions}
-                            useLocationSearch={useLocationSearch}
-                        />
-                    </div>
-                }
-
-                {
-                    formCount === 3 &&
-                    <FormDetailsThree
-                        reraNumber={reraNumber}
-                        setReraNumber={setReraNumber}
-                        dropdownConfigs={dropdownConfigs}
-                        unitType={unitType}
-                        setUnitType={setUnitType}
-                        amount={amount}
-                        setAmount={setAmount}
-                        priceRange={priceRange}
-                        setPriceRange={setPriceRange}
-                        pricePerSqFT={pricePerSqFT}
-                        setPricePerSqT={setPricePerSqT}
-                        constructionStatus={constructionStatus}
-                        setConstructionStatus={setConstructionStatus}
-                        propertyage={propertyage}
-                        setPropertyAge={setPropertyAge}
-                        possessionDate={possessionDate}
-                        setPossessionDate={setPossessionDate}
-                        approvalAuthority={approvalAuthority}
-                        setApprovalAuthority={setApprovalAuthority}
-                        facingDirection={facingDirection}
-                        setFacingDirection={setFacingDirection}
-                        noOfTowers={noOfTowers}
-                        setNoOfTowers={setNoOfTowers}
-                        maintainenceCharges={maintainenceCharges}
-                        setMaintainenceCharges={setMaintainenceCharges}
-                        n={n}
-                        setN={setN}
-                        handleClick={handleClick}
-                        fileInputRef={fileInputRef}
-                        handleFileChange={handleFileChange}
-                        brochure={brochure ?? ""}
-                        removePdf={removePdf}
-                        area={area}
-                        setArea={setArea}
-                        setTotalUnits={setTotalUnits}
-                        totalUnits={totalUnits}
-                        currentPlan={currentPlan}
-                        editIndex={editIndex}
-                        floorPlans={floorPlans}
-                        handleAddOrUpdate={handleAddOrUpdate}
-                        handleEditPlan={handleEditPlan}
-                        handleRemovePlan={handleRemovePlan}
-                        open={open}
-                        setCurrentPlan={setCurrentPlan}
-                        setEditIndex={setEditIndex}
-                        setFloorPlans={setFloorPlans}
-                        setOpen={setOpen}
-                        transactionType={transactionType}
-                        entityType={entityType}
-                        role={role}
-                        bookingAmount={bookingAmount}
-                        setBookingAmount={setBookingAmount}
-                    />
-                }
-
-
-                {
-                    formCount === 4 &&
-                    <FormDetailsFour
-                        dropdownConfigs={dropdownConfigs}
-                        totalNo={totalNo}
-                        setTotalNo={setTotalNo}
-                        purpose={purpose}
-                        setPurpose={setPurpose}
-                        floorNo={floorNo}
-                        setFloorNo={setFloorNo}
-                        totalBedroom={totalBedroom}
-                        setTotalBedroom={setTotalBedroom}
-                        totalBalcony={totalBalcony}
-                        setTotalBalcony={setTotalBalcony}
-                        totalBathroom={totalBathroom}
-                        setTotalBathroom={setTotalBathroom}
-                        furnishingStatus={furnishingStatus}
-                        setFurnishingStatus={setFurnishingStatus}
-                        sampleFlat={sampleFlat}
-                        setSampleFlat={setSampleFlat}
-                        coveredParking={coveredParking}
-                        setCoveredParking={setCoveredParking}
-                        ownership={ownership}
-                        setOwnership={setOwnership}
-                        certification={certification}
-                        setCertification={setCertification}
-                        extraRoomTypes={extraRoomTypes}
-                        setExtraRoomTypes={setExtraRoomTypes}
-                        handleSelectionChangeChip={handleSelectionChangeChip}
-                        handleSelectionChangeChip2={handleSelectionChangeChip2}
-                        amenities={amenities}
-                        option={option}
-                        availableOffers={availableOffers}
-                        setAvailableOffers={setAvailableOffers}
-                        banks={banks}
-                        setBanks={setBanks}
-                        editContacts={editContacts}
-                        editIndexx={editIndexx}
-                        handleEditContact={handleEditContact}
-                        handleFormSubmit={handleFormSubmit}
-                        handleOpenChange={handleOpenChange}
-                        handleRemoveSavedContact={handleRemoveSavedContact}
-                        openn={openn}
-                        savedContacts={savedContacts}
-                        setEditContacts={setEditContacts}
-                        setEditIndexx={setEditIndexx}
-                        setOpenn={setOpenn}
-                        setSavedContacts={setSavedContacts}
-                        transactionType={transactionType}
-                        entityType={entityType}
-                        role={role}
-                        amenitiesdata={amenitiesdata}
-                        highlights={highlights}
-
-                    />
-                }
-
-                {
-                    formCount === 5 &&
-                    <MediaUpload
-                        coverVideo={coverVideo}
-                        galleryFiles={galleryFiles}
-                        removeGalleryItem={removeGalleryItem}
-                        setCoverVideo={setCoverVideo}
-                        setGalleryFiles={setGalleryFiles}
-                    />}
-            </div>
-
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} >
-                <DialogContent >
-                    <h1 className='text-lg font-semibold '>Confirm Listing Your Property</h1>
-                    <div className='shadow-md  w-[320px] rounded-md overflow-hidden mx-auto'>
-                        <div className=' h-[320px] w-[320px] mx-auto'>
-                            {mediaUrl ? (
-                                isImage(mediaUrl) ? (
-                                    <img
-                                        src={mediaUrl}
-                                        alt="Gallery media"
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : isVideo(mediaUrl) ? (
-                                    <video
-                                        src={mediaUrl}
-                                        controls
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <p className="text-center text-red-500">Unsupported media type</p>
-                                )
-                            ) : (
-                                <p className="text-center text-gray-500">No media available</p>
-                            )}
-                        </div>
-                        <div className='flex flex-col   p-2'>
-                            <h1 className='text-md text-black font-medium'>{formData.propertyName}</h1>
-                            <h1 className='text-md text-black font-medium'>{formData.description}</h1>
-                            <h1 className='text-md text-black font-medium'>{priceRange}</h1>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={async () => {
-                                await handleSubmits();
-                                setIsDialogOpen(false);
-                            }}
-                        >
-                            Confirm
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <div className='border mt-4 flex flex-row transition-all duration-300 gap-4 w-full '>
-                {formCount > 1 && (
-                    <ButtonCommon
-                        bgColor='bg-white'
-                        textC='text-black'
-                        border={"border-[1px]"}
-                        onClick={() => setFormCount((prev: any) => Math.max(prev - 1, 1))}
-                        title='Back'
-                    />
-                )}
-
-                <ButtonCommon
-                    bgColor='bg-black'
-                    textC='text-white'
-                    border={"border-[0px]"}
-                    onClick={() => {
-                        if (formCount < totalSteps) {
-                            setFormCount((prev: any) => prev + 1);
-                        } else {
-                            handleSubmits();
                         }
-                    }}
-                    title={formCount < totalSteps ? "Next" : "Continue"}
-                />
+                        {
+                            Number(formCount) === Number(2) &&
+                            <div className=''>
+                                <FormDetailsTwo
+                                    addLandmark={addLandmark}
+                                    errors={errors}
+                                    formData={formData}
+                                    handleChange={handleChange}
+                                    handleSearchInput={handleSearchInput}
+                                    handleSubmit={handleSubmit}
+                                    isLoading={isLoading}
+                                    landmarkInput={landmarkInput}
+                                    removeLandmark={removeLandmark}
+                                    setLandmarkInput={setLandmarkInput}
+                                    setUseLocationSearch={setUseLocationSearch}
+                                    suggestions={suggestions}
+                                    useLocationSearch={useLocationSearch}
+                                />
+                            </div>
+                        }
+
+                        {
+                            formCount === 3 &&
+                            <FormDetailsThree
+                                reraNumber={reraNumber}
+                                setReraNumber={setReraNumber}
+                                dropdownConfigs={dropdownConfigs}
+                                unitType={unitType}
+                                setUnitType={setUnitType}
+                                amount={amount}
+                                setAmount={setAmount}
+                                priceRange={priceRange}
+                                setPriceRange={setPriceRange}
+                                pricePerSqFT={pricePerSqFT}
+                                setPricePerSqT={setPricePerSqT}
+                                constructionStatus={constructionStatus}
+                                setConstructionStatus={setConstructionStatus}
+                                propertyage={propertyage}
+                                setPropertyAge={setPropertyAge}
+                                possessionDate={possessionDate}
+                                setPossessionDate={setPossessionDate}
+                                approvalAuthority={approvalAuthority}
+                                setApprovalAuthority={setApprovalAuthority}
+                                facingDirection={facingDirection}
+                                setFacingDirection={setFacingDirection}
+                                noOfTowers={noOfTowers}
+                                setNoOfTowers={setNoOfTowers}
+                                maintainenceCharges={maintainenceCharges}
+                                setMaintainenceCharges={setMaintainenceCharges}
+                                n={n}
+                                setN={setN}
+                                handleClick={handleClick}
+                                fileInputRef={fileInputRef}
+                                handleFileChange={handleFileChange}
+                                brochure={brochure ?? ""}
+                                removePdf={removePdf}
+                                area={area}
+                                setArea={setArea}
+                                setTotalUnits={setTotalUnits}
+                                totalUnits={totalUnits}
+                                currentPlan={currentPlan}
+                                editIndex={editIndex}
+                                floorPlans={floorPlans}
+                                handleAddOrUpdate={handleAddOrUpdate}
+                                handleEditPlan={handleEditPlan}
+                                handleRemovePlan={handleRemovePlan}
+                                open={open}
+                                setCurrentPlan={setCurrentPlan}
+                                setEditIndex={setEditIndex}
+                                setFloorPlans={setFloorPlans}
+                                setOpen={setOpen}
+                                transactionType={transactionType}
+                                entityType={entityType}
+                                role={role}
+                                bookingAmount={bookingAmount}
+                                setBookingAmount={setBookingAmount}
+                            />
+                        }
+
+
+                        {
+                            formCount === 4 &&
+                            <FormDetailsFour
+                                dropdownConfigs={dropdownConfigs}
+                                totalNo={totalNo}
+                                setTotalNo={setTotalNo}
+                                purpose={purpose}
+                                setPurpose={setPurpose}
+                                floorNo={floorNo}
+                                setFloorNo={setFloorNo}
+                                totalBedroom={totalBedroom}
+                                setTotalBedroom={setTotalBedroom}
+                                totalBalcony={totalBalcony}
+                                setTotalBalcony={setTotalBalcony}
+                                totalBathroom={totalBathroom}
+                                setTotalBathroom={setTotalBathroom}
+                                furnishingStatus={furnishingStatus}
+                                setFurnishingStatus={setFurnishingStatus}
+                                sampleFlat={sampleFlat}
+                                setSampleFlat={setSampleFlat}
+                                coveredParking={coveredParking}
+                                setCoveredParking={setCoveredParking}
+                                ownership={ownership}
+                                setOwnership={setOwnership}
+                                certification={certification}
+                                setCertification={setCertification}
+                                extraRoomTypes={extraRoomTypes}
+                                setExtraRoomTypes={setExtraRoomTypes}
+                                handleSelectionChangeChip={handleSelectionChangeChip}
+                                handleSelectionChangeChip2={handleSelectionChangeChip2}
+                                amenities={amenities}
+                                option={option}
+                                availableOffers={availableOffers}
+                                setAvailableOffers={setAvailableOffers}
+                                banks={banks}
+                                setBanks={setBanks}
+                                editContacts={editContacts}
+                                editIndexx={editIndexx}
+                                handleEditContact={handleEditContact}
+                                handleFormSubmit={handleFormSubmit}
+                                handleOpenChange={handleOpenChange}
+                                handleRemoveSavedContact={handleRemoveSavedContact}
+                                openn={openn}
+                                savedContacts={savedContacts}
+                                setEditContacts={setEditContacts}
+                                setEditIndexx={setEditIndexx}
+                                setOpenn={setOpenn}
+                                setSavedContacts={setSavedContacts}
+                                transactionType={transactionType}
+                                entityType={entityType}
+                                role={role}
+                                amenitiesdata={amenitiesdata}
+                                highlights={highlights}
+
+                            />
+                        }
+
+                        {
+                            formCount === 5 &&
+                            <MediaUpload
+                                coverVideo={coverVideo}
+                                galleryFiles={galleryFiles}
+                                removeGalleryItem={removeGalleryItem}
+                                setCoverVideo={setCoverVideo}
+                                setGalleryFiles={setGalleryFiles}
+                            />}
+
+                    </motion.div>
+                </AnimatePresence>
             </div>
-        </>
+        </div>
     );
 };
 
@@ -1426,7 +1533,7 @@ const FormFlat1 = ({
             </div>
 
             {
-                (transactionType === "sale" && role === "Builder") &&
+                (transactionType === "sale" && role === "builder") &&
                 <div onClick={() => {
                     setOpen(true)
                     setCurrentPlan({ ...initialPlan }); // Reset to initial empty state
@@ -2307,9 +2414,8 @@ const FormDetailsThree = ({
                     </div>
                 }
             </div>
-
             {
-                (transactionType === "sale" && role === "Builder") &&
+                (transactionType === "sale" && role === "builder") &&
                 <div onClick={() => {
                     setOpen(true)
                     setCurrentPlan({ ...initialPlan }); // Reset to initial empty state

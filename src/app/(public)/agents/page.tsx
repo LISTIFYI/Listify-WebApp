@@ -68,7 +68,7 @@ const Agents = () => {
 
 
     return (
-        <div>
+        <div className='h-full'>
             <div
                 className=" h-full overflow-y-auto"
                 id="scrollableDiv"
@@ -78,7 +78,7 @@ const Agents = () => {
                     next={handleLoadMoreData}
                     hasMore={hasMore}
                     loader={
-                        <div className={`grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 lg:p-6 p-4`} >
+                        <div className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 lg:p-6 p-4`} >
                             {
                                 Array.from({ length: 6 }).map((_, idx) => (
                                     <BuilderAgentCardLoader key={idx} />
@@ -89,7 +89,7 @@ const Agents = () => {
                     endMessage={<p className="text-center py-4">No more agents to load.</p>}
                     scrollableTarget="scrollableDiv" // Specify scroll container
                 >
-                    <div className={`grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 ${!loading && !!allAgents?.length ? "lg:p-6 p-4" : "lg:p-0 p-0"}`} >
+                    <div className={`grid grid-cols-2  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 ${!loading && !!allAgents?.length ? "lg:p-6 p-4" : "lg:p-0 p-0"}`} >
                         {allAgents?.length === 0 && !loading ? (
                             // <p>No more builders available.</p>
                             ""
@@ -100,21 +100,23 @@ const Agents = () => {
                                 return (
                                     <div
                                         key={agent?._id || `builder-${index}`}
-                                        className="rounded-[10px] cursor-pointer shadow-sm  h-[240px]"
+                                        className="rounded-[10px] cursor-pointer shadow-sm  h-[220px]"
                                     >
                                         <div className="flex  flex-col h-full justify-center py-6 px-4 items-center border rounded-[14px] relative overflow-hidden">
-                                            <div className='w-[80px] h-[80px] mb-8  rounded-full m-auto border border-[#454545] flex justify-center items-center overflow-hidden '>
-                                                {
-                                                    agent?.logoUrl ?
-                                                        <img src={agent.logoUrl} className='w-full h-full object-cover' /> :
-                                                        <h1 className='text-black font-semibold text-xl'>{agent?.agentName[0]}</h1>
+                                            <div className='flex flex-1 w-full'>
+                                                <div className='w-[60px] mt-auto  h-[60px]   rounded-full m-auto border border-[#454545] flex justify-center items-center overflow-hidden '>
+                                                    {
+                                                        agent?.logoUrl ?
+                                                            <img src={agent.logoUrl} className='w-full h-full object-cover' /> :
+                                                            <h1 className='text-black font-semibold text-xl'>{agent?.agentName[0]}</h1>
 
 
-                                                }
+                                                    }
+                                                </div>
                                             </div>
-                                            <div className='flex-1'>
-                                                <h1 className='text-[16px] text-black font-semibold text-center'>{agent.agentName}</h1>
-                                                <h1 className='text-sm text-black font-normal text-center leading-tight'>{agent.companyName}</h1>
+                                            <div className='flex-1 w-full mt-8'>
+                                                <h1 className='text-[15px] text-black font-semibold text-center'>{agent.agentName}</h1>
+                                                <h1 className='text-[14px] text-black font-normal text-center leading-tight'>{agent.companyName}</h1>
                                             </div>
                                         </div>
                                     </div>

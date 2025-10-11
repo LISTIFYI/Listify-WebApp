@@ -77,9 +77,9 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                 setTokens(tk);
                 if (tk?.accessToken) {
                     const me = await http.get('/users/profile'); // your API
-                    console.log("meeeee", me);
-
-                    setUser(me.data);
+                    console.log("meeeee", me.data);
+                    setUser(me?.data);
+                    setRole(me.data.roles.includes("Builder") ? "builder" : me.data.roles.includes("Agent") ? "agent" : "")
                 }
             } catch {
                 tokenStore.clear();

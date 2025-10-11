@@ -147,20 +147,20 @@ const MessagePage = () => {
                         next={handleLoadMoreData}
                         hasMore={hasMore}
                         loader={<p className="text-center py-4">Loading...</p>}
-                        endMessage={<p className="text-center py-4">No more messages to load.</p>}
+                        endMessage={<p
+                            style={{ color: "rgb(115,115,115)" }}
+                            className="text-center py-4 text-[14px] ">{allMessages.length === 0 ? "No messages" : "No more messages to load."}</p>}
                         scrollableTarget="scrollableDiv"
                     >
                         <div className="p-4">
-                            {allMessages.length === 0 && !loading ? (
-                                <p>No messages available.</p>
-                            ) : (
+                            {
                                 allMessages.map((message, index) => (
                                     <div
                                         onClick={() => handleSelectMessage(message.id, message.userName)}
                                         key={message.id || `notification-${index}`}
                                         className="flex flex-row py-2 px-4 border-b cursor-pointer border-b-[#454545] items-center"
                                     >
-                                        <div className="border w-[42px] flex h-[42px] overflow-hidden rounded-full justify-center items-center border-[#fff] mr-3 bg-[#D3D3D3]">
+                                        <div className="border w-[42px] flex h-[42px] overflow-hidden rounded-full justify-center items-center border-[#fff] mr-3 bg-[#dbdbdb]">
                                             {message.avatar ? (
                                                 <img src={message.avatar} alt="" className="w-full h-full object-cover" />
                                             ) : (
@@ -173,8 +173,10 @@ const MessagePage = () => {
                                             {message.type !== "user" ? (
                                                 <div className="flex flex-row justify-between">
                                                     <div className="flex flex-row items-center gap-2">
-                                                        <h1 className="text-sm font-semibold">{message.userName}</h1>
-                                                        <h1 className="mt-0.5 font-normal text-[#6B7280] text-xs">
+                                                        <h1 className="text-[14px] font-normal text-black">{message.userName}</h1>
+                                                        <h1
+                                                            style={{ color: "rgb(115,115,115)" }}
+                                                            className="mt-0.5 font-normal text-12">
                                                             {formatTimestamp(message.timestamp.toISOString())}
                                                         </h1>
                                                     </div>
@@ -189,8 +191,10 @@ const MessagePage = () => {
                                             ) : (
                                                 <div className="flex flex-row justify-between flex-1">
                                                     <div className="flex-1 flex flex-col">
-                                                        <h1 className="text-sm font-semibold">{message.userName}</h1>
-                                                        <h1 className="mt-0.5 flex flex-row items-center font-normal text-[#4B5563] text-xs">
+                                                        <h1 className="text-[14px] font-normal text-black">{message.userName}</h1>
+                                                        <h1
+                                                            style={{ color: "rgb(115,115,115)" }}
+                                                            className="mt-0.5 flex flex-row items-center font-normal text-[12px]">
                                                             {message.message}
                                                         </h1>
                                                     </div>
@@ -212,7 +216,7 @@ const MessagePage = () => {
                                         </div>
                                     </div>
                                 ))
-                            )}
+                            }
                         </div>
                     </InfiniteScroll>
                 </div>
@@ -229,7 +233,9 @@ const MessagePage = () => {
                     />
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full">
-                        <p className="text-gray-500 text-lg">Select a chat to view details</p>
+                        <p
+                            style={{ color: "rgb(115,115,115)" }}
+                            className="text-[14px]">Select a chat to view details</p>
                     </div>
                 )}
             </div>

@@ -98,6 +98,8 @@ const Home = () => {
 
   const { filters, addFilters, openFilter, setOpenFilter } = useAuth()
   console.log("filters----", filters);
+  const { setSelectedPost } = usePostContext();
+  const router = useRouter()
 
   const [selected, setSelected] = useState("");
   const [allProperties, setAllProperties] = useState<any[]>([]);
@@ -197,9 +199,12 @@ const Home = () => {
     });
   };
 
-
+  const handleClick = (post: Post) => {
+    setSelectedPost(post);
+    router.push("/explore");
+  };
   return (
-    <div className="h-full">
+    <div className="h-full flex flex-col">
 
       <Dialog open={openFilter} onOpenChange={() => {
         setOpenFilter(false)
@@ -229,13 +234,13 @@ const Home = () => {
           </div>
         ))}
       </div>
-      <div className="w-[100%] flex flex-col overflow-y-scroll pb-4  h-full ">
+      <div className="w-[100%] flex  flex-col overflow-y-scroll pb-4  h-full ">
         <InfiniteScroll
           dataLength={allProperties.length}
           next={handleLoadMoreData}
           hasMore={hasMore}
           loader={
-            <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 lg:p-6 p-4">
+            <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-5 gap-x-4 lg:p-6 p-4">
               {
                 Array.from({ length: 10 }).map((_, idx) => (
                   <PropertiesHomeCard key={idx} />
@@ -248,14 +253,14 @@ const Home = () => {
           className=""
         >
 
-          <div className={`grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-5 gap-x-4 ${!loading && !!allProperties.length ? "lg:p-6 p-4" : "lg:p-0 p-0"}`} >
+          <div className={`grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-y-5 gap-x-4 ${!loading && !!allProperties.length ? "lg:p-6 p-4" : "lg:p-0 p-0"}`} >
             {allProperties.map((property) => (
               <div
-                // onClick={() => handleClick(property)}
+                onClick={() => handleClick(property)}
                 key={property.post.id}
                 className="rounded-[20px] cursor-pointer"
               >
-                <div className="h-[360px] rounded-[14px] relative overflow-hidden">
+                <div className="h-[220px] rounded-[14px] relative overflow-hidden">
                   <Image
                     className="object-cover w-full h-full"
                     alt={property?.post.title || "Property image"}

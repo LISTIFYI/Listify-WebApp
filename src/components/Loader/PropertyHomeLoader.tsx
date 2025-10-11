@@ -3,7 +3,7 @@ import React from "react";
 
 const PropertiesHomeCard = () => {
     return (
-        <div className="shadow-sm flex justify-between flex-col rounded-md  w-[100%] h-[460px] mx-auto animate-pulse">
+        <div className="shadow-sm flex justify-between flex-col rounded-md  w-[100%] h-[260px] mx-auto animate-pulse">
             <div className="h-[80%] rounded-md overflow-hidden relative bg-gray-200">
                 <div className="absolute bottom-0 w-full h-12 bg-gradient-to-t from-black/20 to-transparent" />
             </div>

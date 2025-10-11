@@ -220,13 +220,14 @@ const NotificationPanel = ({ setIsSheetOpen }: any) => {
                     next={handleLoadMoreData}
                     hasMore={hasMore}
                     loader={<p className="text-center py-4">Loading...</p>}
-                    endMessage={<p className="text-center py-4">No more notifications to load.</p>}
+                    endMessage={<p
+                        style={{ color: "rgb(115,115,115)" }}
+                        className="text-center py-4 text-[14px] ">{allNotifications.length === 0 ? "No Notification" : "No more notification to load."}</p>}
                     scrollableTarget="scrollableDiv" // Specify scroll container
                 >
                     <div className="p-4">
-                        {allNotifications.length === 0 && !loading ? (
-                            <p>No notifications available.</p>
-                        ) : (
+
+                        {
                             allNotifications.map((notification, index) => {
 
                                 let buttonText = notificationButtonMap[notification?.type] ?? "View";
@@ -255,21 +256,23 @@ const NotificationPanel = ({ setIsSheetOpen }: any) => {
                                 return (
                                     <div
                                         key={notification._id || `notification-${index}`}
-                                        className='flex flex-row justify-between items-center py-5 px-4 border-b border-b-[#454545] bg-white'
+                                        className='flex flex-row justify-between items-center py-5 px-4 border-b border-b-[rgb(115,115,115)] bg-white'
                                     >
-                                        <div className='w-[32px] h-[32px] flex rounded-full overflow-hidden mr-[8px] justify-center items-center border border-[#454545]'>
+                                        <div className='w-[42px] h-[42px] bg-[#dbdbdb] flex rounded-full overflow-hidden mr-[8px] justify-center items-center border border-[#fff]'>
                                             {notification?.sender_profile_pic ?
                                                 <img src={notification?.sender_profile_pic ?? ""} alt="" className='w-fit h-full object-cover' />
                                                 :
-                                                <h1 className='text-[14px] font-medium'>
+                                                <h1 className='text-[14px] font-sm font-semibold'>
                                                     {displayName ? displayName.charAt(0).toUpperCase() : ""}
                                                 </h1>
                                             }
                                         </div>
 
                                         <div className='flex-1 justify-center'>
-                                            <h1 className='text-[14px] font-normal pr-[16px]'>{message}</h1>
-                                            <h1 className='text-[#9CA3AF] text-[12px] mt-[6px]'>
+                                            <h1 className='text-[14px] text-black font-normal pr-[16px]'>{message}</h1>
+                                            <h1
+                                                style={{ color: "rgb(115,115,115)" }}
+                                                className='text-[12px] mt-[6px]'>
                                                 {timeAgo(notification?.created_at)} {index + 1}
                                             </h1>
                                         </div>
@@ -283,7 +286,7 @@ const NotificationPanel = ({ setIsSheetOpen }: any) => {
                                     </div>
                                 )
                             })
-                        )}
+                        }
                     </div>
                 </InfiniteScroll>
             </div>

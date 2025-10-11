@@ -7,6 +7,7 @@ import { usePostContext } from '@/lib/postContext';
 import axios from 'axios';
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
+import { HiArrowUp } from "react-icons/hi";
 
 // Update the Post interface
 type Post = {
@@ -341,10 +342,33 @@ const VideoScrollingUI = () => {
 
     if (loading && posts.length === 0) {
         return (
-            <div className="h-full bg-gray-950 text-white flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12  mx-auto mb-4"></div>
-                    <p>Loading posts...</p>
+            <div className="h-full snap-start relative group md:rounded-xl overflow-hidden">
+                {/* Video Placeholder */}
+                <div className="relative h-full bg-gray-200 animate-pulse md:rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                </div>
+
+                {/* Bottom Gradient Info Section */}
+                <div className="absolute bottom-0 left-0 right-0 px-2 bg-gradient-to-t pt-6 from-black/90 to-transparent rounded-b-xl">
+                    <div className="flex justify-between items-end">
+                        <div className="flex-1 mb-[10px]">
+                            {/* Profile and Name */}
+                            <div className="flex flex-row items-center gap-2 mb-2">
+                                <div className="w-[28px] h-[28px] bg-gray-300 rounded-full animate-pulse" />
+                                <div className="w-[100px] h-[12px] bg-gray-300 rounded animate-pulse" />
+                            </div>
+
+                            {/* Title */}
+                            <div className="w-[60%] h-[14px] bg-gray-300 rounded mb-2 animate-pulse" />
+
+                            {/* Description Lines */}
+                            <div className="w-[80%] h-[10px] bg-gray-300 rounded mb-1 animate-pulse" />
+                            <div className="w-[70%] h-[10px] bg-gray-300 rounded mb-2 animate-pulse" />
+
+                            {/* View Details Button */}
+                            <div className="w-[50%] h-[32px] bg-gray-400/60 rounded-md animate-pulse" />
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -378,7 +402,7 @@ const VideoScrollingUI = () => {
                         ref={scrollContainerRef}
                         className="h-full   overflow-y-auto snap-y snap-mandatory flex justify-center no-scrollbar"
                     >
-                        <div className="md:max-w-[400px] w-[100%]  space-y-4">
+                        <div className="md:max-w-[400px] w-[100%]  space-y-2">
                             {posts.map((postData) => (
                                 <div
                                     key={postData.post.id}
@@ -463,14 +487,14 @@ const VideoScrollingUI = () => {
                                                     <h1 className='text-[14px] font-[500]'>{postData.user.name} <button className='text-[12px] border px-2 rounded-sm  font-semibold ml-1'>Follow</button></h1>
                                                 </div>
                                                 <h3 className="text-[16px] font-bold">{postData.post.title}</h3>
-                                                <div className="w-[80%] text-[12px] font-light tracking-wide">
+                                                <div className="lg:w-[100%] md:w-[100%] w-[80%] text-[12px] font-light tracking-wide">
                                                     {expanded || postData.post.description.length <= 80
                                                         ? (
                                                             <>
                                                                 {postData.post.description}{" "}
                                                                 {postData.post.description.length > 80 && (
                                                                     <button
-                                                                        className="text-blue-500 font-medium"
+                                                                        className="text-blue-500 cursor-pointer font-medium"
                                                                         onClick={() => setExpanded(false)}
                                                                     >
                                                                         See less
@@ -482,7 +506,7 @@ const VideoScrollingUI = () => {
                                                             <>
                                                                 {postData.post.description.slice(0, 80)}{" "}
                                                                 <button
-                                                                    className="text-blue-500 font-medium"
+                                                                    className="text-blue-500  cursor-pointerfont-medium"
                                                                     onClick={() => setExpanded(true)}
                                                                 >
                                                                     See more
@@ -509,7 +533,7 @@ const VideoScrollingUI = () => {
                                                                                         handleOpenDetails();
                                                                                     }
                                                                                 }}
-                                                                                className="px-4 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
+                                                                                className="px-4 h-10 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200  lg:w-[100%] md:w-[100%] w-[80%]  "
                                                                             >
                                                                                 View Details
                                                                             </Button>
@@ -535,7 +559,7 @@ const VideoScrollingUI = () => {
                                                                             handleOpenDetails();
                                                                         }
                                                                     }}
-                                                                    className="px-4 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 w-[80%] "
+                                                                    className="px-4 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 lg:w-[100%] md:w-[100%] w-[80%] "
                                                                 >
                                                                     View Details
                                                                 </button>
@@ -553,35 +577,35 @@ const VideoScrollingUI = () => {
                                             </div>
 
                                             {/* Action Buttons */}
-                                            <div className="flex flex-col space-y-3 absolute bottom-[10px] md:-right-[40px] right-4">
+                                            <div className="flex flex-col space-y-3 absolute bottom-[10px] md:-right-[32px] right-2">
                                                 <div className="flex flex-col space-y-3">
-                                                    <button className="duration-200 text-[#000] cursor-pointer">
-                                                        <Heart size={30} className={`${postData.post.like_count > 0 ? 'fill-red-500 text-red-500' : ''}`} />
-                                                        <span className="text-[18px]">
+                                                    <button className="duration-200 lg:text-black md:text-black text-white cursor-pointer">
+                                                        <Heart size={26} className={`${postData.post.like_count > 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                                                        <span className="text-[16px]">
                                                             {formatNumber(postData.post.like_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  text-[#000] cursor-pointer">
-                                                        <MessageCircle size={30} />
-                                                        <span className="text-[18px]">
+                                                    <button className="duration-200  lg:text-black md:text-black text-white cursor-pointer">
+                                                        <MessageCircle size={26} />
+                                                        <span className="text-[16px]">
                                                             {formatNumber(postData.post.comment_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  text-[#000] cursor-pointer ">
-                                                        <EyeIcon size={30} />
-                                                        <span className=" text-[18px]">
+                                                    <button className="duration-200  lg:text-black md:text-black text-white cursor-pointer ">
+                                                        <EyeIcon size={26} />
+                                                        <span className=" text-[16px]">
                                                             {formatNumber(postData.post.view_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  text-[#000] cursor-pointer ">
-                                                        <Bookmark size={30} />
-                                                        <span className=" text-[18px]">
+                                                    <button className="duration-200  lg:text-black md:text-black text-white cursor-pointer ">
+                                                        <Bookmark size={26} />
+                                                        <span className=" text-[16px]">
                                                             {formatNumber(postData.post.save_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200 text-[#000] cursor-pointer  ">
-                                                        <Share size={30} />
-                                                        <span className=" text-[18px]">
+                                                    <button className="duration-200 lg:text-black md:text-black text-white cursor-pointer  ">
+                                                        <Share size={26} />
+                                                        <span className=" text-[16px]">
                                                             {formatNumber(postData.post.share_count ?? 0)}
                                                         </span>
                                                     </button>
@@ -592,17 +616,19 @@ const VideoScrollingUI = () => {
                                     <div className="hidden  md:flex  fixed right-[6px] top-1/2 transform -translate-y-1/2 flex-col gap-2 z-10">
                                         <button
                                             onClick={() => scrollToVideo('up')}
-                                            className="bg-[rgba(0,0,0,0.2)] border   rounded-full p-3 transition-all duration-200 hover:scale-110"
+                                            className="bg-[#f2f2f2] border border-slate-200   rounded-full p-2.5 transition-all duration-200 hover:scale-110"
                                             disabled={loading}
                                         >
-                                            <ChevronUp className="w-6 h-6 text-white" />
+                                            <HiArrowUp className="w-5 h-5 text-black" />
+
                                         </button>
                                         <button
                                             onClick={() => scrollToVideo('down')}
-                                            className="bg-[rgba(0,0,0,0.2)] border   rounded-full p-3 transition-all duration-200 hover:scale-110"
+                                            className="bg-[#f2f2f2] border border-slate-200   rounded-full p-2.5 transition-all duration-200 hover:scale-110"
                                             disabled={loading}
                                         >
-                                            <ChevronDown className="w-6 h-6 text-white" />
+                                            <HiArrowUp className="w-5 h-5 text-black rotate-180" />
+
                                         </button>
                                     </div>
                                 </div>
@@ -623,7 +649,7 @@ const VideoScrollingUI = () => {
                 {
                     !isMobile &&
                     <div
-                        className={`h-full bg-gray-900 border-l hidden md:flex border-gray-700 transition-transform duration-700 ease-out absolute top-0 w-1/2 ${isDetailsOpen ? 'translate-x-0  right-[60px]' : 'translate-x-full  right-[0px]'}`}
+                        className={`h-full hidden md:flex border-l border-gray-400  rounded-[20px] overflow-hidden transition-transform duration-700 ease-out absolute top-0 w-1/2 ${isDetailsOpen ? 'translate-x-0  right-[50px]' : 'translate-x-full  right-[0px]'}`}
                     >
                         {selectedVideo && (
                             <VideoDetails

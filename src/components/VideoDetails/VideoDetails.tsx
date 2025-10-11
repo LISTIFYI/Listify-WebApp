@@ -227,7 +227,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         <h1 className='animate-spin duration-300'><LoaderCircle /></h1>
                     </div>
                     : */}
-            <div className="h-full flex flex-col  overflow-y-auto transition-all bg-black md:py-0 py-6">
+            <div className="h-full flex flex-col  overflow-y-auto transition-all md:py-0 py-6">
                 <div className="absolute hidden md:flex top-2 right-[20px] z-50">
                     <button
                         onClick={handleCloseDetails}
@@ -236,7 +236,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         <X className="w-6 h-6" />
                     </button>
                 </div>
-                <div className="bg-black text-white flex flex-col">
+                <div className=" text-black flex flex-col">
                     {/* Image Carousel */}
                     <div className="relative w-full h-64 overflow-hidden">
                         <div
@@ -350,8 +350,8 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     <div className="p-4 space-y-4 pb-28">
                         {/* Price + Location */}
                         <div className=''>
-                            <h1 className="text-[18px] font-semibold">Price ₹ {dataDetails?.details?.priceRange || "N/A"}</h1>
-                            <div className="flex items-center text-gray-400 text-[14px]">
+                            <h1 className="text-[15px] font-semibold">Price ₹ {dataDetails?.details?.priceRange || "N/A"}</h1>
+                            <div className="flex items-center text-gray-600 text-[13px]">
                                 <MapPin size={16} className="mr-1" />
                                 {post?.listing?.location?.address || "Address not available"}
                             </div>
@@ -359,15 +359,15 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
                         {/* Highlights */}
                         <div className=''>
-                            <h2 className="font-semibold text-[16px]">Property Highlights</h2>
+                            <h2 className="font-semibold text-[15px]">Property Highlights</h2>
                             <div className="flex gap-6 mt-2">
                                 <div className="flex flex-col items-center">
-                                    <div className="text-[14px] font-bold">{post?.listing?.propertyValues?.sqft_area || 1000}</div>
-                                    <div className="text-[12px] text-gray-400">sqft Area</div>
+                                    <div className="text-[13px] font-bold">{post?.listing?.propertyValues?.sqft_area || 1000}</div>
+                                    <div className="text-[11px] text-gray-600">sqft Area</div>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <div className="text-[14px] font-bold">{post?.listing?.propertyValues?.bedroom || 2}</div>
-                                    <div className="text-[12px] text-gray-400">Bedrooms</div>
+                                    <div className="text-[13px] font-bold">{post?.listing?.propertyValues?.bedroom || 2}</div>
+                                    <div className="text-[11px] text-gray-600">Bedrooms</div>
                                 </div>
                             </div>
 
@@ -384,8 +384,8 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
                         {/* About */}
                         <div className=''>
-                            <h2 className="font-semibold text-[16px]">About Property</h2>
-                            <p className="text-gray-300 text-[14px]">{post?.post?.description || "No description available"}</p>
+                            <h2 className="font-semibold text-[15px]">About Property</h2>
+                            <p className="text-gray-600 text-[13px]">{post?.post?.description || "No description available"}</p>
                         </div>
 
                         {/* Builder */}
@@ -422,11 +422,11 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
                         {/* BHK Sizes */}
                         <div className=''>
-                            <h2 className="font-semibold text-[16px]">Floor Planning & Pricing</h2>
+                            <h2 className="font-semibold text-[15px]">Floor Planning & Pricing</h2>
 
                             <div className="flex gap-3 mb-1 mt-3">
                                 <button
-                                    className={`px-4 py-1 rounded-full text-sm cursor-pointer ${selectedBHK === 'All' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-white'
+                                    className={`px-4 py-1 rounded-full text-sm border cursor-pointer ${selectedBHK === 'All' ? 'bg-black-600 text-black' : 'bg-white text-black'
                                         }`}
                                     onClick={() => setSelectedBHK('All')}
                                 >
@@ -436,7 +436,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                                     {bhkTypes?.map((bhk: any) => (
                                         <button
                                             key={bhk}
-                                            className={`px-4 py-1 rounded-full text-sm cursor-pointer ${selectedBHK === bhk ? 'bg-blue-600 text-white' : 'bg-gray-800 text-white'
+                                            className={`px-4 py-1 rounded-full border text-sm cursor-pointer ${selectedBHK === bhk ? 'bg-black-600 text-black' : 'bg-white text-black'
                                                 }`}
                                             onClick={() => setSelectedBHK(bhk)}
                                         >
@@ -446,21 +446,21 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                                 </div>
                             </div>
 
-                            <div className="p-4 border-b border-neutral-800 relative pb-[80px]">
+                            <div className="p-4  border-neutral-800 relative pb-[80px]">
                                 <Carousel className="w-full">
                                     <CarouselContent className="flex gap-4">
                                         {filteredFloorPlans?.map((_: any, i: any) => (
                                             <CarouselItem key={i} className="basis-auto">
-                                                <div className="bg-gray-900 p-3 rounded-xl min-w-[340px] inline-flex ">
+                                                <div className="shadow-sm my-2 border border-gray-50 mx-1 p-3 rounded-xl min-w-[340px] inline-flex ">
                                                     <div className='flex flex-row gap-4'>
                                                         <div className='overflow-hidden h-[90px] w-[120px] rounded-md'>
                                                             <img src={_?.floorPlanImages[0]} className='w-full h-full object-cover' alt="" /> </div>
                                                         <div>
-                                                            <p className="text-[14px] text-gray-400 flex-1">Super Area</p>
-                                                            <p className="text-white text-[14px]">{`${_?.superArea || 100} ${_?.unitSize}  | ${_?.noOfBathroom || 1
+                                                            <p className="text-[14px] text-gray-800 flex-1">Super Area</p>
+                                                            <p className="text-black text-[13px]">{`${_?.superArea || 100} ${_?.unitSize}  | ${_?.noOfBathroom || 1
                                                                 } BHK`}</p>
-                                                            <p className="text-white text-[14px]">₹{_?.amount.toLocaleString() || "N/A"} Onwards</p>
-                                                            <p className="text-white text-[14px]"></p>
+                                                            <p className="text-black text-[13px]">₹{_?.amount.toLocaleString() || "N/A"} Onwards</p>
+                                                            <p className="text-black text-[13px]"></p>
                                                             {/* <a href="#" className="underline text-[14px] mt-2 inline-block">
                                                                 See all properties
                                                             </a> */}
@@ -484,8 +484,8 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
                         {/* Amenities */}
                         <div className=''>
-                            <h2 className="font-semibold text-[16px]">Amenities</h2>
-                            <div className="grid grid-cols-2 gap-3 mt-3 text-[14px]">
+                            <h2 className="font-semibold text-[15px]">Amenities</h2>
+                            <div className="grid grid-cols-2 gap-3 mt-3 text-[13px]">
                                 {dataDetails?.amenities?.map((amenity: any) => (
                                     <div key={amenity} className="flex items-center gap-2">
                                         • {amenity}
@@ -496,8 +496,8 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
                         {/* Interior Details */}
                         <div className=''>
-                            <h2 className="font-semibold text-[16px]">Interior Details</h2>
-                            <div className="mt-2 text-[14px]">
+                            <h2 className="font-semibold text-[15px]">Interior Details</h2>
+                            <div className="mt-2 text-[13px]">
                                 <div className="justify-between py-1  grid grid-cols-2">
                                     <span>Extra Rooms</span>
                                     <span className="font-semibold">
@@ -519,8 +519,8 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
                         {/* Project Details */}
                         <div className=''>
-                            <h2 className="font-semibold text-[16px]">Project Details</h2>
-                            <div className="grid grid-cols-2 gap-y-2 text-[14px] mt-2">
+                            <h2 className="font-semibold text-[15px]">Project Details</h2>
+                            <div className="grid grid-cols-2 gap-y-2 text-[13px] mt-2">
                                 {
                                     dataDetails?.details?.ownership &&
                                     <>
@@ -581,32 +581,32 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         </div>
 
                         {/* Society Details */}
-                        <div className="p-4 border-b border-neutral-800">
-                            <h3 className="text-[16px] font-semibold mb-2">Society Details</h3>
+                        <div className="p-4">
+                            <h3 className="text-[15px] font-semibold mb-2">Society Details</h3>
                             <div className="flex items-center gap-1 mb-3">
                                 {Array(5)
                                     .fill(0)
                                     .map((_, i) => (
                                         <Star key={i} size={16} className="text-yellow-400 fill-yellow-400" />
                                     ))}
-                                <span className="ml-2 text-[14px] text-gray-400">(120 reviews)</span>
+                                <span className="ml-2 text-[13px] text-gray-600">(120 reviews)</span>
                             </div>
-                            <div className="space-y-2 text-gray-300 text-[14px]">
+                            <div className="space-y-2 text-gray-600 text-[13px]">
                                 <div className="flex justify-between">
-                                    <span>Built by</span>
-                                    <span className="text-white font-medium">{post?.user?.name || "Shree"}</span>
+                                    <span className='text-gray-600'>Built by</span>
+                                    <span className="text-black font-medium">{post?.user?.name || "Shree"}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span>Year built</span>
-                                    <span className="text-white font-medium">{new Date(post?.post?.created_at).getFullYear() || 2020}</span>
+                                    <span className='text-gray-600'>Year built</span>
+                                    <span className="text-black font-medium">{new Date(post?.post?.created_at).getFullYear() || 2020}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span>Total units</span>
-                                    <span className="text-white font-medium">1000</span>
+                                    <span className='text-gray-600'>Total units</span>
+                                    <span className="text-black font-medium">1000</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span>Available units</span>
-                                    <span className="text-white font-medium">1000</span>
+                                    <span className='text-gray-600'>Available units</span>
+                                    <span className="text-black font-medium">1000</span>
                                 </div>
                             </div>
                         </div>
@@ -673,7 +673,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                         {/* Branding */}
                         <div className="flex flex-col items-center p-6 text-center">
                             <h1 className="text-[56px] font-bold">Listifyi</h1>
-                            <p className="text-[16px] text-gray-400 mt-1">Crafted with ❤️ in Bengaluru, India</p>
+                            <p className="text-[16px] text-gray-500 mt-1">Crafted with ❤️ in Bengaluru, India</p>
                             <p className="text-[14px] text-gray-600 mt-2">© 2024 Listifyi Technologies Pvt. Ltd. | All Rights Reserved</p>
                         </div>
 
@@ -689,7 +689,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     </div>
 
                     {/* Bottom Actions */}
-                    <div className="fixed bottom-0 left-0 w-full bg-black p-4 flex justify-around border-t border-gray-800">
+                    <div className="fixed bottom-0 left-0 w-full border-t  bg-white p-2 flex justify-around border-gray-200">
                         <button
                             onClick={() => {
                                 router.push("/messages/")

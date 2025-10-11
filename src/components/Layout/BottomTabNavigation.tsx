@@ -18,8 +18,8 @@ interface BottomNavItem {
 const navItems: BottomNavItem[] = [
     { id: "home", icon: Home, label: "Properties", href: "/" },
     { id: "explore", icon: PlayCircle, label: "Explore", href: "/explore/" },
-    { id: "discover", icon: FaRegUser, label: "Settings", href: "/setting/" },
-    { id: "settings", icon: Search, label: "Settings", href: "/setting/" },
+    { id: "discover", icon: Search, label: "Discover", href: "/discover/" },
+    { id: "settings", icon: FaRegUser, label: "Settings", href: "/setting/" },
 ];
 
 export function BottomNavigation() {
@@ -29,7 +29,12 @@ export function BottomNavigation() {
         <nav className="bg-white border-t border-gray-200 px-2 py-1 flex md:hidden justify-around items-center">
             {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive =
+                    item.id === "discover"
+                        ? ["/discover", "/agents", "/builders"].some((path) =>
+                            pathname.startsWith(path)
+                        )
+                        : pathname === item.href;
 
                 return (
                     <Link

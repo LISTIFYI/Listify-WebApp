@@ -2,7 +2,10 @@ import React, { useRef, useState } from 'react'
 import InputBox from '../CustomFields/InputBox'
 import TextAreaBox from '../CustomFields/TextAreaBox'
 import { ChipList } from '../CustomFields/ChipList';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, Image, LoaderCircle, Plus, X } from 'lucide-react';
+import { UploadPhoto } from '@/utils/api';
+import { tokenStore } from '@/lib/token';
+import { IoDocument } from 'react-icons/io5';
 
 // Define the form data type
 interface FormData {
@@ -49,6 +52,11 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
 
     const [localityInput, setLocalityInput] = useState("");
 
+    const fileInputRefPDF = useRef<HTMLInputElement | null>(null)
+
+    const handleClick = () => {
+        fileInputRefPDF.current?.click()
+    }
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -56,17 +64,60 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
     const handleUploadClick = () => {
         fileInputRef.current?.click();
     };
+    const [uploading, setUploading] = useState(false)
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const tk = tokenStore.get()
+        setUploading(true)
         if (event.target.files && event.target.files[0]) {
-            const file = event.target.files[0];
-            const preview = URL.createObjectURL(file);
-            setPreviewUrl(preview);
+            const payload = {
+                entity: "POST",
+                fileExtension: event.target.files[0].type.split("/").pop(),
+                type: event.target.files[0].type.split("/")[0] === "video" ? "VIDEO" : "IMAGE",
+                name: event.target.files[0].name.split(".")[0],
+            };
+            const fileType = event.target.files[0].type.split("/")[0] === "video" ? "video" : "image"
+            const res = await UploadPhoto(payload, tk?.accessToken ?? "", event.target.files?.[0], fileType)
+            setUploading(false)
+            if (role === "builder") {
+                handleInputChange("photo", res.fileUrl)
 
-            console.log("Selected file:", file);
-            // Later you can upload `file` to backend / cloud storage
+            } else {
+                handleInputChange("profilePhoto", res.fileUrl)
+
+            }
         }
     };
+
+    const handleFileChangePDF = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (file) {
+            const tk = tokenStore.get();
+            const extension = file.type.split("/").pop()
+            const name = file.name.split(".")[0];
+            const payload = {
+                entity: "DOCUMENTS",
+                fileExtension: extension,
+                type: "DOCUMENT",
+                name: name,
+            };
+
+            try {
+                const res = await UploadPhoto(payload, tk?.accessToken ?? "", file, "document")
+                if (res.fileUrl) {
+                    handleInputChange("IDProof", res.fileUrl)
+                }
+            } catch (error) {
+                console.log("Something went wrong", error);
+
+            }
+        }
+    }
+
+    const removePdf = () => {
+        // setBrochure("")
+    }
+
     return (
         <div className='w-full mx-auto'>
             <h1
@@ -77,19 +128,19 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                         setSelectedTrue(false)
                     }}
                     className='cursor-pointer'><ChevronLeft size={28} /></button>
-                Create your {role === "Builder" ? "Builder" : "Agent"} Profile</h1>
+                Create your {role === "builder" ? "Builder" : "Agent"} Profile</h1>
             <div className="space-y-4">
                 <div className='flex flex-row gap-4'>
                     <div className='w-full'>
-                        <label className="block text-sm font-medium text-gray-700">{role === "Builder" ? "Builder name" : "Agent name"}</label>
+                        <label className="block text-sm font-medium text-gray-700">{role === "builder" ? "Builder name" : "Agent name"}</label>
                         <InputBox
-                            placeholder={role === "Builder" ? "Builder name" : "Agent name"}
-                            value={role === "Builder" ? formData.builderName : formData.agentName}
-                            onChange={(text: string) => handleInputChange(role === "Builder" ? "builderName" : "agentName", text)}
+                            placeholder={role === "builder" ? "Builder name" : "Agent name"}
+                            value={role === "builder" ? formData.builderName : formData.agentName}
+                            onChange={(text: string) => handleInputChange(role === "builder" ? "builderName" : "agentName", text)}
                             className="mt-1"
                         />
-                        {errors[role === "Builder" ? "builderName" : "agentName"] && (
-                            <p className="text-red-500 text-sm mt-1">{errors[role === "Builder" ? "builderName" : "agentName"]}</p>
+                        {errors[role === "builder" ? "builderName" : "agentName"] && (
+                            <p className="text-red-500 text-sm mt-1">{errors[role === "builder" ? "builderName" : "agentName"]}</p>
                         )}
                     </div>
                     <div className='w-full'>
@@ -107,11 +158,11 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                 </div>
 
                 <div className='w-full'>
-                    <label className="block text-sm font-medium text-gray-700">{role === "Agent" ? "Profile Photo" : "Company Logo"}</label>
+                    <label className="block text-sm font-medium text-gray-700">{role === "agent" ? "Profile Photo" : "Company Logo"}</label>
                     <div
                         onClick={handleUploadClick}
-                        className='border border-gray-300 bg-white py-2 mt-1 px-2 text-sm text-gray-500 font-normal rounded-md'>
-                        {role === "Agent" ? "Upload Photo" : "Upload Logo"}
+                        className='border flex flex-row items-center justify-center gap-1 border-gray-300 bg-white py-2 mt-1 px-2 text-sm text-gray-500 font-normal rounded-md'>
+                        <Image size={16} />  {role === "agent" ? "Upload Photo" : "Upload Logo"}
                     </div>
                     <input
                         type="file"
@@ -120,19 +171,33 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                         onChange={handleFileChange}
                         accept="image/*"
                     />
-                    {previewUrl && (
-                        <div className="mt-3">
-                            <img
-                                src={previewUrl}
-                                alt="Preview"
-                                className="h-24 w-24 object-cover rounded-md border"
-                            />
-                        </div>
-                    )}
-                </div>
+                    {
+                        uploading ?
+                            <div className="mt-3">
+                                <div className='h-24 w-24 object-cover flex-col flex justify-center items-center rounded-md border'>
+                                    <p className='text-[12px]'>Uploading...</p>
+                                    <div className='w-fit h-fit animate-spin mt-1'>
+                                        <LoaderCircle size={16} />
+                                    </div>
+                                </div>
+                            </div>
+                            :
+                            <>
+                                {(formData?.photo || formData?.profilePhoto) && (
+                                    <div className="mt-3">
+                                        <img
+                                            src={`${formData?.photo || formData?.profilePhoto}`}
+                                            alt="Preview"
+                                            className="h-24 w-24 object-cover rounded-md border"
+                                        />
+                                    </div>
+                                )}
+
+                            </>
+                    }                </div>
 
                 {
-                    role === "Builder" &&
+                    role === "builder" &&
                     <>
                         <div className='flex flex-row gap-4'>
                             <div className='w-full'>
@@ -189,7 +254,7 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                     </>
                 }
                 {
-                    role === "Agent" &&
+                    role === "agent" &&
                     <>
                         <div className='flex flex-row gap-4'>
                             <div className='w-full'>
@@ -222,7 +287,7 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                                 <label className="block text-sm font-medium text-gray-700">Operating Since</label>
                                 <InputBox
                                     placeholder="Operating since"
-                                    value={formData.reraNumber}
+                                    value={formData.operatingSince}
                                     onChange={(text) => handleInputChange("operatingSince", text)}
                                     className="mt-1"
                                 />
@@ -248,19 +313,19 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
 
                 <div className='flex flex-row gap-4'>
                     <div className='w-full'>
-                        <label className="block text-sm font-medium text-gray-700">{role === "Builder" ? "Address" : "Office Address"}</label>
+                        <label className="block text-sm font-medium text-gray-700">{role === "builder" ? "Address" : "Office Address"}</label>
                         <TextAreaBox
-                            placeholder={role === "Builder" ? "Address" : "Office address"}
-                            value={role === "Builder" ? formData.address : formData.officeAddress}
-                            onChange={(text: string) => handleInputChange(role === "Builder" ? "address" : "officeAddress", text)}
+                            placeholder={role === "builder" ? "Address" : "Office address"}
+                            value={role === "builder" ? formData.address : formData.officeAddress}
+                            onChange={(text: string) => handleInputChange(role === "builder" ? "address" : "officeAddress", text)}
                             className="mt-1"
                         />
-                        {errors[role === "Builder" ? "address" : "officeAddress"] && (
-                            <p className="text-red-500 text-sm mt-1">{errors[role === "Builder" ? "address" : "officeAddress"]}</p>
+                        {errors[role === "builder" ? "address" : "officeAddress"] && (
+                            <p className="text-red-500 text-sm mt-1">{errors[role === "builder" ? "address" : "officeAddress"]}</p>
                         )}
                     </div>
                     {
-                        role === "Builder" &&
+                        role === "builder" &&
                         <div className='w-full'>
                             <label className="block text-sm font-medium text-gray-700">Builder Description</label>
                             <TextAreaBox
@@ -277,7 +342,7 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                 </div>
 
                 {
-                    role === "Agent" &&
+                    role === "agent" &&
                     <>
                         <div className='flex flex-row gap-4'>
                             <div className='w-full'>
@@ -312,7 +377,7 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                 <>
                     <div className='flex flex-row gap-4'>
                         {
-                            role === "Builder" &&
+                            role === "builder" &&
                             <div className='w-full'>
                                 <label className="block text-sm font-medium text-gray-700">Official Contact Number</label>
                                 <InputBox
@@ -340,6 +405,51 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                         </div>
                     </div>
                 </>
+
+                <div className='flex flex-row gap-4'>
+                    <div className="flex flex-col flex-1">
+                        <label className="block text-sm font-medium text-gray-700">
+                            ID Proof (PDF)
+                        </label>
+                        <div
+                            className="mt-1 h-[36px] flex flex-col relative justify-center items-center bg-gray-100 transition-all duration-300 border rounded-sm text-sm cursor-pointer hover:bg-gray-200"
+                            onClick={() => {
+                                if (!formData.IDProof && formData.IDProof === "") {
+                                    handleClick()
+                                }
+                            }}
+                        >
+                            {
+                                formData.IDProof ? (
+                                    <div className="flex flex-row gap-1 items-center justify-start px-4 w-full overflow-hidden">
+                                        <IoDocument size={16} />
+                                        <span className="font-medium text-sm truncate w-full max-w-[300px]">
+                                            {formData.IDProof.split("/").pop()}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <h1 className="font-medium text-sm">ID Proof (PDF)</h1>
+                                )
+                            }
+
+                            {formData.IDProof &&
+                                <div
+                                    onClick={removePdf}
+                                    className='border w-fit absolute top-[-10px] rounded-full shadow-md bg-gray-100 right-[-8px]'><X color='red' size={16} /></div>
+                            }
+                        </div>
+
+                        {/* Hidden input */}
+                        <input
+                            type="file"
+                            accept="application/pdf"
+                            ref={fileInputRefPDF}
+                            onChange={handleFileChangePDF}
+                            className="hidden"
+                        />
+                    </div>
+
+                </div>
 
                 <div className="w-full mt-4">
                     <label className="block text-sm font-medium text-gray-700">
@@ -373,7 +483,7 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                         {formData.localitiesOfOperation.map((locality, index) => (
                             <span
                                 key={index}
-                                className="px-3 bg-gray-200 text-gray-800 rounded-full text-sm flex items-center gap-2"
+                                className="px-4 h-8 bg-gray-200 text-gray-800 rounded-md text-sm flex items-center gap-2"
                             >
                                 {locality}
                                 <button

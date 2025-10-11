@@ -168,16 +168,16 @@ const BasicListingAddressForm: React.FC<BasicListingAddressFormProps> = ({
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Landmarks (Optional)</label>
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1">
                         <InputBox
                             value={landmarkInput}
                             onChange={setLandmarkInput}
                             placeholder="Add a landmark"
                             className="flex-1"
                         />
-                        <Button onClick={addLandmark} disabled={isLoading}>
-                            <Plus size={24} />
-                        </Button>
+                        <button className='w-10 h-10 rounded-md flex justify-center items-center border bg-black' onClick={addLandmark} disabled={isLoading}>
+                            <Plus size={24} color='#fff' />
+                        </button>
                     </div>
                     {errors.landmark && <p className="text-red-500 text-sm mt-1">{errors.landmark}</p>}
                     {formData.landmarks.length > 0 && (

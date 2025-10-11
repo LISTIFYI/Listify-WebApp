@@ -34,9 +34,9 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
 
     return (
         <div className="bg-white border z-0 h-[60px] border-b-[#EAEAEA]">
-            <div className="flex flex-row  items-center">
+            <div className="flex flex-row  items-center h-full  my-auto">
                 {/* Left: Hamburger + Logo */}
-                <div className={`flex gap-3  items-center  transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[53px] justify-start" : "w-fit md:w-56 justify-between pr-4"}`}>
+                <div className={`flex gap-3 my-auto items-center  transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[53px] justify-start" : "w-fit md:w-56 justify-between pr-4"}`}>
                     <div className={`hidden md:flex   flex-row items-center  gap-2 justify-start transition-all duration-300 ${isSidebarCollapsed ? "px-2" : "px-4"}`}>
                         <Image src={Logo} alt="logo" className="max-w-[32px] h-[32px] border " />
                         <h1 className={`text-[22px]  text-black font-[700] text-nowrap  text-start ${isSidebarCollapsed ? "hidden" : "flex"}`}>Listifyi</h1>
@@ -145,6 +145,8 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                             <>
                                 <div
                                     onClick={() => {
+                                        console.log("user", user);
+
                                         if (user?.roles?.includes("Builder") || user?.roles?.includes("Agent")) {
                                             router.push("/property-listing");
                                         } else {
@@ -177,26 +179,26 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                             </>
                         }
 
+
                         {
                             !user
                                 ? <>
                                     <div className="hideFilterThree w-[1px] bg-[#EBEBEB] h-[12px]" />
                                     <div
                                         onClick={() => {
-                                            console.log("called");
-
                                             openLogin()
                                         }}
                                         className="flex cursor-pointer flex-row gap-2 items-center justify-center pr-4">
-                                        <h1 className="text-[12px] md:block hidden text-black font-[700]">Login</h1>
+                                        <h1 className="text-[14px]  text-black font-[700]">Login</h1>
                                         {/* <IoChevronDown color="black" size={14} /> */}
                                     </div>
                                 </> :
                                 <>
-                                    <div className="hideFilterThree w-[1px] bg-[#EBEBEB] h-[12px]" />
+
+                                    <div className="hideFilterThree  w-[1px] bg-[#EBEBEB] h-[12px]" />
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <div className="flex cursor-pointer flex-row gap-2 items-center justify-center pr-4">
+                                            <div className="flex cursor-pointer bg flex-row gap-2 items-center justify-center pr-4">
                                                 <div className="border hover:bg-gray-100  transition-all duration-300 overflow-hidden border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
                                                     {/* Replace with user avatar if available */}
                                                     <span className="text-[12px] font-bold">

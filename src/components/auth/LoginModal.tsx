@@ -10,6 +10,7 @@ import OtpStep from './OtpStep';
 import ProfileStep from './ProfileStep';
 import Image from 'next/image';
 import Logo from '../../assets/logo.png'
+import { useRouter } from 'next/navigation';
 
 
 type Step = 'phone' | 'otp' | 'profile';
@@ -18,6 +19,8 @@ const LoginModal: React.FC = () => {
     const { closeLogin, user, showLogin } = useAuth();
     const [step, setStep] = useState<Step>('phone');
     const [phone, setPhone] = useState<string>('');
+    const router = useRouter()
+
 
     // If user exists but missing required profile fields, go to profile step
     React.useEffect(() => {
@@ -32,6 +35,8 @@ const LoginModal: React.FC = () => {
         if (!open) {
             closeLogin();
             setStep('phone'); // Reset step when closing
+            router.replace('/')
+
         }
     };
 
