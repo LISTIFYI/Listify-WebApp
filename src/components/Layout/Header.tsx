@@ -36,7 +36,12 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
         <div className="bg-white border z-0 h-[60px] border-b-[#EAEAEA]">
             <div className="flex flex-row  items-center h-full  my-auto">
                 {/* Left: Hamburger + Logo */}
-                <div className={`flex gap-3 my-auto items-center  transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[53px] justify-start" : "w-fit md:w-56 justify-between pr-4"}`}>
+                <div
+
+                    onClick={() => {
+                        router.replace("/")
+                    }}
+                    className={`flex gap-3 my-auto items-center  transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[53px] justify-start" : "w-fit md:w-56 justify-between pr-4"}`}>
                     <div className={`hidden md:flex   flex-row items-center  gap-2 justify-start transition-all duration-300 ${isSidebarCollapsed ? "px-2" : "px-4"}`}>
                         <Image src={Logo} alt="logo" className="max-w-[32px] h-[32px] border " />
                         <h1 className={`text-[22px]  text-black font-[700] text-nowrap  text-start ${isSidebarCollapsed ? "hidden" : "flex"}`}>Listifyi</h1>

@@ -340,9 +340,9 @@ const VideoScrollingUI = () => {
         }
     };
 
-    if (loading && posts.length === 0) {
+    if (!loading && posts.length !== 0) {
         return (
-            <div className="h-full snap-start relative group md:rounded-xl overflow-hidden">
+            <div className="h-full md:max-w-[400px] mx-auto  snap-start relative group md:rounded-xl overflow-hidden">
                 {/* Video Placeholder */}
                 <div className="relative h-full bg-gray-200 animate-pulse md:rounded-xl overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />

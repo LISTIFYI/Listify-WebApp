@@ -34,11 +34,13 @@ const LoginModal: React.FC = () => {
     const handleOpenChange = (open: boolean) => {
         if (!open) {
             closeLogin();
-            setStep('phone'); // Reset step when closing
-            router.replace('/')
-
+            setStep('phone');
+            setTimeout(() => {
+                router.push('/');
+            }, 100);
         }
     };
+
 
     return (
         <Dialog open={showLogin} onOpenChange={handleOpenChange} >
