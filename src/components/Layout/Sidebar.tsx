@@ -15,7 +15,7 @@ type SidebarProps = {
 };
 
 export function Sidebar({ isCollapsed = false, isSheetOpen, setIsSheetOpen }: SidebarProps) {
-    const { isAdmin, toggleAdminMode } = useAuth();
+    const { isAdmin, toggleAdminMode, user } = useAuth();
     console.log("Sidebar isAdmin:", isAdmin);
     console.log("Sidebar toggleAdminMode:", toggleAdminMode);
     const [loading, setLoading] = useState(false);
@@ -79,22 +79,24 @@ export function Sidebar({ isCollapsed = false, isSheetOpen, setIsSheetOpen }: Si
             <div>
                 <button
                     onClick={() => {
-                        console.log("Toggle button clicked, isAdmin before:", isAdmin);
-                        setLoading(true);
-                        if (!isAdmin) {
-                            setTimeout(() => {
-                                toggleAdminMode();
-                                setLoading(false);
-                                router.push("/dashboard/");
-                            }, 500);
-                        } else {
-                            setTimeout(() => {
-                                toggleAdminMode();
-                                setLoading(false);
-                                router.push("/");
-                            }, 500);
+                        if (!!user) {
+                            console.log("Toggle button clicked, isAdmin before:", isAdmin);
+                            setLoading(true);
+                            if (!isAdmin) {
+                                setTimeout(() => {
+                                    toggleAdminMode();
+                                    setLoading(false);
+                                    router.push("/dashboard/");
+                                }, 500);
+                            } else {
+                                setTimeout(() => {
+                                    toggleAdminMode();
+                                    setLoading(false);
+                                    router.push("/");
+                                }, 500);
+                            }
+                            console.log("Toggle button clicked, isAdmin after:", isAdmin);
                         }
-                        console.log("Toggle button clicked, isAdmin after:", isAdmin);
                     }}
                     className={clsx(
                         "flex items-center rounded-md transition-colors cursor-pointer",

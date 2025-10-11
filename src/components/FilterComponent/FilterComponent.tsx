@@ -150,6 +150,7 @@ const FilterComponent: React.FC = () => {
             approvalAuthority: selectedAuthority.length > 0 ? selectedAuthority.join(',') : '',
         };
         addFilters(selectedFilter);
+        setOpenFilter(false)
     };
 
     const [value, setValue] = useState([25, 75])

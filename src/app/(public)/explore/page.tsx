@@ -340,7 +340,7 @@ const VideoScrollingUI = () => {
         }
     };
 
-    if (!loading && posts.length !== 0) {
+    if (loading && posts.length === 0) {
         return (
             <div className="h-full md:max-w-[400px] mx-auto  snap-start relative group md:rounded-xl overflow-hidden">
                 {/* Video Placeholder */}

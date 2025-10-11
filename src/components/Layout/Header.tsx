@@ -16,7 +16,7 @@ import Logo from '../../assets/logo.png'
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 type HeaderProps = {
     isSidebarCollapsed?: boolean;
@@ -30,6 +30,13 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
     const { user, openLogin, logout, addFilters, setOpenFilter } = useAuth()
     console.log("user", user);
     const router = useRouter()
+    const pathname = usePathname();
+    const hideLogo =
+        pathname.startsWith("/discover") ||
+        pathname.startsWith("/setting") ||
+        pathname.startsWith("/messages") ||
+        pathname.startsWith("/dashboard") ||
+        pathname.startsWith("/properties");
 
 
     return (
@@ -55,96 +62,100 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
 
                 {/* Middle: filters/search (your existing UI) */}
                 <div className="flex p-2 flex-1 flex-row justify-between items-center">
-                    <div className="flex md:ml-0 items-center flex-row gap-4 hideFilterOne">
-                        <div className="hidden md:block  ">
-                            <button
-                                onClick={onToggleSidebar}
-                                aria-label="Toggle sidebar"
-                                className={clsx(
-                                    "inline-flex  items-center justify-center rounded-md border border-gray-200 w-9 h-9 hover:bg-gray-50 transition",
-                                    isSidebarCollapsed ? "bg-gray-50" : "bg-white"
-                                )}
-                            >
-                                <RxHamburgerMenu size={18} />
-                            </button>
-                        </div>
-                        <div className="bg-[#F9FAFB] hidden md:flex flex-row justify-center items-center rounded-full p-[4px]">
-                            <div
-                                className={clsx(
-                                    "px-4 flex flex-row justify-center items-center gap-1 py-2 text-[12px] rounded-full cursor-pointer",
-                                    activeToggle === "all"
-                                        ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
-                                        : "border-gray-300"
-                                )}
-                                onClick={() => {
-                                    setActiveToggle("all")
-                                    addFilters({
-                                        type: ""
-                                    })
-                                }}
-                            >
-                                <RiHome6Line className="text-[#989CA0]" size={14} />
-                                All
+                    {
+                        !hideLogo &&
+                        <>
+                            <div className="flex md:ml-0 items-center flex-row gap-4 hideFilterOne">
+                                <div className="hidden md:block  ">
+                                    <button
+                                        onClick={onToggleSidebar}
+                                        aria-label="Toggle sidebar"
+                                        className={clsx(
+                                            "inline-flex  items-center justify-center rounded-md border border-gray-200 w-9 h-9 hover:bg-gray-50 transition",
+                                            isSidebarCollapsed ? "bg-gray-50" : "bg-white"
+                                        )}
+                                    >
+                                        <RxHamburgerMenu size={18} />
+                                    </button>
+                                </div>
+                                <div className="bg-[#F9FAFB] hidden md:flex flex-row justify-center items-center rounded-full p-[4px]">
+                                    <div
+                                        className={clsx(
+                                            "px-4 flex flex-row justify-center items-center gap-1 py-2 text-[12px] rounded-full cursor-pointer",
+                                            activeToggle === "all"
+                                                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
+                                                : "border-gray-300"
+                                        )}
+                                        onClick={() => {
+                                            setActiveToggle("all")
+                                            addFilters({
+                                                type: ""
+                                            })
+                                        }}
+                                    >
+                                        <RiHome6Line className="text-[#989CA0]" size={14} />
+                                        All
+                                    </div>
+
+                                    <div
+                                        className={clsx(
+                                            "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
+                                            activeToggle === "sale"
+                                                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
+                                                : "border-gray-300"
+                                        )}
+                                        onClick={() => {
+                                            setActiveToggle("sale")
+                                            addFilters({
+                                                type: "sale"
+                                            })
+
+                                        }}
+                                    >
+                                        <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
+                                        Sale
+                                    </div>
+
+                                    <div
+
+                                        className={clsx(
+                                            "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
+                                            activeToggle === "resale"
+                                                ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
+                                                : "border-gray-300"
+                                        )}
+                                        onClick={() => {
+                                            setActiveToggle("resale")
+                                            addFilters({
+                                                type: "resale"
+                                            })
+                                        }}
+                                    >
+                                        <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
+                                        Resale
+                                    </div>
+                                </div>
                             </div>
+                            <div className="flex flex-row gap-3">
+                                <div className="border hideSearchbar rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-2 px-2.5 border-[#E7ECEE]">
+                                    <IoSearch className="text-[#989CA0]" size={14} />
+                                    <input
+                                        placeholder="Whitefield, banglore"
+                                        className="text-[12px] font-[400] outline-none px-0.5 border-none text-[#989CA0] placeholder:text-[#989CA0] max-w-[210px] w-[100%]"
+                                    />
+                                    <RxCross2 className="text-[#989CA0]" size={14} />
+                                </div>
 
-                            <div
-                                className={clsx(
-                                    "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
-                                    activeToggle === "sale"
-                                        ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
-                                        : "border-gray-300"
-                                )}
-                                onClick={() => {
-                                    setActiveToggle("sale")
-                                    addFilters({
-                                        type: "sale"
-                                    })
-
-                                }}
-                            >
-                                <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
-                                Sale
-                            </div>
-
-                            <div
-
-                                className={clsx(
-                                    "px-4 py-2 text-[12px] rounded-full cursor-pointer flex flex-row gap-1",
-                                    activeToggle === "resale"
-                                        ? "bg-[#fff] text-black font-[500] shadow-[0px_0px_2px_0.1px_#989CA066]"
-                                        : "border-gray-300"
-                                )}
-                                onClick={() => {
-                                    setActiveToggle("resale")
-                                    addFilters({
-                                        type: "resale"
-                                    })
-                                }}
-                            >
-                                <PiBuildingOfficeThin className="text-[#989CA0]" size={14} />
-                                Resale
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex flex-row gap-3">
-                        <div className="border hideSearchbar rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-2 px-2.5 border-[#E7ECEE]">
-                            <IoSearch className="text-[#989CA0]" size={14} />
-                            <input
-                                placeholder="Whitefield, banglore"
-                                className="text-[12px] font-[400] outline-none px-0.5 border-none text-[#989CA0] placeholder:text-[#989CA0] max-w-[210px] w-[100%]"
-                            />
-                            <RxCross2 className="text-[#989CA0]" size={14} />
-                        </div>
-
-                        <div onClick={() => {
-                            setOpenFilter(true)
-                        }} className="border cursor-pointer rounded-full bg-[#F9FAFB] hidden md:flex flex-row justify-center items-center gap-1 py-2 px-4 border-[#E7ECEE]">
-                            <IoFilter className="text-[#989CA0]" size={14} />
-                            <h1 className="text-[12px] hideFilterText font-[400] text-[#989CA0]">Filter</h1>
-                        </div>
-                    </div>
+                                <div onClick={() => {
+                                    setOpenFilter(true)
+                                }} className="border cursor-pointer rounded-full bg-[#F9FAFB] hidden md:flex flex-row justify-center items-center gap-1 py-2 px-4 border-[#E7ECEE]">
+                                    <IoFilter className="text-[#989CA0]" size={14} />
+                                    <h1 className="text-[12px] hideFilterText font-[400] text-[#989CA0]">Filter</h1>
+                                </div>
+                            </div></>
+                    }
                     {/* Right: actions (unchanged) */}
-                    <div className="flex flex-row gap-4  items-center justify-center">
+                    <div className="flex  ml-auto flex-row gap-4  items-center justify-center">
                         {
                             user &&
                             <>
