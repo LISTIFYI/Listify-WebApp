@@ -1,10 +1,10 @@
-// src/context/AuthContext.tsx
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { http } from '@/lib/http';
 import { tokenStore, Tokens } from '@/lib/token';
 import { usePathname } from 'next/navigation';
+
 export interface Filters {
     [key: string]: any;
 }
@@ -16,10 +16,9 @@ type User = {
     email?: string;
     age?: number;
     gender?: 'male' | 'female' | 'other';
-    roles?: "Builder" | "Agent"
-    builderProfile?: any
-    agentProfile?: any
-    // ...more
+    roles?: ("Builder" | "Agent")[];
+    builderProfile?: any;
+    agentProfile?: any;
 };
 
 type AuthState = {
@@ -27,8 +26,10 @@ type AuthState = {
     tokens: Tokens | null;
     loading: boolean;
     showLogin: boolean;
-    role: string | null; // Added role state
-    // flows
+    role: string | null;
+    isAdmin: boolean;
+    filters: Filters;
+    openFilter: boolean;
     startPhoneLogin: (phone: string) => Promise<void>;
     verifyOtp: (phone: string, otp: string) => Promise<void>;
     completeProfile: (data: Required<Pick<User, 'name' | 'email' | 'age' | 'gender'>>) => Promise<void>;
@@ -37,14 +38,10 @@ type AuthState = {
     closeLogin: () => void;
     clearRole: () => void;
     setRoleGlobally: (role: string) => void;
-    toggleAdminMode: () => void; // Added toggleAdminMode
-    isAdmin: boolean,
-    filters: Filters;
+    toggleAdminMode: () => void;
     addFilters: (filters: Filters) => void;
     removeAllFilters: () => void;
-    setOpenFilter: (value: boolean) => void
-    openFilter: boolean
-
+    setOpenFilter: (value: boolean) => void;
 };
 
 const AuthCtx = createContext<AuthState | null>(null);
@@ -55,28 +52,27 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-
     const [user, setUser] = useState<User | null>(null);
     const [tokens, setTokens] = useState<Tokens | null>(tokenStore.get());
     const [loading, setLoading] = useState<boolean>(true);
     const [showLogin, setShowLogin] = useState<boolean>(false);
-    const [role, setRole] = useState<string | null>("");
-
-    const [isAdmin, setIsAdmin] = useState<boolean>(false); // Initialize isAdmin
+    const [role, setRole] = useState<string | null>(null);
+    const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [filters, setFilters] = useState<Filters>({});
-    const [openFilter, setOpenFilter] = useState(false)
-    // Try load user if tokens exist
+    const [openFilter, setOpenFilter] = useState(false);
+
     useEffect(() => {
         const init = async () => {
             try {
                 const tk = tokenStore.get();
                 setTokens(tk);
                 if (tk?.accessToken) {
-                    const me = await http.get('/users/profile'); // your API
-                    setUser(me?.data);
-                    setRole(me.data.roles.includes("Builder") ? "builder" : me.data.roles.includes("Agent") ? "agent" : "")
+                    const me = await http.get('/users/profile');
+                    setUser(me.data);
+                    setRole(me.data.roles?.includes("Builder") ? "builder" : me.data.roles?.includes("Agent") ? "agent" : null);
                 }
-            } catch {
+            } catch (error) {
+                console.error('Failed to load user profile:', error);
                 tokenStore.clear();
                 setUser(null);
                 setTokens(null);
@@ -88,29 +84,23 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     }, []);
 
     const startPhoneLogin = async (phone: string) => {
-        await http.post('/auth/mobile_login_otp', { mobile_number: phone }); // sends OTP
+        await http.post('/auth/mobile_login_otp', { mobile_number: phone });
     };
 
     const verifyOtp = async (phone: string, otp: string) => {
-        // Returns tokens (and maybe partial user)
         const res = await http.post('/auth/mobile_verify_otp', { mobile_number: phone, otp_code: otp });
-        const { token, refresh_token, user: u } = res.data as {
-            token: string;
-            refresh_token: string;
-            user: any;
-        };
+        const { token: accessToken, refresh_token: refreshToken, user: u, accessExp, refreshExp } = res.data;
 
-        // Map to our internal shape
         const tk: Tokens = {
-            accessToken: token,
-            refreshToken: refresh_token,
-            // no expiries provided by API -> leave undefined
+            accessToken,
+            refreshToken,
+            accessExp: accessExp ? accessExp * 1000 : undefined, // Convert to ms if in seconds
+            refreshExp: refreshExp ? refreshExp * 1000 : undefined,
         };
 
         tokenStore.set(tk);
         setTokens(tk);
 
-        // Optional normalisation (match your User type)
         const normalizedUser = u
             ? {
                 id: u.id,
@@ -120,11 +110,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                 age: u.age,
                 gender: typeof u.gender === 'string' ? (u.gender.toLowerCase() as 'male' | 'female' | 'other') : undefined,
                 roles: u.roles ?? [],
-                // copy anything else you need from API
             }
             : null;
 
         setUser(normalizedUser);
+        setRole(normalizedUser?.roles?.includes("Builder") ? "builder" : normalizedUser?.roles?.includes("Agent") ? "agent" : null);
     };
 
     const completeProfile = async (payload: Required<Pick<User, 'name' | 'email' | 'age' | 'gender'>>) => {
@@ -137,30 +127,22 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         tokenStore.clear();
         setUser(null);
         setTokens(null);
-        // optional: tell API to revoke refresh token
-        // http.post('/auth/logout').catch(()=>{});
     };
 
     const setRoleGlobally = (newRole: string) => {
-        setRole(newRole); // Set role globally
-    };
-    const clearRole = () => {
-        setRole(null); // Clear role without affecting other auth state
+        setRole(newRole);
     };
 
+    const clearRole = () => {
+        setRole(null);
+    };
 
     const toggleAdminMode = () => {
         setIsAdmin(prev => !prev);
     };
 
-
-
-    // filters
     const addFilters = (newFilters: Filters) => {
-        setFilters((prev) => ({
-            ...prev,
-            ...newFilters,
-        }));
+        setFilters((prev) => ({ ...prev, ...newFilters }));
     };
 
     const removeAllFilters = () => {
@@ -184,7 +166,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         filters,
         removeAllFilters,
         openFilter,
-        setOpenFilter
+        setOpenFilter,
     }), [user, tokens, loading, showLogin, isAdmin, filters, openFilter, role]);
 
     return (

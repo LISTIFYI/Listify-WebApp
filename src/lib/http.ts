@@ -1,12 +1,10 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { tokenStore } from './token';
+import { tokenStore, Tokens } from './token';
 
-// Extend Axios config type to include custom _retry property
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
     _retry?: boolean;
 }
 
-// const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://listifyi-api-dev-1012443530727.asia-south1.run.app';
 const API_BASE = 'https://listifyi-api-dev-1012443530727.asia-south1.run.app';
 const TOKEN_REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes before expiry (in ms)
 const QUEUE_TIMEOUT = 10000; // 10 seconds timeout for queued requests
@@ -27,7 +25,6 @@ function rejectQueue(err: unknown) {
     pendingQueue = [];
 }
 
-// Helper to handle token refresh headers
 const handleTokenRefreshHeaders = (response: AxiosResponse) => {
     const headers = response.headers ?? {};
     const refreshed = String(headers['x-token-refreshed'] ?? '').trim().toLowerCase() === 'true';
@@ -36,8 +33,8 @@ const handleTokenRefreshHeaders = (response: AxiosResponse) => {
 
     const newAccessToken = headers['x-new-access-token'];
     const newRefreshToken = headers['x-new-refresh-token'];
-    const accessExp = headers['x-access-token-expiry'] ? parseInt(headers['x-access-token-expiry']) : undefined;
-    const refreshExp = headers['x-refresh-token-expiry'] ? parseInt(headers['x-refresh-token-expiry']) : undefined;
+    const accessExp = headers['x-access-token-expiry'] ? parseInt(headers['x-access-token-expiry']) * 1000 : undefined; // Convert to ms if in seconds
+    const refreshExp = headers['x-refresh-token-expiry'] ? parseInt(headers['x-refresh-token-expiry']) * 1000 : undefined;
 
     if (newAccessToken) {
         tokenStore.set({
@@ -46,23 +43,22 @@ const handleTokenRefreshHeaders = (response: AxiosResponse) => {
             accessExp,
             refreshExp,
         });
-        return true; // Tokens were refreshed
+        console.log('Tokens refreshed', { accessExp, refreshExp });
+        return true;
     }
     return false;
 };
 
-// Check if refresh token is expired and handle logout
 const handleExpiredRefreshToken = () => {
     console.warn('Refresh token expired, clearing session and redirecting');
     tokenStore.clear();
     sessionStorage.setItem('auth.reason', 'expired');
     if (typeof window !== 'undefined') {
-        window.location.reload(); // Refresh the window
-        window.location.href = '/'; // Navigate to root
+        window.location.reload();
+        window.location.href = '/';
     }
 };
 
-// Proactive token refresh before expiry
 const refreshTokenProactively = async () => {
     const tokens = tokenStore.get();
     if (!tokens?.refreshToken || !tokens.accessExp) {
@@ -70,7 +66,6 @@ const refreshTokenProactively = async () => {
         return false;
     }
 
-    // Check if refresh token is expired
     if (tokens.refreshExp && tokens.refreshExp < Date.now()) {
         handleExpiredRefreshToken();
         return false;
@@ -79,10 +74,11 @@ const refreshTokenProactively = async () => {
     const now = Date.now();
     const timeUntilExpiry = tokens.accessExp - now;
 
-    if (timeUntilExpiry > TOKEN_REFRESH_THRESHOLD) return false; // Token not close to expiry
+    if (timeUntilExpiry > TOKEN_REFRESH_THRESHOLD) return false;
 
     try {
         isRefreshing = true;
+        console.log('Attempting proactive token refresh', { timeUntilExpiry });
         const resp = await axios.post(`${API_BASE}/auth/refresh_token`, {
             refreshToken: tokens.refreshToken,
         });
@@ -92,12 +88,12 @@ const refreshTokenProactively = async () => {
 
         tokenStore.set({ accessToken, refreshToken, accessExp, refreshExp });
         resolveQueue(accessToken);
-        console.log('Proactive token refresh successful');
+        console.log('Proactive token refresh successful', { accessExp, refreshExp });
         return true;
     } catch (err) {
         console.error('Proactive refresh failed:', err);
         rejectQueue(err);
-        handleExpiredRefreshToken(); // Assume refresh token is invalid/expired
+        handleExpiredRefreshToken();
         return false;
     } finally {
         isRefreshing = false;
@@ -110,20 +106,17 @@ export const http: AxiosInstance = axios.create({
     timeout: 20000,
 });
 
-// Request interceptor to attach tokens and check for proactive refresh
 http.interceptors.request.use(async (config: CustomAxiosRequestConfig) => {
     const tokens = tokenStore.get();
     if (tokens?.accessToken) {
         config.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
     }
 
-    // Check if refresh token is expired
     if (tokens?.refreshExp && tokens.refreshExp < Date.now()) {
         handleExpiredRefreshToken();
-        return config; // Will be rejected by response interceptor if needed
+        return config;
     }
 
-    // Proactively refresh token if close to expiry (skip for refresh endpoint)
     if (!isRefreshing && config.url !== '/auth/refresh_token') {
         await refreshTokenProactively();
         const updatedTokens = tokenStore.get();
@@ -135,10 +128,8 @@ http.interceptors.request.use(async (config: CustomAxiosRequestConfig) => {
     return config;
 });
 
-// Response interceptor for handling 401 and token refresh
 http.interceptors.response.use(
     async (res: AxiosResponse) => {
-        // Check for refreshed tokens in successful responses
         await handleTokenRefreshHeaders(res);
         return res;
     },
@@ -151,11 +142,9 @@ http.interceptors.response.use(
         const original: CustomAxiosRequestConfig = error.config;
         const status = error.response?.status;
 
-        // Handle 401 errors
         if (status === 401 && !original._retry) {
             original._retry = true;
 
-            // Check if error response includes refreshed tokens
             if (error.response && handleTokenRefreshHeaders(error.response)) {
                 const tokens = tokenStore.get();
                 if (tokens?.accessToken) {
@@ -164,7 +153,6 @@ http.interceptors.response.use(
                 }
             }
 
-            // Fallback to explicit refresh token request
             const currentTokens = tokenStore.get();
             if (!currentTokens?.refreshToken) {
                 console.warn('No refresh token available, clearing session');
@@ -172,14 +160,12 @@ http.interceptors.response.use(
                 return Promise.reject(new Error('No refresh token available'));
             }
 
-            // Check if refresh token is expired
             if (currentTokens.refreshExp && currentTokens.refreshExp < Date.now()) {
                 handleExpiredRefreshToken();
                 return Promise.reject(new Error('Refresh token expired'));
             }
 
             if (isRefreshing) {
-                // Queue request while refresh in progress
                 return new Promise((resolve, reject) => {
                     const timeoutId = setTimeout(() => {
                         reject(new Error('Token refresh timed out'));
@@ -209,13 +195,13 @@ http.interceptors.response.use(
 
                 tokenStore.set({ accessToken, refreshToken, accessExp, refreshExp });
                 resolveQueue(accessToken);
-                console.log('Token refresh successful');
+                console.log('Token refresh successful', { accessExp, refreshExp });
                 original.headers.set('Authorization', `Bearer ${accessToken}`);
                 return http(original);
             } catch (refreshErr) {
                 console.error('Refresh token failed:', refreshErr);
                 rejectQueue(refreshErr);
-                handleExpiredRefreshToken(); // Assume refresh token is invalid/expired
+                handleExpiredRefreshToken();
                 return Promise.reject(refreshErr);
             } finally {
                 isRefreshing = false;
@@ -227,7 +213,6 @@ http.interceptors.response.use(
     }
 );
 
-// Periodic check for proactive refresh
 if (typeof window !== 'undefined') {
-    setInterval(refreshTokenProactively, 60 * 1000); // Check every minute
+    setInterval(refreshTokenProactively, 30 * 1000); // Check every 30 seconds
 }
