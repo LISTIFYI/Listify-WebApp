@@ -360,7 +360,7 @@ const ChatsDetails = () => {
                     <div className="flex items-center">
                         {otherParticipant?.profile_photo || ChatDetailsInfo?.profilePic ? (
                             <Image
-                                src={otherParticipant?.profile_photo ?? ChatDetailsInfo?.profilePic!}
+                                src={otherParticipant?.profile_photo ?? ChatDetailsInfo?.profilePic}
                                 alt={otherParticipant?.name || ChatDetailsInfo?.username || 'User'}
                                 width={40}
                                 height={40}

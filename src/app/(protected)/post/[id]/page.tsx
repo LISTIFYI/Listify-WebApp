@@ -145,7 +145,7 @@ const VideoScrollingUI = () => {
         try {
 
             setLoading(true);
-            let res = await http.get(`/posts/user/${id}?offset=${offset}&limit=${25}`);
+            const res = await http.get(`/posts/user/${id}?offset=${offset}&limit=${25}`);
             if (res.data) {
                 let newPosts = res.data.posts ?? res?.data;
 
