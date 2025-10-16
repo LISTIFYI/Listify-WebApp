@@ -2,80 +2,9 @@ import React from 'react';
 import { format } from 'date-fns';
 import { ChevronDown, MapPin, DollarSign, Image as ImageIcon, Video, FileText } from 'lucide-react';
 
-interface ListingPreviewProps {
-    formData: {
-        entityType: string;
-        listingType: string;
-        title: string;
-        description: string;
-        details: {
-            approvals: string[];
-            possessionDate: string;
-            propertyCategory: string;
-            totalUnits: number;
-            reraNumber: string;
-            facing: string;
-            bhkType?: string;
-            priceRange: string;
-            towers: number;
-            purpose: string;
-            certification: string;
-            area: number;
-            totalFloors: number;
-            ageOfProperty: string;
-            furnished: string;
-            floor: number;
-            sampleFlatAvailable: boolean;
-            additionalRooms: string[];
-            loanApprovedBanks: string[];
-            bedrooms?: number;
-            bathrooms?: number;
-            balconies?: number;
-            floorPlanningPricing: string[];
-            propertyType: string;
-            reraRegistered: boolean;
-            coveredParking: boolean;
-            ownership: string;
-            greenQuality: string;
-        };
-        location: {
-            address: string;
-            city: string;
-            state: string;
-            pincode: string;
-            coordinates: [number, number];
-            landmarks: string;
-        };
-        pricing: {
-            type?: string;
-            pricePerSqft: number;
-            amount: number;
-            negotiable: boolean;
-            maintenanceCharges: number;
-        };
-        amenities: string[];
-        tags: string[];
-        availableOffers: string[];
-        status: string;
-        featured: boolean;
-        contact: {
-            name: string;
-            phone: string;
-            email: string;
-            whatsapp: string;
-            isAgent: boolean;
-            agentId: string;
-        };
-        additionalContacts: any[];
-        media: {
-            images: string[];
-            videos: string[];
-            floorPlan: string[];
-        };
-    };
-}
 
-const ListingPreview: React.FC<ListingPreviewProps> = ({ formData }) => {
+
+const ListingPreview = () => {
     const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
     const [isAmenitiesOpen, setIsAmenitiesOpen] = React.useState(false);
 

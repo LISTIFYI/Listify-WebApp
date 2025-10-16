@@ -796,7 +796,7 @@ const Plot = ({
 
                 const type = user?.builderProfile ? "builder" : "agent";
 
-                const res = await getAgentById(id, type, token?.accessToken ?? "");
+                const res = await getAgentById(id, type);
                 setRoleAB(res);
             } catch (error) {
                 console.error("Error fetching agent/builder:", error);

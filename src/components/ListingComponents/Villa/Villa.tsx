@@ -783,7 +783,7 @@ const Villa = ({ transactionType, entityType,
                 }
                 const type = user?.builderProfile ? "builder" : "agent";
 
-                const res = await getAgentById(id, type, token?.accessToken ?? "");
+                const res = await getAgentById(id, type);
 
                 setRoleAB(res);
             } catch (error) {

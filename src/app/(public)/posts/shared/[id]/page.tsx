@@ -99,7 +99,7 @@ const SharedPost = () => {
 
 export default SharedPost
 
-export const SplashScreen = () => {
+const SplashScreen = () => {
     const logoControls = useAnimation();
     const textControls = useAnimation();
 
