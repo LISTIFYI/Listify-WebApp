@@ -68,7 +68,7 @@ const SettingPage: React.FC = () => {
 
   return (
     <div className="h-full py-4 flex flex-col overflow-y-auto">
-      <div className="px-4 py-4 border-b">
+      <div className="px-4 pb-6 border-b">
         <h1 className="text-[16px] md:text-[15px] lg:text-[15px] font-bold text-[#86878B]">ACCOUNT</h1>
         <div className="flex flex-col px-2">
           {profileList.map((item) => {
@@ -76,7 +76,7 @@ const SettingPage: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className="flex flex-row justify-between items-center py-1.5 md:py-1 lg:py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+                className="flex flex-row justify-between items-center py-2 md:py-3 lg:py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
                 onClick={() => {
                   if (item.link === "/switch") {
                     if (!role) {
@@ -109,7 +109,7 @@ const SettingPage: React.FC = () => {
           })}
         </div>
       </div>
-      <div className="px-4 py-4 border-b">
+      <div className="px-4 py-6 border-b">
         <h1 className="text-[16px] md:text-[15px] lg:text-[15px] font-bold text-[#86878B]">FEATURES</h1>
         <div className="flex flex-col px-2">
           {generalList.map((item) => {
@@ -117,7 +117,7 @@ const SettingPage: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className="flex flex-row justify-between items-center py-1.5 md:py-1 lg:py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+                className="flex flex-row justify-between items-center py-2 md:py-3 lg:py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
               >
                 <div className="flex flex-row items-center gap-2">
                   <IconComponent className="size-5 md:size-4 lg:size-4" color="#000" />
@@ -129,7 +129,7 @@ const SettingPage: React.FC = () => {
           })}
         </div>
       </div>
-      <div className="px-4 py-4">
+      <div className="px-4 pt-6">
         <h1 className="text-[16px] md:text-[15px] lg:text-[15px] font-bold text-[#86878B]">SUPPORT</h1>
         <div className="flex flex-col px-2">
           {supportList.map((item) => {
@@ -137,7 +137,7 @@ const SettingPage: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className="flex flex-row justify-between items-center py-1.5 md:py-1 lg:py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+                className="flex flex-row justify-between items-center py-2 md:py-3 lg:py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
               >
                 <div className="flex flex-row items-center gap-2">
                   <IconComponent className="size-5 md:size-4 lg:size-4" color={item.action === "logout" ? "#DC2626" : "#000"} />

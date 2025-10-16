@@ -249,12 +249,12 @@ const MessagePage = () => {
             <div className="border-l border-[2px] justify-center items-center hidden lg:flex flex-1">
                 {selectedId ? (
                     <ChatsDetails
-                        id={selectedId.id}
-                        username={selectedId.username}
-                        contentID={undefined}
-                        profilePic={undefined}
-                        listingId={allMessages.find((msg) => msg.id === selectedId.id)?.listingId}
-                        propertyName={undefined}
+                    // id={selectedId.id}
+                    // username={selectedId.username}
+                    // contentID={undefined}
+                    // profilePic={undefined}
+                    // listingId={allMessages.find((msg) => msg.id === selectedId.id)?.listingId}
+                    // propertyName={undefined}
                     />
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full">

@@ -670,8 +670,11 @@ const VideoScrollingUI = () => {
         }
     };
     useEffect(() => {
-        getAllWishlist()
-    }, [])
+        if (user) {
+            getAllWishlist()
+
+        }
+    }, [user])
 
     // save wishlist fun
 
@@ -811,7 +814,7 @@ const VideoScrollingUI = () => {
                         <div className='border-[4px] border-green-400 '>
 
                             {
-                                wishlist?.map((i: any) => {
+                                wishlist?.length && wishlist?.map((i: any) => {
                                     return (
                                         <div key={i?._id}>{i?.name}</div>
 
@@ -1184,7 +1187,7 @@ const VideoScrollingUI = () => {
                                                                 openLogin()
                                                             }
                                                         }}
-                                                        className="duration-200  actionColor cursor-pointer"
+                                                        className="duration-200  actionColor2 cursor-pointer"
                                                     >
                                                         <Heart
                                                             size={26}

@@ -7,6 +7,7 @@ import { format, isToday, isYesterday } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { http } from '@/lib/http';
 import { Link, Mic } from 'lucide-react';
+import { useChat } from '@/context/ChatContext';
 
 interface SenderReceiver {
     _id: string;
@@ -42,28 +43,30 @@ interface ChatDetails {
 const MESSAGES_PER_PAGE = 20;
 
 const ChatsDetails = ({
-    id,
-    username,
-    contentID,
-    profilePic,
-    listingId,
-    propertyName,
+    // id,
+    // username,
+    // contentID,
+    // profilePic,
+    // listingId,
+    // propertyName,
 }: {
-    id?: string;
-    username?: string;
-    contentID?: string;
-    profilePic?: string;
-    listingId?: string;
-    propertyName?: string;
-}) => {
+        // id?: string;
+        // username?: string;
+        // contentID?: string;
+        // profilePic?: string;
+        // listingId?: string;
+        // propertyName?: string;
+    }) => {
     const { user } = useAuth();
+    const { chatDetails: ChatDetailsInfo } = useChat();
+
     const router = useRouter();
     const bottomSheetRef = useRef<any>(null);
     const scrollableDivRef = useRef<HTMLDivElement>(null);
 
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-    const [isNewChat, setIsNewChat] = useState<boolean>(!id);
-    const [actualChatId, setActualChatId] = useState<string | null>(id || null);
+    const [isNewChat, setIsNewChat] = useState<boolean>(!ChatDetailsInfo?.id);
+    const [actualChatId, setActualChatId] = useState<string | null>(ChatDetailsInfo?.id || null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [chatDetails, setChatDetails] = useState<ChatDetails | null>(null);
     const [inputText, setInputText] = useState<string>('');
@@ -134,18 +137,16 @@ const ChatsDetails = ({
         return (
             <div className="flex flex-col w-full">
                 <div
-                    className={`p-2 rounded-lg ${
-                        isCurrentUser
-                            ? 'bg-blue-500 text-white self-end'
-                            : 'bg-gray-200 text-black self-start'
-                    }`}
+                    className={`p-2 rounded-lg ${isCurrentUser
+                        ? 'bg-blue-500 text-white self-end'
+                        : 'bg-gray-200 text-black self-start'
+                        }`}
                 >
                     <p>{item?.content}</p>
                 </div>
                 <div
-                    className={`flex items-center mt-1 ${
-                        isCurrentUser ? 'justify-end' : 'justify-start'
-                    }`}
+                    className={`flex items-center mt-1 ${isCurrentUser ? 'justify-end' : 'justify-start'
+                        }`}
                 >
                     <p className={`text-xs ${isCurrentUser ? 'text-white' : 'text-gray-500'}`}>
                         {item?.time}
@@ -179,13 +180,13 @@ const ChatsDetails = ({
             return (
                 <div className="flex-1 flex items-center justify-center p-4">
                     <p className="text-gray-500 text-center text-lg">
-                        Start a conversation with {username}
+                        Start a conversation with {ChatDetailsInfo?.username}
                     </p>
                 </div>
             );
         }
         return null;
-    }, [messages.length, isLoading, username]);
+    }, [messages.length, isLoading, ChatDetailsInfo?.username]);
 
     useEffect(() => {
         setCurrentUserId(user?.id || null);
@@ -213,10 +214,10 @@ const ChatsDetails = ({
     const createNewChatRequest = async (messageContent: string) => {
         try {
             const { data } = await http.post(API_ROUTES.createNewChat, {
-                contentId: listingId,
+                contentId: ChatDetailsInfo?.listingId,
                 contentType: 'listing',
                 initialMessage: messageContent,
-                title: propertyName,
+                title: ChatDetailsInfo?.propertyName,
             });
 
             const newChatId = data?.chatId || data?._id;
@@ -288,7 +289,7 @@ const ChatsDetails = ({
             senderId: { _id: user?.id ?? '', name: 'You' },
             receiverId: otherParticipant
                 ? { _id: otherParticipant.userId, name: otherParticipant.name }
-                : { _id: contentID || '', name: username || 'Unknown' },
+                : { _id: ChatDetailsInfo?.contentID || '', name: ChatDetailsInfo?.username || 'Unknown' },
             content: messageContent,
             created_at: new Date().toISOString(),
             messageType: 'text',
@@ -329,7 +330,7 @@ const ChatsDetails = ({
 
     // Conditional rendering logic moved to JSX
     const renderContent = () => {
-        if (!id) {
+        if (!ChatDetailsInfo?.id) {
             return <div className="w-full h-full"></div>;
         }
 
@@ -371,10 +372,10 @@ const ChatsDetails = ({
                         </svg>
                     </button>
                     <div className="flex items-center">
-                        {otherParticipant?.profile_photo || profilePic ? (
+                        {otherParticipant?.profile_photo || ChatDetailsInfo?.profilePic ? (
                             <Image
-                                src={otherParticipant?.profile_photo ?? profilePic!}
-                                alt={otherParticipant?.name || username || 'User'}
+                                src={otherParticipant?.profile_photo ?? ChatDetailsInfo?.profilePic!}
+                                alt={otherParticipant?.name || ChatDetailsInfo?.username || 'User'}
                                 width={40}
                                 height={40}
                                 className="rounded-full mr-2"
@@ -382,13 +383,13 @@ const ChatsDetails = ({
                         ) : (
                             <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center mr-2">
                                 <p className="text-white text-lg font-bold">
-                                    {(otherParticipant?.name || username)?.charAt(0).toUpperCase()}
+                                    {(otherParticipant?.name || ChatDetailsInfo?.username)?.charAt(0).toUpperCase()}
                                 </p>
                             </div>
                         )}
                         <div>
                             <p className="text-sm font-semibold">
-                                {otherParticipant?.name || username}
+                                {otherParticipant?.name || ChatDetailsInfo?.username}
                             </p>
                         </div>
                     </div>
