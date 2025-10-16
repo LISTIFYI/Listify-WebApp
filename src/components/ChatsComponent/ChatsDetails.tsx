@@ -42,21 +42,7 @@ interface ChatDetails {
 
 const MESSAGES_PER_PAGE = 20;
 
-const ChatsDetails = ({
-    // id,
-    // username,
-    // contentID,
-    // profilePic,
-    // listingId,
-    // propertyName,
-}: {
-        // id?: string;
-        // username?: string;
-        // contentID?: string;
-        // profilePic?: string;
-        // listingId?: string;
-        // propertyName?: string;
-    }) => {
+const ChatsDetails = () => {
     const { user } = useAuth();
     const { chatDetails: ChatDetailsInfo } = useChat();
 
