@@ -3,6 +3,8 @@ import "./globals.css";
 import { PostProvider } from "@/lib/postContext";
 import AppShell from "@/components/Layout/AppShell";
 import { AuthProvider } from "@/context/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
+import { ChatProvider } from "@/context/ChatContext";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,8 +22,11 @@ export default function RootLayout({
     <html lang="en">
       <body className="flex flex-col  bg-gray-50 h-[100dvh]">
         <AuthProvider>
+          <Toaster richColors position="top-center" />
           <PostProvider>
-            <AppShell>{children}</AppShell>
+            <ChatProvider>
+              <AppShell>{children}</AppShell>
+            </ChatProvider>
           </PostProvider>
         </AuthProvider>
       </body>

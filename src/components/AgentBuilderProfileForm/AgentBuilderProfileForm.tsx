@@ -89,6 +89,16 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
         }
     };
 
+    const onRemoveImage = () => {
+        if (role === "builder") {
+            handleInputChange("photo", null)
+
+        } else {
+            handleInputChange("profilePhoto", null)
+
+        }
+    }
+
     const handleFileChangePDF = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (file) {
@@ -184,17 +194,21 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                             :
                             <>
                                 {(formData?.photo || formData?.profilePhoto) && (
-                                    <div className="mt-3">
+                                    <div className="mt-3 relative w-fit">
                                         <img
                                             src={`${formData?.photo || formData?.profilePhoto}`}
                                             alt="Preview"
-                                            className="h-24 w-24 object-cover rounded-md border"
+                                            className="h-24 w-24  object-cover rounded-md border"
                                         />
+                                        <p
+                                            onClick={onRemoveImage}
+                                            className='absolute -top-1 cursor-pointer -right-1 bg-white rounded-full border w-[20px] flex justify-center items-center h-[20px] '><X size={16} color='red' /></p>
                                     </div>
                                 )}
 
                             </>
-                    }                </div>
+                    }
+                </div>
 
                 {
                     role === "builder" &&
@@ -311,7 +325,7 @@ const AgentBuilderProfileForm = ({ formData, handleInputChange, role, errors, se
                     </>
                 }
 
-                <div className='flex flex-row gap-4'>
+                <div className='flex flex-col md:flex-row lg:flex-row gap-4'>
                     <div className='w-full'>
                         <label className="block text-sm font-medium text-gray-700">{role === "builder" ? "Address" : "Office Address"}</label>
                         <TextAreaBox

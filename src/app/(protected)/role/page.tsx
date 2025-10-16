@@ -184,7 +184,7 @@ const Role = () => {
                             >
                                 <div className="flex flex-row  h-full ">
                                     <div className="flex-1 flex flex-col">
-                                        <div className="flex flex-1 overflow-auto  h-full  px-8 py-10">
+                                        <div className="flex flex-1 overflow-auto  h-full  px-4 py-5  md:px-6 md:py-8 lg:px-8 lg:py-10">
                                             <AgentBuilderProfileForm
                                                 errors={errors}
                                                 formData={formData}
@@ -197,7 +197,7 @@ const Role = () => {
                                         </div>
                                         <button
                                             onClick={handleSubmit}
-                                            className="cursor-pointer mb-10 mx-8 bg-black text-white text-[15px] rounded-md h-10 mt-5 font-medium disabled:bg-gray-200 disabled:text-gray-400"
+                                            className="cursor-pointer mb-5 md:mb-10 lg:mb-10 mx-8 bg-black text-white text-[15px] rounded-md h-10 mt-5 font-medium disabled:bg-gray-200 disabled:text-gray-400"
                                         >
                                             {loadingSubmit ? "Submitting..." : "Continue"}
                                         </button>

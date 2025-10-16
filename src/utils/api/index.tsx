@@ -1,3 +1,4 @@
+import { http } from "@/lib/http";
 import axios from "axios";
 
 /**
@@ -10,8 +11,8 @@ export const UploadPhoto = async (
     type?: string
 ) => {
     try {
-        const res = await axios.post(
-            `https://listifyi-api-1012443530727.asia-south1.run.app/storage/signed-url`,
+        const res = await http.post(
+            `/storage/signed-url`,
             payload,
             {
                 headers: {
@@ -76,7 +77,6 @@ export const UploadPhotoSignedUrl = async (
 
     console.log("contentType", contentType);
 
-
     try {
         const uploadResponse = await fetch(signedUrl, {
             method: "PUT",
@@ -94,30 +94,14 @@ export const UploadPhotoSignedUrl = async (
 };
 
 
-export const getAgentById = async (id: string, type: string, token: string) => {
-    console.log("dataaaaaaaaa", id, type, token);
+export const getAgentById = async (id: string, type: string) => {
     try {
         let res
         if (type === "builder") {
-            res = await axios.get(
-                `https://listifyi-api-1012443530727.asia-south1.run.app/builders/${id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
+            res = await http.get(`/builders/${id}`);
         } else {
-            res = await axios.get(
-                `https://listifyi-api-1012443530727.asia-south1.run.app/agents/${id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
+            res = await http.get(
+                `/agents/${id}`);
         }
         return res.data
     } catch (error) {

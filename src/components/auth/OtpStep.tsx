@@ -79,7 +79,7 @@ const OtpStep: React.FC<{
                 <input
                     type="text"
                     className="w-full rounded-md border px-3 h-10 outline-none focus:ring-1 focus:ring-black transition"
-                    placeholder="Enter 6-digit code"
+                    placeholder="Enter 4-digit code"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                 />

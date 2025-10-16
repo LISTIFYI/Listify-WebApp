@@ -16,6 +16,11 @@ import one from '@/assets/apartment-svgrepo-com.svg'
 import two from '@/assets/big-house-with-car-garage-svgrepo-com.svg'
 import three from '@/assets/square-dashed-svgrepo-com.svg'
 import Image from 'next/image'
+import { ArrowLeft } from 'lucide-react'
+import { IoIosArrowBack } from 'react-icons/io'
+import { http } from '@/lib/http'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 const ListingPage = () => {
     const dropdownConfigs: DropdownConfig[] = [
@@ -34,12 +39,18 @@ const ListingPage = () => {
             placeholder: 'Select entity type',
             options: [
                 { value: "flat", label: "Flat" },
-                // { value: "villa", label: "Villa" },
-                // { value: "plot", label: "Plot" },
+                { value: "villa", label: "Villa" },
+                { value: "plot", label: "Plot" },
             ],
         },
     ]
-    const { role, user } = useAuth()
+    const { role, user, isAdmin } = useAuth()
+    const [finalSubmitData, setFinalSubmitData] = useState<{
+        formDataa?: any;
+        payload?: any;
+    }>({});
+    console.log("][][][][][][", finalSubmitData);
+
     console.log("pp", user);
 
     const [transactionType, setTransactionType] = useState('')
@@ -107,18 +118,85 @@ const ListingPage = () => {
             position: "absolute",
         }),
     };
+    const [loading, setLoading] = useState(false)
 
-    const finalSubmit = (data: any, data2: any) => {
-        console.log(data, data2);
-    }
+    const router = useRouter()
+    const finalSubmit = async (data: any) => {
+        console.log("Submitting data:", data);
+        setLoading(true);
+
+        try {
+            // 🧩 CASE 1: formData exists
+            if (data?.formDataa) {
+                // 🧩 Subcase: formData contains entityType (create listing + post)
+                if (data.formDataa.entityType) {
+                    console.log("Creating listing with data:", data.formDataa);
+
+                    const listingRes = await http.post(`/listings-v2`, data.formDataa);
+                    const listingId = listingRes?.data?.data?.id;
+                    if (!listingId) throw new Error("Failed to retrieve listing ID");
+
+                    console.log("Listing created with ID:", listingId);
+
+                    // Create post
+                    const postResponse = await http.post(`/posts`, data.payload);
+                    const postId = postResponse?.data?._id;
+                    if (!postId) throw new Error("Failed to create post");
+
+                    console.log("Post created with ID:", postId);
+
+                    // Attach post to listing
+                    await http.post(`/listings-v2/${listingId}/attach-posts`, {
+                        postIds: [postId],
+                    });
+
+                    // toast.success("Listing created successfully!");
+                    router.push("/properties/");
+                }
+                // 🧩 Subcase: formData exists but no entityType (post only)
+                else {
+                    toast.warning("No entityType found. Creating post only...");
+                    const postResponse = await http.post(`/posts`, data.payload);
+                    if (!postResponse?.data?._id)
+                        throw new Error("Failed to create post");
+
+                    toast.error("Failed to create post");
+                }
+            }
+            // 🧩 CASE 2: Missing formData
+            else {
+                throw new Error("Missing form data.");
+            }
+        } catch (error: any) {
+            console.error("Error during submission:", error);
+            toast.error(error?.response?.data?.message || error?.message || "Something went wrong!");
+        } finally {
+            // ✅ Ensure loading stops no matter what
+            setLoading(false);
+        }
+    };
 
     return (
-        <div className='h-full flex flex-col justify-center items-center'
-        >
-            <div className='flex flex-col w-[90%] h-[90%] overflow-hidden rounded-[50px]  shadow-[0_8px_30px_rgb(0,0,0,0.12)]'>
-                <div className='flex flex-row h-full '>
+        <div className='h-full flex flex-col justify-center items-center'>
+            <div className='flex flex-col w-[96%] h-[96%] md:w-[94%] md:h-[94%] col lg:w-[94%] lg:h-[94%] overflow-hidden rounded-lg p-6  shadow-[0_8px_30px_rgb(0,0,0,0.12)]'>
+                <div className='flex flex-row h-full'>
                     <div className='flex-1 flex flex-col '>
-                        <div className="px-8 py-4 border-b bg-gray-50 sticky top-0 z-10">
+                        <div className="flex items-center">
+                            <button
+                                onClick={() => {
+                                    if (isAdmin) {
+                                        router.push("/dashboard")
+                                    } else {
+                                        router.push("/")
+                                    }
+                                }}
+                                className="flex cursor-pointer text-sm items-center gap-1 text-gray-700 hover:text-black transition-colors"
+                            >
+                                <IoIosArrowBack className="w-4 h-4" />
+                                <span className="font-medium">Go Back</span>
+                            </button>
+                        </div>
+                        <div className="px-0 md:px-4 lg:px-4 py-4 border-b bg-gray-50 sticky top-0 z-10">
                             <div className="flex items-center justify-between mb-1">
                                 <h1 className="text-gray-800 text-sm font-semibold tracking-tight">
                                     Step {formCount} of {totalSteps}
@@ -137,8 +215,8 @@ const ListingPage = () => {
                             </div>
                         </div>
 
-                        <div className="flex flex-1 overflow-auto  h-full px-8 py-4">
-                            <div className='w-full h-full flex justify-center items-center'>
+                        <div className="flex flex-1 overflow-auto  h-full py-4">
+                            <div className='w-full h-full flex overflow-hidden justify-center items-center'>
                                 <AnimatePresence custom={direction} mode='wait'>
                                     {
                                         formCount === 1 &&
@@ -159,17 +237,17 @@ const ListingPage = () => {
                                                 <h2 className="text-2xl font-semibold text-gray-800">
                                                     Great! Let&apos;s s set up your listing 👋
                                                 </h2>
-                                                <p className="text-gray-500 text-sm mt-2">
+                                                <p className="text-gray-500 text-[12px] md:text-sm lg:text-sm mt-2">
                                                     Start by selecting your transaction type and the kind of property you’re listing.
                                                 </p>
                                                 <div className='w-fit mx-auto mt-4 flex flex-row gap-4 flex-wrap'>
-                                                    <div className='w-[64px] h-[64px] relative'>
+                                                    <div className='w-[44px] h-[44px] md:w-[54px] md:h-[54px]  lg:w-[64px] lg:h-[64px] relative'>
                                                         <Image src={one} alt="icon one" fill className="object-contain w-full h-full" />
                                                     </div>
-                                                    <div className='w-[64px] h-[64px] relative'>
+                                                    <div className='w-[44px] h-[44px] md:w-[54px] md:h-[54px]  lg:w-[64px] lg:h-[64px] relative'>
                                                         <Image src={two} alt="icon two" fill className="object-contain w-full h-full" />
                                                     </div>
-                                                    <div className='w-[64px] h-[64px] relative'>
+                                                    <div className='w-[44px] h-[44px] md:w-[54px] md:h-[54px]  lg:w-[64px] lg:h-[64px] relative'>
                                                         <Image src={three} alt="icon three" fill className="object-contain w-full h-full" />
                                                     </div>
                                                 </div>
@@ -207,17 +285,48 @@ const ListingPage = () => {
                                             setFormCount={setFormCount}
                                             totalSteps={totalSteps}
                                             direction={direction}
-                                            finalSubmit={finalSubmit}
+                                            setFinalSubmitData={setFinalSubmitData}
+                                            propertyData={finalSubmitData}
                                         /> :
                                         entityType === "villa" ?
-                                            <Villa entityType={entityType} transactionType={transactionType} setShowNext={setShowNext} showNext={showNext} coverVideo={coverVideo} galleryFiles={galleryFiles} role={role ?? ""} /> :
+                                            <Villa
+                                                entityType={entityType}
+                                                transactionType={transactionType}
+                                                setShowNext={setShowNext}
+                                                showNext={showNext}
+                                                coverVideo={coverVideo}
+                                                galleryFiles={galleryFiles}
+                                                role={role ?? ""}
+                                                formCount={formCount}
+                                                setFormCount={setFormCount}
+                                                totalSteps={totalSteps}
+                                                direction={direction}
+                                                setFinalSubmitData={setFinalSubmitData}
+                                                propertyData={finalSubmitData}
+                                            /> :
+
                                             entityType === "plot" ?
-                                                <Plot entityType={entityType} transactionType={transactionType} setShowNext={setShowNext} showNext={showNext} coverVideo={coverVideo} galleryFiles={galleryFiles} role={role ?? ""} /> :
+                                                <Plot entityType={entityType}
+                                                    transactionType={transactionType}
+                                                    setShowNext={setShowNext}
+                                                    showNext={showNext}
+                                                    coverVideo={coverVideo}
+                                                    galleryFiles={galleryFiles}
+                                                    role={role ?? ""}
+                                                    formCount={formCount}
+                                                    setFormCount={setFormCount}
+                                                    totalSteps={totalSteps}
+                                                    direction={direction}
+                                                    setFinalSubmitData={setFinalSubmitData}
+                                                    propertyData={finalSubmitData}
+                                                /> :
+
+
                                                 <></>
                                 }
                             </div>
                         </div>
-                        <div className={`h-10  my-4   mx-10 flex flex-row justify-between gap-4 `}>
+                        <div className={`h-10  my-2 px-0 lg:my-4 lg:mx-8 flex flex-row justify-between gap-4 `}>
                             {formCount > 1 && (
                                 <ButtonCommon
                                     bgColor="bg-white"
@@ -235,13 +344,23 @@ const ListingPage = () => {
                                 bgColor="bg-black"
                                 textC="text-white"
                                 border="border-[0px]"
-                                title={formCount < totalSteps ? "Next" : "Continue"}
+                                title={formCount < totalSteps ? "Next" : `${loading ? "Submitting..." : "Continue"}`}
                                 onClick={() => {
                                     if (formCount < totalSteps) {
-                                        setDirection(1);
-                                        setFormCount((prev: any) => prev + 1);
-                                    } else {
-                                        // finalSubmit();
+                                        if (formCount === 1) {
+                                            // Only for step 1
+                                            if (transactionType && entityType) {
+                                                setDirection(1);
+                                                setFormCount((prev: number) => prev + 1);
+                                            }
+                                        } else {
+                                            // For all other steps
+                                            setDirection(1);
+                                            setFormCount((prev: number) => prev + 1);
+                                        }
+                                    }
+                                    else {
+                                        finalSubmit(finalSubmitData);
                                     }
                                 }}
                             />
@@ -251,12 +370,11 @@ const ListingPage = () => {
                     {
                         formCount !== 6 &&
                         <motion.div
-                            className={`hidden lg:flex relative flex-1 border-l bg-gray-50 px-8 py-10 flex-col justify-center items-center`}
+                            className={`hidden transition-all duration-300 lg:flex relative flex-1 border-l bg-gray-50 px-8 py-10 flex-col justify-center items-center`}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.6, ease: "easeOut" }}
                         >
-                            {/* Inner text that changes based on formCount */}
                             <AnimatePresence mode="wait">
                                 {formCount !== 1 && (
                                     <motion.div
@@ -301,7 +419,6 @@ const ListingPage = () => {
                                 )}
                             </AnimatePresence>
 
-                            {/* Static section that fades in once */}
                             <div className="text-center max-w-md mt-10">
                                 <Lottie
                                     animationData={listingAnimation}
@@ -334,45 +451,6 @@ const ListingPage = () => {
 export default ListingPage
 
 
-const ListingProgress = ({ animatedProgress }: { animatedProgress: number }) => {
-    return (
-        <div className='shadow-md  mx-auto w-full py-4  px-4 bg-white/70 backdrop-blur-sm border-t border-gray-100'>
-            <div className="w-[90%] mx-auto  ">
-                {/* Header Row */}
-                <div className="flex items-center justify-between mb-2">
-                    <h1 className="text-gray-800 text-sm font-semibold tracking-tight">
-                        Your listing setup is {Math.round(animatedProgress)}% complete
-                    </h1>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="h-3 bg-gray-200 rounded-full overflow-hidden relative shadow-inner">
-                    <motion.div
-                        className="h-full bg-gradient-to-r from-black via-gray-700 to-gray-500 shadow-[0_0_10px_#444]"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${animatedProgress}%` }}
-                        transition={{ duration: 0.8, ease: "easeInOut" }}
-                    />
-                </div>
-
-                {/* Optional animated text feedback */}
-                <motion.p
-                    className="text-xs text-gray-500 mt-2"
-                    key={animatedProgress}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                >
-                    {animatedProgress < 50
-                        ? "Fill in more details to continue your setup."
-                        : animatedProgress < 100
-                            ? "You’re almost done! Just a few more fields."
-                            : "All steps completed. Great job!"}
-                </motion.p>
-            </div>
-        </div>
-    );
-}
 
 
 

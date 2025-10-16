@@ -103,7 +103,7 @@ const Properties: React.FC = () => {
             <h1 className="text-2xl font-semibold mb-4">Your Properties</h1>
 
             <div className='w-full'>
-                <div className="flex  flex-nowrap gap-x-2 items-center">
+                <div className="flex  flex-wrap gap-x-2  gap-y-2 items-center">
                     {tabs.map((tab) => (
                         <button
                             key={tab}
@@ -117,10 +117,10 @@ const Properties: React.FC = () => {
                 </div>
             </div>
 
+
             <div className='h-full mt-4 overflow-y-auto '>
                 <div className='w-[100%] md:grid xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-2'>
                     {loading ? (
-                        // 👇 Show 6 shimmer cards while loading
                         Array.from({ length: 6 }).map((_, idx) => (
                             <PropertyCardLoader key={idx} />
                         ))

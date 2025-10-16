@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { CiHeart, CiBookmark, CiShare2 } from "react-icons/ci";
-import { Bath, BedDouble, BrickWall, Eye, Heart, MessageCircle, Play, Sofa, TriangleRight } from "lucide-react";
+import { Bath, BedDouble, BrickWall, Eye, Heart, ImageOff, MessageCircle, Play, Sofa, TriangleRight } from "lucide-react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { usePostContext } from "@/lib/postContext";
@@ -215,23 +215,33 @@ const Home = () => {
         </DialogContent>
 
       </Dialog>
-      <div className="lg:px-6 py-3 border-b px-4 flex w-full overflow-x-auto gap-2 no-scrollbar">
-        {tags.map((tag, index) => (
-          <div
-            onClick={() => {
-              setSelected(tag)
-              addFilters({
-                type: tag === "All" ? "" : tag?.toLowerCase()
+      <div className="flex flex-row justify-between items-center lg:px-6  py-3  border-b px-4">
+        <div className=" flex w-full overflow-x-auto gap-2 no-scrollbar">
+          {tags.map((tag, index) => (
+            <div
+              onClick={() => {
+                setSelected(tag)
+                addFilters({
+                  type: tag === "All" ? "" : tag?.toLowerCase()
 
-              })
-            }}
-            key={index}
-            className={`px-[16px] cursor-pointer py-[4px] text-[12px] border-[1px] border-[#EAEAEA] transition-all rounded-full ${selected === tag ? "bg-gray-200" : "bg-[#fff]"
-              }`}
-          >
-            {tag}
-          </div>
-        ))}
+                })
+              }}
+              key={index}
+              className={`px-[16px] cursor-pointer py-[4px] text-[12px] border-[1px] border-[#EAEAEA] transition-all rounded-full ${selected === tag ? "bg-gray-200" : "bg-[#fff]"
+                }`}
+            >
+              {tag}
+            </div>
+          ))}
+        </div>
+        <div
+          onClick={() => {
+            setOpenFilter(true)
+          }}
+          className="flex md:hidden lg:hidden border rounded-full w-[40px]  justify-center items-center h-[40px]">
+          <IoFilter className="text-[#989CA0]" size={22} />
+
+        </div>
       </div>
       <div className="w-[100%] flex  flex-col overflow-y-scroll pb-4  h-full ">
         <InfiniteScroll
@@ -239,14 +249,15 @@ const Home = () => {
           next={handleLoadMoreData}
           hasMore={hasMore}
           loader={
-            <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-5 gap-x-4 lg:p-6 p-4">
-              {
-                Array.from({ length: 10 }).map((_, idx) => (
+            loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-5 gap-x-4 lg:p-6 p-4">
+                {Array.from({ length: 10 }).map((_, idx) => (
                   <PropertiesHomeCard key={idx} />
                 ))}
-            </div>
-
+              </div>
+            ) : null
           }
+
           endMessage={<p className="text-center py-4">No more properties to load.</p>}
           scrollableTarget="scrollableDiv"
           className=""
@@ -259,14 +270,24 @@ const Home = () => {
                 key={property.post.id}
                 className="rounded-[20px] cursor-pointer"
               >
-                <div className="h-[220px] rounded-[14px] relative overflow-hidden">
-                  <Image
-                    className="object-cover w-full h-full"
-                    alt={property?.post.title || "Property image"}
-                    src={property?.post.thumbnail_url || "https://via.placeholder.com/300x280?text=Image+Not+Available"}
-                    width={300}
-                    height={460}
-                  />
+                <div className="aspect-[4/5]  md:aspect-[2/3] lg:aspect-[2/3] rounded-[14px] relative overflow-hidden">
+                  {property?.post.thumbnail_url ? (
+                    <Image
+                      className="object-cover w-full h-full rounded-lg transition-transform duration-300 hover:scale-105"
+                      alt={property?.post.title || "Property image"}
+                      src={property.post.thumbnail_url}
+                      width={300}
+                      height={460}
+                    />
+                  ) : (
+                    <div className="w-full h-full px-2 text-center flex flex-col items-center justify-center rounded-lg bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 border border-gray-300 shadow-inner hover:shadow-md transition duration-300">
+                      <div className="p-3 bg-white/70 rounded-full shadow-sm mb-3">
+                        <ImageOff className="w-8 h-8 text-gray-500" />
+                      </div>
+                      <p className="text-gray-600 text-sm font-medium">No Thumbnail Available</p>
+                    </div>
+                  )}
+
 
                   {
                     property?.post.view_count > 0 &&

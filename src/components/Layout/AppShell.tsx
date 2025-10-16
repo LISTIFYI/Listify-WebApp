@@ -18,7 +18,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const hideLayout = pathname.startsWith('/property-listing');
 
 
-    console.log("hideusi", hideLayout);
 
     return (
         <div className="flex flex-col h-[100dvh]  bg-gray-50">

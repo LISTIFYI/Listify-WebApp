@@ -20,6 +20,8 @@ import { getAgentById, UploadPhoto } from '@/utils/api';
 import { IoDocument } from 'react-icons/io5';
 import { useAuth } from '@/context/AuthContext';
 import ButtonCommon from '@/components/CustomFields/Button';
+import { AnimatePresence, motion } from 'framer-motion';
+import MediaUpload from '@/components/MediaUpload/MediaUpload';
 
 // Interface for form data
 interface FormData {
@@ -61,6 +63,12 @@ interface FlatProps {
     coverVideo: any
     galleryFiles: any
     role: string
+    formCount: number,
+    setFormCount: any
+    totalSteps: any
+    direction: any
+    setFinalSubmitData: any
+    propertyData: any
 }
 
 const Plot = ({
@@ -68,11 +76,25 @@ const Plot = ({
     entityType,
     showNext,
     setShowNext,
-    coverVideo,
-    galleryFiles,
-    role
+    role,
+    formCount,
+    setFormCount,
+    totalSteps,
+    direction,
+    setFinalSubmitData,
+    propertyData
 
 }: FlatProps) => {
+
+
+    const [coverVideo, setCoverVideo] = useState<any>(null)
+
+    const [galleryFiles, setGalleryFiles] = useState<string[]>([])
+    const removeGalleryItem = (index: number) => {
+        setGalleryFiles((prev: any) => prev.filter((_: any, i: any) => i !== index))
+    }
+
+
     const [useLocationSearch, setUseLocationSearch] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [suggestions, setSuggestions] = useState<Place[]>([]);
@@ -420,7 +442,7 @@ const Plot = ({
         {
             key: 'extraRoomTypes',
             label: 'Extra Room Types',
-            placeholder: 'Choose extra room types',
+            placeholder: 'Extra room types',
             options: [
                 { value: 'Study', label: 'Study' },
                 { value: 'Servant Room', label: 'Servant Room' },
@@ -433,7 +455,7 @@ const Plot = ({
         {
             key: 'availOffers',
             label: 'Available Offers',
-            placeholder: 'Choose available offers',
+            placeholder: 'Available offers',
             options: [
                 { value: 'Under 5% Discount', label: 'Under 5% Discount' },
                 { value: 'Flat 10% Cashback', label: 'Flat 10% Cashback' },
@@ -444,7 +466,7 @@ const Plot = ({
         {
             key: 'banks',
             label: 'Banks',
-            placeholder: 'Choose banks',
+            placeholder: 'Banks',
             options: [
                 { value: 'SBI', label: 'SBI' },
                 { value: 'HDFC', label: 'HDFC' },
@@ -860,138 +882,275 @@ const Plot = ({
                 floorPlan: brochure
             }
         };
-
+        const payload = {
+            title: formData?.propertyName,
+            description: formData.description,
+            video_url: coverVideo?.url,
+            thumbnail_url: "",
+            duration_seconds: coverVideo?.duration,
+            // tags: "#jignes",
+            // mentions: ["user123", "user456"],
+            visibility: "PUBLIC",
+            location: formData.address,
+            comments_disabled: false,
+            //   ...(draft === 'DRAFT' ? { status: 'DRAFT' } : { status: 'PUBLISHED' }),
+            status: 'PUBLISHED',
+        };
         console.log("formdata", formData);
+        setFinalSubmitData({
+            formDataa: formDataa,
+            payload: payload,
+        });
+    };
 
+    useEffect(() => {
+        handleSubmits()
+    }, [formCount])
+    const variants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 100 : -100,
+            opacity: 0,
+            position: "absolute",
+        }),
+        center: {
+            x: 0,
+            opacity: 1,
+            position: "relative",
+        },
+        exit: (direction: number) => ({
+            x: direction > 0 ? -100 : 100,
+            opacity: 0,
+            position: "absolute",
+        }),
+    };
+
+    const fadeVariants = {
+        enter: {
+            opacity: 0,
+            position: "absolute",
+        },
+        center: {
+            opacity: 1,
+            position: "relative",
+        },
+        exit: {
+            opacity: 0,
+            position: "absolute",
+        },
     };
 
     return (
-        <>
-            <div className='mt-3 space-y-3' >
-                {
-                    showNext ?
-                        <PlotForm2 dropdownConfigs={dropdownConfigs}
-                            amenitiesdata={amenitiesdata}
-                            approvalAuthority={approvalAuthority}
-                            availableOffers={availableOffers}
-                            availablityStatus={availablityStatus}
-                            banks={banks}
-                            boundaryWall={boundaryWall}
-                            cornerPlot={cornerPlot}
-                            electricityStatus={electricityStatus}
-                            gatedCommunity={gatedCommunity}
-                            highlights={highlights}
-                            landUseZone={landUseZone}
-                            noOfOpenSides={noOfOpenSides}
-                            ownership={ownership}
-                            plotType={plotType}
-                            purpose={purpose}
-                            roadWidth={roadWidth}
-                            setAmenitiesdata={setAmenitiesdata}
-                            setApprovalAuthority={setApprovalAuthority}
-                            setAvailableOffers={setAvailableOffers}
-                            setAvailablityStatus={setAvailablityStatus}
-                            setBanks={setBanks}
-                            setBoundaryWall={setBoundaryWall}
-                            setCornerPlot={setCornerPlot}
-                            setElectricityStatus={setElectricityStatus}
-                            setGatedCommunity={setGatedCommunity}
-                            setHighlights={setHighlights}
-                            setLandUseZone={setLandUseZone}
-                            setNoOfOpenSides={setNoOfOpenSides}
-                            setOwnership={setOwnership}
-                            setPlotType={setPlotType}
-                            setPurpose={setPurpose}
-                            setRoadWidth={setRoadWidth}
-                            setWaterAvailablity={setWaterAvailablity}
-                            setWidthFacingRoad={setWidthFacingRoad}
-                            waterAvailablity={waterAvailablity}
-                            widthFacingRoad={widthFacingRoad}
-                            role={role}
-                            transactionType={transactionType}
-                            amenities={amenities}
-                            option={option}
-                        // amenitiesdata={amenitiesdata}
-                        // highlights={highlights}
+        <div className="flex flex-1 overflow-hidden h-full  ">
+            <div className="w-full h-full relative  flex justify-center items-center ">
+                <AnimatePresence custom={direction} mode='wait'>
+                    <motion.div
+                        key={formCount}
+                        custom={direction}
+                        variants={formCount === 6 ? fadeVariants : variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={
+                            (formCount === 6 || formCount === 6)
+                                ? { opacity: { duration: 0.4, ease: "easeInOut" } } // smooth fade
+                                : {
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.3 },
+                                }
+                        }
+                        className="h-full w-full ps-0 pr-4 md:px-4 lg:px-4 py-4 overflow-y-auto"
 
-                        />
+                    >
+                        {
+                            formCount === 6 &&
+                            <div className='h-full flex flex-col gap-1'>
+                                {/* <FullPropertyView propertyData={propertyData} /> */}
+                                <h1 className='text-lg font-semibold'>Your Listing is Ready</h1>
+                                <h1 className='text-[16px] font-medium'>Continue to submit you listing</h1>
+                            </div>
+                        }
+                        {
+                            Number(formCount) === Number(2) &&
+                            <div className=''>
+                                <FormDetailsTwo
+                                    addLandmark={addLandmark}
+                                    errors={errors}
+                                    formData={formData}
+                                    handleChange={handleChange}
+                                    handleSearchInput={handleSearchInput}
+                                    handleSubmit={handleSubmit}
+                                    isLoading={isLoading}
+                                    landmarkInput={landmarkInput}
+                                    removeLandmark={removeLandmark}
+                                    setLandmarkInput={setLandmarkInput}
+                                    setUseLocationSearch={setUseLocationSearch}
+                                    suggestions={suggestions}
+                                    useLocationSearch={useLocationSearch}
+                                />
+                            </div>
+                        }
+                        {
+                            formCount === 4 &&
+                            <PlotForm2 dropdownConfigs={dropdownConfigs}
+                                amenitiesdata={amenitiesdata}
+                                approvalAuthority={approvalAuthority}
+                                availableOffers={availableOffers}
+                                availablityStatus={availablityStatus}
+                                banks={banks}
+                                boundaryWall={boundaryWall}
+                                cornerPlot={cornerPlot}
+                                electricityStatus={electricityStatus}
+                                gatedCommunity={gatedCommunity}
+                                highlights={highlights}
+                                landUseZone={landUseZone}
+                                noOfOpenSides={noOfOpenSides}
+                                ownership={ownership}
+                                plotType={plotType}
+                                purpose={purpose}
+                                roadWidth={roadWidth}
+                                setAmenitiesdata={setAmenitiesdata}
+                                setApprovalAuthority={setApprovalAuthority}
+                                setAvailableOffers={setAvailableOffers}
+                                setAvailablityStatus={setAvailablityStatus}
+                                setBanks={setBanks}
+                                setBoundaryWall={setBoundaryWall}
+                                setCornerPlot={setCornerPlot}
+                                setElectricityStatus={setElectricityStatus}
+                                setGatedCommunity={setGatedCommunity}
+                                setHighlights={setHighlights}
+                                setLandUseZone={setLandUseZone}
+                                setNoOfOpenSides={setNoOfOpenSides}
+                                setOwnership={setOwnership}
+                                setPlotType={setPlotType}
+                                setPurpose={setPurpose}
+                                setRoadWidth={setRoadWidth}
+                                setWaterAvailablity={setWaterAvailablity}
+                                setWidthFacingRoad={setWidthFacingRoad}
+                                waterAvailablity={waterAvailablity}
+                                widthFacingRoad={widthFacingRoad}
+                                role={role}
+                                transactionType={transactionType}
+                                amenities={amenities}
+                                option={option}
 
-                        :
-                        <PlotForm1
-                            addLandmark={addLandmark}
-                            amount={amount}
-                            bookingAmount={bookingAmount}
-                            brochure={brochure}
-                            dropdownConfigs={dropdownConfigs}
-                            errors={errors}
-                            facingDirection={facingDirection}
-                            fileInputRef={fileInputRef}
-                            formData={formData}
-                            handleChange={handleChange}
-                            handleClick={handleClick}
-                            handleFileChange={handleFileChange}
-                            handleSearchInput={handleSearchInput}
-                            handleSubmit={handleSubmit}
-                            isLoading={isLoading}
-                            landmarkInput={landmarkInput}
-                            plotArea={plotArea}
-                            plotLength={plotLength}
-                            plotWidth={plotWidth}
-                            pricePerSqFT={pricePerSqFT}
-                            priceRange={priceRange}
-                            removeLandmark={removeLandmark}
-                            removePdf={removePdf}
-                            reraNumber={reraNumber}
-                            setAmount={setAmount}
-                            setBookingAmount={setBookingAmount}
-                            setFacingDirection={setFacingDirection}
-                            setLandmarkInput={setLandmarkInput}
-                            setPlotArea={setPlotArea}
-                            setPlotLength={setPlotLength}
-                            setPlotWidth={setPlotWidth}
-                            setPricePerSqT={setPricePerSqT}
-                            setPriceRange={setPriceRange}
-                            setReraNumber={setReraNumber}
-                            setUnitSize={setUnitSize}
-                            setUseLocationSearch={setUseLocationSearch}
-                            suggestions={suggestions}
-                            unitSize={unitSize}
-                            useLocationSearch={useLocationSearch}
-                            role={role}
-                            transactionType={transactionType}
+                            />
 
-                        />
-                }
+                        }
+                        {
+                            formCount === 3 &&
+                            <PlotForm1
+                                addLandmark={addLandmark}
+                                amount={amount}
+                                bookingAmount={bookingAmount}
+                                brochure={brochure}
+                                dropdownConfigs={dropdownConfigs}
+                                errors={errors}
+                                facingDirection={facingDirection}
+                                fileInputRef={fileInputRef}
+                                formData={formData}
+                                handleChange={handleChange}
+                                handleClick={handleClick}
+                                handleFileChange={handleFileChange}
+                                handleSearchInput={handleSearchInput}
+                                handleSubmit={handleSubmit}
+                                isLoading={isLoading}
+                                landmarkInput={landmarkInput}
+                                plotArea={plotArea}
+                                plotLength={plotLength}
+                                plotWidth={plotWidth}
+                                pricePerSqFT={pricePerSqFT}
+                                priceRange={priceRange}
+                                removeLandmark={removeLandmark}
+                                removePdf={removePdf}
+                                reraNumber={reraNumber}
+                                setAmount={setAmount}
+                                setBookingAmount={setBookingAmount}
+                                setFacingDirection={setFacingDirection}
+                                setLandmarkInput={setLandmarkInput}
+                                setPlotArea={setPlotArea}
+                                setPlotLength={setPlotLength}
+                                setPlotWidth={setPlotWidth}
+                                setPricePerSqT={setPricePerSqT}
+                                setPriceRange={setPriceRange}
+                                setReraNumber={setReraNumber}
+                                setUnitSize={setUnitSize}
+                                setUseLocationSearch={setUseLocationSearch}
+                                suggestions={suggestions}
+                                unitSize={unitSize}
+                                useLocationSearch={useLocationSearch}
+                                role={role}
+                                transactionType={transactionType}
 
-                <div className='border flex flex-row transition-all duration-300 gap-4 w-full mt-4'>
-                    {
-                        showNext &&
-                        <ButtonCommon
-                            onClick={() => {
-                                setShowNext(false)
-                            }}
-                            title='Back' />
-                    }
-                    <ButtonCommon
-                        onClick={() => {
-                            if (showNext) {
-                                // setShowNext(true)
-                                // alert("Final call")
-                                handleSubmits()
-                            } else {
-                                setShowNext(true)
-
-                            }
-                        }}
-                        title={showNext ? "Continue" : "Next"} />
-                </div>
+                            />
+                        }
+                        {
+                            formCount === 5 &&
+                            <MediaUpload
+                                coverVideo={coverVideo}
+                                galleryFiles={galleryFiles}
+                                removeGalleryItem={removeGalleryItem}
+                                setCoverVideo={setCoverVideo}
+                                setGalleryFiles={setGalleryFiles}
+                            />}
+                    </motion.div>
+                </AnimatePresence>
             </div>
-        </>
+        </div>
     );
 };
 
 export default Plot;
 
+interface FormDetailsTwoProps {
+    formData: any,
+    errors: any,
+    suggestions: any,
+    useLocationSearch: any,
+    setUseLocationSearch: any,
+    isLoading: any,
+    landmarkInput: any,
+    setLandmarkInput: any,
+    handleChange: any,
+    handleSearchInput: any,
+    addLandmark: any,
+    removeLandmark: any
+    handleSubmit: any
+}
+const FormDetailsTwo = ({
+    formData,
+    errors,
+    suggestions,
+    useLocationSearch,
+    setUseLocationSearch,
+    isLoading,
+    landmarkInput,
+    setLandmarkInput,
+    handleChange,
+    handleSearchInput,
+    addLandmark,
+    removeLandmark,
+    handleSubmit
+}: FormDetailsTwoProps) => {
+    return (
+        <div>
+            <BasicListingAddressForm
+                formData={formData}
+                errors={errors}
+                suggestions={suggestions}
+                useLocationSearch={useLocationSearch}
+                setUseLocationSearch={setUseLocationSearch}
+                isLoading={isLoading}
+                landmarkInput={landmarkInput}
+                setLandmarkInput={setLandmarkInput}
+                handleChange={handleChange}
+                handleSearchInput={handleSearchInput}
+                addLandmark={addLandmark}
+                removeLandmark={removeLandmark}
+                handleSubmit={handleSubmit}
+            />
+        </div>
+    )
+}
 
 
 interface FormPlot1Props {
@@ -1082,23 +1241,7 @@ const PlotForm1 = ({
 }: FormPlot1Props) => {
     return (
         <>
-            <BasicListingAddressForm
-                formData={formData}
-                errors={errors}
-                suggestions={suggestions}
-                useLocationSearch={useLocationSearch}
-                setUseLocationSearch={setUseLocationSearch}
-                isLoading={isLoading}
-                landmarkInput={landmarkInput}
-                setLandmarkInput={setLandmarkInput}
-                handleChange={handleChange}
-                handleSearchInput={handleSearchInput}
-                addLandmark={addLandmark}
-                removeLandmark={removeLandmark}
-                handleSubmit={handleSubmit}
-            />
-
-            <div className='mt-3 space-y-3' >
+            <div className='space-y-3' >
                 <div className='flex flex-row gap-4'>
                     <div className='flex flex-col flex-1'>
                         <label className="block text-sm font-medium text-gray-700">
@@ -1351,7 +1494,7 @@ const PlotForm2 = ({
     option,
 }: FormPlot2Props) => {
     return (
-        <div className='mt-3 space-y-3'>
+        <div className='space-y-3'>
             <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
                     <DropdownMenuCustom
@@ -1471,7 +1614,7 @@ const PlotForm2 = ({
             </div>
             <div className='flex flex-row gap-4'>
                 {
-                    role === "Agent" &&
+                    role === "agent" &&
                     <div className='flex flex-col flex-1'>
                         <DropdownMenuCustom
                             key={dropdownConfigs[27].key}

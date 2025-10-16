@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { http } from '@/lib/http';
 import { tokenStore, Tokens } from '@/lib/token';
-import { log } from 'node:console';
+import { usePathname } from 'next/navigation';
 export interface Filters {
     [key: string]: any;
 }
@@ -55,20 +55,16 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+
     const [user, setUser] = useState<User | null>(null);
     const [tokens, setTokens] = useState<Tokens | null>(tokenStore.get());
     const [loading, setLoading] = useState<boolean>(true);
     const [showLogin, setShowLogin] = useState<boolean>(false);
     const [role, setRole] = useState<string | null>("");
 
-    console.log("roleee", role);
-
     const [isAdmin, setIsAdmin] = useState<boolean>(false); // Initialize isAdmin
     const [filters, setFilters] = useState<Filters>({});
     const [openFilter, setOpenFilter] = useState(false)
-
-    console.log("filters", filters);
-
     // Try load user if tokens exist
     useEffect(() => {
         const init = async () => {
@@ -77,7 +73,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                 setTokens(tk);
                 if (tk?.accessToken) {
                     const me = await http.get('/users/profile'); // your API
-                    console.log("meeeee", me.data);
                     setUser(me?.data);
                     setRole(me.data.roles.includes("Builder") ? "builder" : me.data.roles.includes("Agent") ? "agent" : "")
                 }

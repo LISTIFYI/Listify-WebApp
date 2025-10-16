@@ -103,10 +103,10 @@ const BasicListingAddressForm: React.FC<BasicListingAddressFormProps> = ({
                 <div>
                     <div className="flex justify-between items-center">
                         <label className="block text-sm font-medium text-gray-700">Address</label>
-                        <div className="flex items-center gap-4">
+                        {/* <div className="flex items-center gap-4">
                             <Switch checked={useLocationSearch} onCheckedChange={setUseLocationSearch} />
                             <span className="mr-2">Search Location</span>
-                        </div>
+                        </div> */}
                     </div>
                     <TextAreaBox
                         name="address"

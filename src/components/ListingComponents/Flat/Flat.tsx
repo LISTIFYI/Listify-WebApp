@@ -29,6 +29,8 @@ import { useRouter } from 'next/navigation';
 import { http } from '@/lib/http';
 import { AnimatePresence, motion } from 'framer-motion';
 import { log } from 'node:console';
+import FullPropertyView from '@/components/FullPropertyView/FullPropertyView';
+import ListingPreview from '@/components/ListingPreview/ListingPreview';
 
 
 // Interface for form data
@@ -75,7 +77,8 @@ interface FlatProps {
     setFormCount: any
     totalSteps: any
     direction: any
-    finalSubmit: any
+    setFinalSubmitData: any
+    propertyData: any
 }
 const Flat = ({
     transactionType,
@@ -87,7 +90,8 @@ const Flat = ({
     setFormCount,
     totalSteps,
     direction,
-    finalSubmit
+    setFinalSubmitData,
+    propertyData
 
 }: FlatProps) => {
     console.log("roleeeee", role);
@@ -95,8 +99,6 @@ const Flat = ({
 
 
     const [coverVideo, setCoverVideo] = useState<any>(null)
-
-    console.log("coverVideo", coverVideo);
 
     const [galleryFiles, setGalleryFiles] = useState<string[]>([])
     const removeGalleryItem = (index: number) => {
@@ -313,7 +315,7 @@ const Flat = ({
             options: [
                 {
                     value: "New/Under Construction",
-                    label: "New/Under Construction",
+                    label: "New Construction",
                 },
                 { value: "Ready to Move", label: "Ready to Move", },
             ],
@@ -443,7 +445,7 @@ const Flat = ({
         {
             key: 'Ownership?',
             label: 'Ownership',
-            placeholder: ' Sample flat',
+            placeholder: 'Sample flat',
             options: [
                 { value: 'Freehold', label: 'Freehold', },
                 { value: 'Leasehold', label: 'Leasehold' },
@@ -454,7 +456,7 @@ const Flat = ({
         {
             key: 'CoveredParking',
             label: 'Covered Parking',
-            placeholder: ' Covered parking',
+            placeholder: 'Covered parking',
             options: [
                 { value: "1", label: "1", },
                 { value: "2", label: "2", },
@@ -465,7 +467,7 @@ const Flat = ({
         {
             key: 'extraRoomTypes',
             label: 'Extra Room Types',
-            placeholder: 'Choose extra room types',
+            placeholder: 'Extra room types',
             options: [
                 { value: 'Study', label: 'Study' },
                 { value: 'Servant Room', label: 'Servant Room' },
@@ -478,7 +480,7 @@ const Flat = ({
         {
             key: 'availOffers',
             label: 'Available Offers',
-            placeholder: 'Choose available offers',
+            placeholder: 'Available offers',
             options: [
                 { value: 'Under 5% Discount', label: 'Under 5% Discount' },
                 { value: 'Flat 10% Cashback', label: 'Flat 10% Cashback' },
@@ -489,7 +491,7 @@ const Flat = ({
         {
             key: 'banks',
             label: 'Banks',
-            placeholder: 'Choose banks',
+            placeholder: ' banks',
             options: [
                 { value: 'SBI', label: 'SBI' },
                 { value: 'HDFC', label: 'HDFC' },
@@ -586,45 +588,6 @@ const Flat = ({
     const [banks, setBanks] = useState<string[]>([])
     const [amenitiesdata, setAmenitiesdata] = useState<string[]>([]);
     const [highlights, setHighlights] = useState<string[]>([]);
-
-
-    console.log("------ Form State Logs ------");
-
-    console.log("transactionType:", transactionType);
-    console.log("entityType:", entityType);
-    console.log("reraNumber:", reraNumber);
-    console.log("unitType:", unitType);
-    console.log("amount:", amount);
-    console.log("priceRange:", priceRange);
-    console.log("pricePerSqFT:", pricePerSqFT);
-    console.log("bookingAmount:", bookingAmount);
-    console.log("constructionStatus:", constructionStatus);
-    console.log("possessionDate:", possessionDate);
-    console.log("propertyAge:", propertyage);
-    console.log("approvalAuthority:", approvalAuthority);
-    console.log("facingDirection:", facingDirection);
-    console.log("totalUnits:", totalUnits);
-    console.log("area:", area);
-    console.log("noOfTowers:", noOfTowers);
-    console.log("maintainenceCharges:", maintainenceCharges);
-    console.log("brochure:", brochure);
-    console.log("totalNo:", totalNo);
-    console.log("purpose:", purpose);
-    console.log("floorNo:", floorNo);
-    console.log("totalBedroom:", totalBedroom);
-    console.log("totalBathroom:", totalBathroom);
-    console.log("totalBalcony:", totalBalcony);
-    console.log("furnishingStatus:", furnishingStatus);
-    console.log("sampleFlat:", sampleFlat);
-    console.log("ownership:", ownership);
-    console.log("coveredParking:", coveredParking);
-    console.log("certification:", certification);
-    console.log("extraRoomTypes:", extraRoomTypes);
-    console.log("availableOffers:", availableOffers);
-    console.log("banks:", banks);
-    console.log("amenitiesdata:", amenitiesdata);
-    console.log("highlights:", highlights);
-    console.log("------ End Logs ------");
 
     const handleSelectionChangeChip = (label: string): void => {
         setAmenitiesdata((prev: string[]) =>
@@ -767,13 +730,11 @@ const Flat = ({
 
     useEffect(() => {
         const fetchAgentOrBuilder = async () => {
-            console.log("called");
-
             try {
-                const token = tokenStore.get();
-                const id = user?.builderProfile
-                    ? user?.builderProfile?.id
-                    : user?.agentProfile?.id;
+                const id =
+                    user?.builderProfile
+                        ? user?.builderProfile?.id
+                        : user?.agentProfile?.id;
 
                 if (!id) {
                     console.warn("No profile id found");
@@ -782,13 +743,12 @@ const Flat = ({
 
                 const type = user?.builderProfile ? "builder" : "agent";
 
-                const res = await getAgentById(id, type, token?.accessToken ?? "");
+                const res = await getAgentById(id, type);
                 setRoleAB(res);
             } catch (error) {
                 console.error("Error fetching agent/builder:", error);
             }
         };
-
         fetchAgentOrBuilder();
     }, [user]);
 
@@ -917,66 +877,17 @@ const Flat = ({
             status: 'PUBLISHED',
         };
         console.log("formdata", formData);
-        finalSubmit(formDataa, payload)
-
-        // if (formDataa) {
-        //     const tk = tokenStore.get()
-        //     if (formDataa.entityType) {
-
-        //         // Flow with formData: Create listing and post
-        //         const listingRes = await http.post(`/listings-v2`, formDataa, {
-        //             headers: {
-        //                 Authorization: `Bearer ${tk?.accessExp}`
-        //             }
-        //         });
-        //         const listingId = listingRes?.data?.data?.id;
-
-        //         if (!listingId) {
-        //             throw new Error("Failed to retrieve listing ID");
-        //         }
-
-        //         const postResponse = await http.post(`/posts`, payload,
-        //             {
-        //                 headers: {
-        //                     Authorization: `Bearer ${tk?.accessExp}`
-        //                 }
-        //             }
-        //         );
-        //         const postId = postResponse?.data?._id;
-
-        //         if (!postId) {
-        //             throw new Error("Failed to create post");
-        //         }
-
-        //         const listingPayload = {
-        //             postIds: [postId],
-        //         };
-
-        //         await http.post(`/listings-v2/${listingId}/attach-posts`,
-        //             listingPayload, {
-        //             headers: {
-        //                 Authorization: `Bearer ${tk?.accessExp}`
-        //             }
-        //         }
-        //         );
-        //         router.push("/properties/")
-        //     } else {
-        //         // Flow without formData: Create post only
-        //         const postResponse = await http.post(`/posts`, payload, {
-        //             headers: {
-        //                 Authorization: `Bearer ${tk?.accessExp}`
-
-        //             }
-        //         });
-        //         if (!postResponse?.data?._id) {
-        //             throw new Error("Failed to create post");
-        //         }
-        //     }
+        setFinalSubmitData({
+            formDataa: formDataa,
+            payload: payload,
+        });
 
 
-        // };
     }
 
+    useEffect(() => {
+        handleSubmits()
+    }, [formCount])
 
     const isImage = (url: any) => {
         const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"];
@@ -1007,6 +918,22 @@ const Flat = ({
             position: "absolute",
         }),
     };
+
+    const fadeVariants = {
+        enter: {
+            opacity: 0,
+            position: "absolute",
+        },
+        center: {
+            opacity: 1,
+            position: "relative",
+        },
+        exit: {
+            opacity: 0,
+            position: "absolute",
+        },
+    };
+
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const isDown = useRef(false);
@@ -1068,134 +995,28 @@ const Flat = ({
                     <motion.div
                         key={formCount}
                         custom={direction}
-                        variants={variants}
+                        variants={formCount === 6 ? fadeVariants : variants}
                         initial="enter"
                         animate="center"
                         exit="exit"
-                        transition={{
-                            x: { type: "spring", stiffness: 300, damping: 30 },
-                            opacity: { duration: 0.3 },
-                        }}
-                        className="h-full w-full px-4 py-4 overflow-y-auto"
+                        transition={
+                            (formCount === 6 || formCount === 6)
+                                ? { opacity: { duration: 0.4, ease: "easeInOut" } } // smooth fade
+                                : {
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.3 },
+                                }
+                        }
+                        className="h-full w-full ps-0 pr-4 md:px-4 lg:px-4 py-4 overflow-y-auto"
 
                     >
                         {
                             formCount === 6 &&
-                            <div className='h-full flex flex-row'>
-                                <div className='w-[50%] h-full'>
-                                    <h1 className='text-lg font-semibold text-black tracking-wide bg-gray-100 py-2 px-4 rounded-l-md'>Your Post</h1>
-                                    <div className='flex flex-col p-4 gap-2'>
-                                        <div className='flex flex-col gap-1'>
-                                            <div className='w-[140px] h-[180px]  rounded-md mt-1 bg-red-300'>
-                                                <video
-                                                    src={coverVideo?.url}
-                                                    controls
-                                                    className="w-full h-full rounded-lg object-cover"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className='flex flex-col gap-2.5 flex-1'>
-                                            <div className='w-full'>
-                                                <label className="block text-sm font-medium text-gray-700">Title</label>
-                                                <InputBox
-                                                    placeholder="Title"
-                                                    value={title ? title : formData?.propertyName}
-                                                    onChange={(text) => setTitle(text)}
-                                                    className="mt-1"
-                                                />
-
-                                            </div>
-
-                                            <div className='w-full'>
-                                                <label className="block text-sm font-medium text-gray-700">Description</label>
-                                                <InputBox
-                                                    placeholder="Description"
-                                                    value={description ? description : formData?.description}
-                                                    onChange={(text) => setDescription(text)}
-                                                    className="mt-1"
-                                                />
-                                            </div>
-
-                                            <div className="w-full">
-                                                <label className="block text-sm mb-1 font-medium text-gray-700">
-                                                    Disable Comment
-                                                </label>
-                                                <div className="flex items-center gap-3">
-                                                    <Switch checked={disabled} onCheckedChange={setDisabled} />
-                                                    <span className="text-sm font-medium text-gray-700">
-                                                        {disabled ? "Yes" : "No"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                <div className='w-[50%]'>
-                                    <h1 className='text-lg font-semibold text-black tracking-wide bg-gray-100 py-2 px-4 rounded-r-md'>Your Listing</h1>
-                                    <div className="w-full p-4">
-                                        <div
-                                            ref={scrollRef}
-                                            onMouseDown={handleMouseDown}
-                                            onMouseLeave={handleMouseLeave}
-                                            onMouseUp={handleMouseUp}
-                                            onMouseMove={handleMouseMove}
-                                            className="flex gap-4 overflow-x-auto border-2 rounded-lg p-3 scrollbar-hide cursor-grab select-none"
-                                        >
-                                            {galleryFiles && galleryFiles.length > 0 ? (
-                                                galleryFiles.map((fileUrl: string, i: number) => {
-                                                    const isVideo = fileUrl.match(/\.(mp4|webm|ogg)$/i);
-                                                    return (
-                                                        <div
-                                                            key={i}
-                                                            className="flex-shrink-0 w-[90px] h-[90px] border rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"
-                                                        >
-                                                            {isVideo ? (
-                                                                <video
-                                                                    src={fileUrl}
-                                                                    className="w-full h-full object-cover rounded-lg"
-                                                                    controls={false}
-
-                                                                />
-                                                            ) : (
-                                                                <img
-                                                                    src={fileUrl}
-                                                                    alt={`media-${i}`}
-                                                                    className="w-full h-full object-cover rounded-lg"
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })
-                                            ) : (
-                                                <p className="text-gray-400 text-sm mx-auto">No media uploaded yet</p>
-                                            )}
-                                        </div>
-                                        <div className=" w-full mt-2">
-                                            <div className="flex flex-col divide-y divide-gray-100">
-                                                {details.map((item, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="flex items-start gap-3 py-2 hover:bg-gray-50 rounded-lg px-2 transition"
-                                                    >
-                                                        <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
-                                                        <div>
-                                                            <p className="text-sm text-gray-500 font-medium">{item.label}</p>
-                                                            <p className="text-sm text-gray-900 font-normal mt-0.5">
-                                                                {item.value || "—"}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-
-                                    </div>
-
-
-                                </div>
-                                <div></div>
+                            <div className='h-full flex flex-col gap-1'>
+                                {/* <FullPropertyView propertyData={propertyData} /> */}
+                                {/* <h1 className='text-lg font-semibold'>Your Listing is Ready</h1> */}
+                                {/* <h1 className='text-[16px] font-medium'>Continue to submit you listing</h1> */}
+                                <ListingPreview />
                             </div>
                         }
                         {
@@ -1531,6 +1352,7 @@ const FormFlat1 = ({
                     </div>
                 }
             </div>
+
 
             {
                 (transactionType === "sale" && role === "builder") &&
@@ -3048,15 +2870,15 @@ const FormDetailsFour = ({
                     </div>
                 </div>
             </div>
-            <div className="p-4">
+            <div className="py-2">
                 <div className="flex flex-row items-center flex-1 gap-4">
                     <label className="underline underline-offset-4 block text-sm font-medium text-gray-700">
-                        Add Contact
+                        Additional Contacts
                     </label>
                     <Dialog open={openn} onOpenChange={handleOpenChange}>
                         <DialogTrigger asChild>
                             <button className="border border-black w-[20px] flex justify-center items-center h-[20px] rounded-full">
-                                <Plus size={16} />
+                                <Plus className='h-5 w-5' />
                             </button>
                         </DialogTrigger>
                         <DialogContent className="max-w-lg">
@@ -3088,20 +2910,20 @@ const FormDetailsFour = ({
                                     onClick={() => handleEditContact(index)}
                                     className="text-black cursor-pointer"
                                 >
-                                    <Edit2 size={16} />
+                                    <Edit2 className='h-5 w-5' />
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => handleRemoveSavedContact(index)}
                                     className="text-red-500 hover:text-red-700 cursor-pointer"
                                 >
-                                    <Trash2 size={16} />
+                                    <Trash2 className='h-5 w-5' />
                                 </button>
                             </div>
-                            <h1 className="text-sm font-medium">Name: {item.name}</h1>
-                            <h1 className="text-sm font-medium">Mobile: {item.mobile}</h1>
+                            <h1 className="text-sm  font-medium">Name: {item.name}</h1>
+                            <h1 className="text-sm  font-medium">Mobile: {item.mobile}</h1>
                             {item.email && (
-                                <h1 className="text-sm font-medium">Email: {item.email}</h1>
+                                <h1 className="text-sm  font-medium">Email: {item.email}</h1>
                             )}
                         </div>
 

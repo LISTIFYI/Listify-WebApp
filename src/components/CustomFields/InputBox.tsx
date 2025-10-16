@@ -33,7 +33,7 @@ const InputBox: React.FC<InputBoxProps> = ({
                 name={name}
                 disabled={disabled}
                 className={`
-          w-full px-3 h-[38px] text-sm  border border-gray-300 rounded-sm
+          w-full px-3 h-10 md:h-10 lg:h-10 text-[12px] md:text-sm lg:text-sm placeholder:text-[12px] placeholder:md:text-sm placeholder:lg:text-sm   border border-gray-300 rounded-sm
           focus:border-black focus:ring-0 focus:outline-none
           transition-colors duration-300 bg-white text-gray-900
           disabled:bg-gray-100 disabled:cursor-not-allowed

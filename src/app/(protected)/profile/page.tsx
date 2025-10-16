@@ -2,8 +2,11 @@
 
 import MapWithMarkers from '@/components/GoogleMapComponent/MapWithMarkers';
 import ProfileForm from '@/components/Layout/ProfileForm/ProfileForm';
+import { http } from '@/lib/http';
+import { usePostContext } from '@/lib/postContext';
 import { tokenStore } from '@/lib/token';
 import axios from 'axios';
+import { EllipsisVertical, Loader, Play } from 'lucide-react';
 import type { NextPage } from 'next';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -25,15 +28,17 @@ const ProfilePage: NextPage = () => {
     const getProfile = async () => {
         try {
             const tk = tokenStore.get();
-            const res = await axios.get(
-                "https://listifyi-api-1012443530727.asia-south1.run.app/users/profile",
-                { headers: { Authorization: `Bearer ${tk?.accessToken}` } }
-            );
+            const res = await http.get("/users/profile");
+            console.log("resssssssss", res);
+
             setProfileData(res.data);
         } catch (error) {
             console.error("Error fetching profile:", error);
         }
     };
+
+    const [activeTab, setActiveTab] = useState("All");
+
 
     const getPosts = async (currentPage: number) => {
         if (loading) return;
@@ -41,10 +46,7 @@ const ProfilePage: NextPage = () => {
 
         try {
             const tk = tokenStore.get();
-            const res = await axios.get(
-                `https://listifyi-api-1012443530727.asia-south1.run.app/posts/my-posts?page=${currentPage}&limit=20&?pricingType=all&status=published`,
-                { headers: { Authorization: `Bearer ${tk?.accessToken}` } }
-            );
+            const res = await http.get(`/posts/my-posts?page=${currentPage}&limit=20&??pricingType=${activeTab.toLowerCase()}&status=published`);
             const newPosts = res?.data?.posts || [];
 
             // ✅ ensure uniqueness by filtering with IDs
@@ -66,9 +68,17 @@ const ProfilePage: NextPage = () => {
     };
 
     useEffect(() => {
-        getProfile();
+        getProfile()
+    }, [])
+
+    useEffect(() => {
+        // Reset when tab changes
+        setPostData([]);
+        setPage(1);
+        setHasMore(true);
         getPosts(1);
-    }, []);
+    }, [activeTab]);
+    const { setSelectedPost } = usePostContext()
 
     const fetchMorePosts = () => {
         if (!loading && hasMore) {
@@ -77,18 +87,19 @@ const ProfilePage: NextPage = () => {
             getPosts(nextPage);
         }
     };
+    const tabs = ["All", "Sale", "Resale"];
 
     return (
         <div className='overflow-y-scroll h-full'>
-            <div className="h-full max-w-[85%] w-[100%] mx-auto">
+            <div className="h-full  md:max-w-[100%] lg:w-[85%] w-[100%] md:mx-auto lg:mx-auto">
                 {/* <MapWithMarkers /> */}
                 {/* Profile Header */}
-                <div className="mx-auto p-4 sm:p-6 max-w-[90%] w-[100%]">
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
-                        <div className="relative w-16 h-16 sm:w-32 sm:h-32 rounded-full overflow-hidden border justify-center items-center flex">
+                <div className="mx-auto p-4 sm:p-6 max-w-[90%] w-[100%] ">
+                    <div className="flex flex-row  items-center  space-y-4 space-x-4">
+                        <div className="relative  w-18 h-18 sm:w-32 sm:h-32 rounded-full my-auto overflow-hidden border justify-center items-center flex">
                             {profileData?.profile_pic && profileData?.profile_pic.trim() !== "" ? (
                                 <Image
-                                    src={profileData.profile_pic}
+                                    src={profileData?.profile_pic}
                                     alt="Profile picture"
                                     className="rounded-full object-cover"
                                     fill
@@ -96,24 +107,24 @@ const ProfilePage: NextPage = () => {
                                 />
                             ) : (
                                 <span className="text-3xl sm:text-5xl font-semibold text-gray-700">
-                                    {profileData?.name?.charAt(0)?.toUpperCase() || "U"}
+                                    {profileData?.name?.charAt(0)?.toUpperCase() || ""}
                                 </span>
                             )}
                         </div>
-                        <div className="flex-1 text-center sm:text-left my-auto">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
-                                <h1 className="text-xl sm:text-2xl font-semibold">{profileData?.name}</h1>
+                        <div className="flex-1  my-auto ">
+                            <div className="flex flex-row md:flex lg:flex-row gap-2">
+
+                                <h1 className="text-xl sm:text-2xl font-semibold">{profileData?.name} </h1>
                                 <button
-                                    onClick={() => {
-                                        // router.push(`/profile/${profileData?.id}`);
-                                        setSelectedId(profileData?.id)
-                                        setOpen(true)
-                                    }}
-                                    className="mt-2 sm:mt-0 px-4 py-1.5 rounded-md text-sm font-medium bg-gray-200 text-gray-800">
-                                    Edit Profile
-                                </button>
+                                    // onClick={() => {
+                                    //     // router.push(`/profile/${profileData?.id}`);
+                                    //     setSelectedId(profileData?.id)
+                                    //     setOpen(true)
+                                    // }}
+                                    className="">
+                                    <EllipsisVertical size={22} />                                </button>
                             </div>
-                            <div className="mt-4 flex justify-center sm:justify-start space-x-6 text-sm">
+                            <div className="mt-4 flex space-x-2 md:space-x-4  lg:space-x-6 text-sm">
                                 <span>
                                     <strong>{totalCount ?? 0}</strong> posts
                                 </span>
@@ -129,26 +140,78 @@ const ProfilePage: NextPage = () => {
                             </div>
                         </div>
                     </div>
+                    <button
+                        onClick={() => {
+                            // router.push(`/profile/${profileData?.id}`);
+                            setSelectedId(profileData?.id)
+                            setOpen(true)
+                        }}
+                        className="mt-2.5 flex  px-4 py-2 w-[50%]  justify-center items-center rounded-md text-[16px] font-medium bg-gray-200 text-gray-800">
+                        Edit Profile
+                    </button>
                 </div>
-
+                <div className="w-full">
+                    {/* Tabs */}
+                    <div className="flex justify-center gap-4 border-b border-gray-200 pb-2">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`relative flex-1 flex justify-center items-center px-4 py-2 text-sm font-medium transition-all
+              ${activeTab === tab
+                                        ? "text-black-600"
+                                        : "text-gray-500 hover:text-gray-700"
+                                    }`}
+                            >
+                                {tab}
+                                {activeTab === tab && (
+                                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-black rounded-full"></span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 {/* Posts Grid with Infinite Scroll */}
                 <InfiniteScroll
                     dataLength={postData.length}
                     next={fetchMorePosts}
                     hasMore={hasMore}
-                    loader={<p className="text-center py-4">Loading...</p>}
+                    loader={<div className='py-40'>
+                        <p className="text-center py-4 animate-spin w-fit m-auto text-black  justify-center items-center duration-300"><Loader size={32} /></p>
+
+                    </div>}
                     endMessage={<p className="text-center py-4 text-gray-500">No more posts</p>}
                 >
-                    <div className="grid grid-cols-4 gap-1 sm:gap-1">
+                    <div className="grid  grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-1 p-4">
                         {postData.map((post: any) => (
-                            <div key={post.post?.id} className="relative aspect-square">
-                                <Image
-                                    src={post.post?.thumbnail_url}
-                                    alt={post.post?.title}
-                                    className="object-cover"
-                                    fill
-                                    sizes="(max-width: 640px) 33vw, 25vw"
-                                />
+                            <div
+                                onClick={() => {
+                                    router.push(`/post/${post.user?.id}`)
+                                    setSelectedPost(post)
+                                }}
+                                key={post.post?.id} className="relative aspect-[4/6] overflow-hidden">
+                                {
+                                    post.post?.thumbnail_url ?
+                                        <Image
+                                            src={post.post?.thumbnail_url}
+                                            alt={post.post?.title}
+                                            className="object-cover"
+                                            fill
+                                            sizes="(max-width: 640px) 33vw, 25vw"
+                                        />
+                                        :
+                                        <div className="relative bg-black/30 h-full w-full flex justify-center items-center">
+                                            {/* Soft gradient glow behind button */}
+                                            <div className="absolute w-20 h-20 bg-white/10 blur-xl rounded-full"></div>
+
+                                            {/* Play Button */}
+                                            <div className="relative w-[46px] h-[46px] flex justify-center items-center bg-white/90 rounded-full shadow-lg shadow-black/20 backdrop-blur-sm">
+                                                <Play color="black" size={22} />
+                                            </div>
+                                        </div>
+
+                                }
+
                             </div>
                         ))}
                     </div>

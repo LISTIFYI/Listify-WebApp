@@ -76,7 +76,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                     <Button
                         variant="outline"
                         className={`
-              w-full h-[38px] px-3  text-left text-sm font-normal
+              w-full h-10 px-3  text-left text-sm font-normal
               border border-gray-300 rounded-md
               bg-white ${value.length === 0 ? "text-gray-500" : "text-black"}
               focus:ring-0  
@@ -90,7 +90,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                         aria-expanded="false"
                         aria-haspopup="listbox"
                     >
-                        <span className="truncate textno">{getDisplayText()}</span>
+                        <span className="truncate text-sm text-ellipsis">{getDisplayText()}</span>
                         <ChevronDown className="w-4 h-4 text-gray-500" />
                     </Button>
                 </PopoverTrigger>
@@ -120,7 +120,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                                     onCheckedChange={() => handleToggle(option.value)}
                                     disabled={disabled}
                                 />
-                                <Label htmlFor={option.value} className="text-sm">
+                                <Label htmlFor={option.value} className="text-[12px] md:text-sm lg:text-sm">
                                     {option.label}
                                 </Label>
                             </div>

@@ -6,6 +6,8 @@ import React, { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { parse, format, isToday, isYesterday } from "date-fns";
 import ChatsDetails from "@/components/ChatsComponent/ChatsDetails";
+import { useRouter } from "next/navigation";
+import { useChat } from "@/context/ChatContext";
 
 const formatTimestamp = (timestamp: string) => {
     const messageTime = new Date(timestamp);
@@ -44,13 +46,14 @@ interface SelectedUser {
 
 const MessagePage = () => {
     const { user } = useAuth();
+    const { chatDetails, setChatDetails } = useChat();
     const [allMessages, setAllMessages] = useState<Chat[]>([]);
     const [page, setPage] = useState(1);
     const [totalMessages, setTotalMessages] = useState(0);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [selectedId, setSelectedId] = useState<SelectedUser | null>(null);
-
+    const router = useRouter()
     const limit = 10;
 
     const getAllMessages = async (pageNum: number) => {
@@ -138,9 +141,31 @@ const MessagePage = () => {
         setSelectedId({ id, username });
     };
 
+
+    const handleNavigateToChatDetails = () => {
+
+        // if (selectedId) {
+        const params = {
+            // id: selectedId,
+            id: "343434343",
+            // username: selectedId.username,
+            username: "Jignesh",
+            contentID: undefined,
+            profilePic: undefined,
+            // listingId: allMessages.find((msg) => msg.id === selectedId.id)?.listingId,
+            listingId: "",
+
+            propertyName: undefined,
+        };
+        // Use router.push with state for App Router
+        setChatDetails(params)
+        router.push('/messages/3434343');
+        // }
+    };
+
     return (
         <div className="h-full bg-white-200 flex flex-row">
-            <div className="max-w-[400px] w-[100%]">
+            <div className="lg:max-w-[400px]  w-[100%]">
                 <div className="h-full shadow-lg overflow-y-auto" id="scrollableDiv">
                     <InfiniteScroll
                         dataLength={allMessages.length}
@@ -149,7 +174,7 @@ const MessagePage = () => {
                         loader={<p className="text-center py-4">Loading...</p>}
                         endMessage={<p
                             style={{ color: "rgb(115,115,115)" }}
-                            className="text-center py-4 text-[14px] ">{allMessages.length === 0 ? "No messages" : "No more messages to load."}</p>}
+                            className="text-center py-4 text-[16px] md:text-[14px] lg:text-[14px]">{allMessages.length === 0 ? "No messages" : "No more messages to load."}</p>}
                         scrollableTarget="scrollableDiv"
                     >
                         <div className="p-4">
@@ -221,7 +246,7 @@ const MessagePage = () => {
                     </InfiniteScroll>
                 </div>
             </div>
-            <div className="border-l border-[2px] justify-center items-center flex flex-1">
+            <div className="border-l border-[2px] justify-center items-center hidden lg:flex flex-1">
                 {selectedId ? (
                     <ChatsDetails
                         id={selectedId.id}

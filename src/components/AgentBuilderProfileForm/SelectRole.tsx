@@ -132,49 +132,52 @@ const SelectRole = ({ selectedTrue, setSelectedTrue, role, setRoleGlobally }: { 
     }
 
     return (
-        <div className="flex flex-col max-w-[620px] p-10 m-auto rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full">
-            <div>
-                <div className="flex flex-col gap-2 mb-4">
-                    <h1 className="text-black font-[500] text-[18px] tracking-wide">
-                        Let&apos;s get you started
-                    </h1>
-                    <h2 className="text-black font-[500] text-[14px]">
-                        Select your role
-                    </h2>
-                </div>
+        <div className="flex w-[90%]  flex-col max-w-lg mx-auto p-6 sm:p-8 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+            <div className="flex flex-col justify-between h-full">
+                <div>
+                    <div className="flex flex-col gap-2 mb-4">
+                        <h1 className="text-black font-medium text-lg tracking-wide">
+                            Let&apos;s get you started
+                        </h1>
+                        <h2 className="text-black font-medium text-sm sm:text-base">
+                            Select your role
+                        </h2>
+                    </div>
 
-                {/* Responsive Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
-                    {boxes.map((box) => (
-                        <div
-                            key={box.id}
-                            onClick={() => handleClick(box.id, box.disabled)}
-                            className={`
+                    {/* Responsive Grid */}
+                    <div className="flex flex-wrap justify-center gap-4">
+                        {boxes.map((box) => (
+                            <div
+                                key={box.id}
+                                onClick={() => handleClick(box.id, box.disabled)}
+                                className={`
               group relative flex flex-col justify-center items-center rounded-lg border p-4
-              cursor-pointer transition-all duration-300
-              ${selected === box.id ? 'shadow-lg  text-black' : 'bg-white text-black'}
+              cursor-pointer transition-all duration-300 aspect-square
+              ${selected === box.id ? 'shadow-lg text-black' : 'bg-white text-black'}
               ${box.disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}
-              aspect-square   /* ✅ keeps height = width dynamically */
+              w-[100px] sm:w-[140px] md:w-[180px]
             `}
-                        >
-                            <div className="flex flex-col justify-center items-center">
-                                {box.icon}
-                                <p className="font-semibold text-[15px] mt-2">{box.label}</p>
+                            >
+                                <div className="flex flex-col justify-center items-center">
+                                    {box.icon}
+                                    <p className="font-semibold lg:text-[15px] md:text-[15px] text-[13px]  mt-2">{box.label}</p>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
 
                 {/* Continue Button */}
                 <button
                     disabled={!selected}
                     onClick={ContinueClick}
-                    className="cursor-pointer bg-black text-white text-[15px] rounded-md h-[42px] w-full mt-5 font-medium disabled:bg-gray-200 disabled:text-gray-400"
+                    className="cursor-pointer mt-6 bg-black text-white text-[15px] rounded-md h-10 w-full font-medium disabled:bg-gray-200 disabled:text-gray-400"
                 >
                     Continue
                 </button>
             </div>
         </div>
+
     );
 
 };

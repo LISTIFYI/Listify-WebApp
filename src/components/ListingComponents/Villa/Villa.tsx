@@ -22,6 +22,8 @@ import { DialogDescription, DialogTrigger } from '@radix-ui/react-dialog';
 import ContactForm from '@/components/Forms/ContacFormCommon';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
+import { AnimatePresence, motion } from 'framer-motion';
+import MediaUpload from '@/components/MediaUpload/MediaUpload';
 
 // Interface for form data
 interface FormData {
@@ -63,15 +65,35 @@ interface FlatProps {
     coverVideo: any
     galleryFiles: any
     role: string
+    formCount: number,
+    setFormCount: any
+    totalSteps: any
+    direction: any
+    setFinalSubmitData: any
+    propertyData: any
 }
 
 const Villa = ({ transactionType, entityType,
     showNext,
     setShowNext,
-    coverVideo,
-    galleryFiles,
-    role
+    role,
+    formCount,
+    setFormCount,
+    totalSteps,
+    direction,
+    setFinalSubmitData,
+    propertyData
 }: FlatProps) => {
+
+    const [coverVideo, setCoverVideo] = useState<any>(null)
+
+    const [galleryFiles, setGalleryFiles] = useState<string[]>([])
+    const removeGalleryItem = (index: number) => {
+        setGalleryFiles((prev: any) => prev.filter((_: any, i: any) => i !== index))
+    }
+
+
+
     const [useLocationSearch, setUseLocationSearch] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [suggestions, setSuggestions] = useState<Place[]>([]);
@@ -267,7 +289,7 @@ const Villa = ({ transactionType, entityType,
             options: [
                 {
                     value: "New/Under Construction",
-                    label: "New/Under Construction",
+                    label: "New Construction",
                 },
                 { value: "Ready to Move", label: "Ready to Move", },
             ],
@@ -419,7 +441,7 @@ const Villa = ({ transactionType, entityType,
         {
             key: 'extraRoomTypes',
             label: 'Extra Room Types',
-            placeholder: 'Choose extra room types',
+            placeholder: 'Extra room types',
             options: [
                 { value: 'Study', label: 'Study' },
                 { value: 'Servant Room', label: 'Servant Room' },
@@ -432,7 +454,7 @@ const Villa = ({ transactionType, entityType,
         {
             key: 'availOffers',
             label: 'Available Offers',
-            placeholder: 'Choose available offers',
+            placeholder: 'Available offers',
             options: [
                 { value: 'Under 5% Discount', label: 'Under 5% Discount' },
                 { value: 'Flat 10% Cashback', label: 'Flat 10% Cashback' },
@@ -883,174 +905,325 @@ const Villa = ({ transactionType, entityType,
 
         };
 
-        console.log("formdata", formDataa);
+        const payload = {
+            title: formData?.propertyName,
+            description: formData.description,
+            video_url: coverVideo?.url,
+            thumbnail_url: "",
+            duration_seconds: coverVideo?.duration,
+            // tags: "#jignes",
+            // mentions: ["user123", "user456"],
+            visibility: "PUBLIC",
+            location: formData.address,
+            comments_disabled: false,
+            //   ...(draft === 'DRAFT' ? { status: 'DRAFT' } : { status: 'PUBLISHED' }),
+            status: 'PUBLISHED',
+        };
+        setFinalSubmitData({
+            formDataa: formDataa,
+            payload: payload,
+        });
 
     };
+
+
+    useEffect(() => {
+        handleSubmits()
+    }, [formCount])
+
+
+    const variants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 100 : -100,
+            opacity: 0,
+            position: "absolute",
+        }),
+        center: {
+            x: 0,
+            opacity: 1,
+            position: "relative",
+        },
+        exit: (direction: number) => ({
+            x: direction > 0 ? -100 : 100,
+            opacity: 0,
+            position: "absolute",
+        }),
+    };
+
+    const fadeVariants = {
+        enter: {
+            opacity: 0,
+            position: "absolute",
+        },
+        center: {
+            opacity: 1,
+            position: "relative",
+        },
+        exit: {
+            opacity: 0,
+            position: "absolute",
+        },
+    };
+
+
     return (
-        <>
-
-            {
-                !showNext ?
-                    <VillaForm1
-                        dropdownConfigs={dropdownConfigs}
-                        formData={formData}
-                        errors={errors}
-                        suggestions={suggestions}
-                        useLocationSearch={useLocationSearch}
-                        setUseLocationSearch={setUseLocationSearch}
-                        isLoading={isLoading}
-                        landmarkInput={landmarkInput}
-                        setLandmarkInput={setLandmarkInput}
-                        handleChange={handleChange}
-                        handleSearchInput={handleSearchInput}
-                        addLandmark={addLandmark}
-                        removeLandmark={removeLandmark}
-                        handleSubmit={handleSubmit}
-
-                        amount={amount}
-                        approvalAuthority={approvalAuthority}
-                        area={area}
-                        bookingAmount={bookingAmount}
-                        brochure={brochure}
-                        carpetArea={carpetArea}
-                        constructionStatus={constructionStatus}
-                        currentPlan={currentPlan}
-                        editIndex={editIndex}
-                        electricityStatus={electricityStatus}
-                        facingDirection={facingDirection}
-                        fileInputRef={fileInputRef}
-                        floorPlans={floorPlans}
-                        handleAddOrUpdate={handleAddOrUpdate}
-                        handleClick={handleClick}
-                        handleEditPlan={handleEditPlan}
-                        handleFileChange={handleFileChange}
-                        handleRemovePlan={handleRemovePlan}
-                        maintainenceCharges={maintainenceCharges}
-                        n={n}
-                        open={open}
-                        plotArea={plotArea}
-                        possessionDate={possessionDate}
-                        pricePerSqFT={pricePerSqFT}
-                        priceRange={priceRange}
-                        propertySize={propertySize}
-                        propertyage={propertyage}
-                        removePdf={removePdf}
-                        reraNumber={reraNumber}
-                        setAmount={setAmount}
-                        setApprovalAuthority={setApprovalAuthority}
-                        setArea={setArea}
-                        setBookingAmount={setBookingAmount}
-                        setCarpetArea={setCarpetArea}
-                        setConstructionStatus={setConstructionStatus}
-                        setCurrentPlan={setCurrentPlan}
-                        setEditIndex={setEditIndex}
-                        setElectricityStatus={setElectricityStatus}
-                        setFacingDirection={setFacingDirection}
-                        setFloorPlans={setFloorPlans}
-                        setMaintainenceCharges={setMaintainenceCharges}
-                        setN={setN}
-                        setOpen={setOpen}
-                        setPlotArea={setPlotArea}
-                        setPossessionDate={setPossessionDate}
-                        setPricePerSqT={setPricePerSqT}
-                        setPriceRange={setPriceRange}
-                        setPropertyAge={setPropertyAge}
-                        setPropertySize={setPropertySize}
-                        setReraNumber={setReraNumber}
-                        setTotalUnits={setTotalUnits}
-                        setUnitSizeRange={setUnitSizeRange}
-                        setUnitType={setUnitType}
-                        setWaterAvailablity={setWterAvailablity}
-                        totalUnits={totalUnits}
-                        unitSizeRange={unitSizeRange}
-                        unitType={unitType}
-                        waterAvailablity={waterAvailablity}
-                        role={role}
-                        transactionType={transactionType}
-                    /> :
-
-                    <VillaForm2
-                        amenities={amenities}
-                        availableOffers={availableOffers}
-                        banks={banks}
-                        certification={certification}
-                        coveredParking={coveredParking}
-                        dropdownConfigs={dropdownConfigs}
-                        editContacts={editContacts}
-                        editIndexx={editIndexx}
-                        extraRoomTypes={extraRoomTypes}
-                        floorNo={floorNo}
-                        flooring={flooring}
-                        furnishingStatus={furnishingStatus}
-                        handleEditContact={handleEditContact}
-                        handleFormSubmit={handleFormSubmit}
-                        handleOpenChange={handleOpenChange}
-                        handleRemoveSavedContact={handleRemoveSavedContact}
-                        handleSelectionChangeChip={handleSelectionChangeChip}
-                        handleSelectionChangeChip2={handleSelectionChangeChip2}
-                        openn={openn}
-                        option={option}
-                        ownership={ownership}
-                        purpose={purpose}
-                        sampleFlat={sampleFlat}
-                        savedContacts={savedContacts}
-                        setAvailableOffers={setAvailableOffers}
-                        setBanks={setBanks}
-                        setCertification={setCertification}
-                        setCoveredParking={setCoveredParking}
-                        setEditContacts={setEditContacts}
-                        setEditIndexx={setEditIndexx}
-                        setExtraRoomTypes={setExtraRoomTypes}
-                        setFloorNo={setFloorNo}
-                        setFlooring={setFlooring}
-                        setFurnishingStatus={setFurnishingStatus}
-                        setOpenn={setOpenn}
-                        setOwnership={setOwnership}
-                        setPurpose={setPurpose}
-                        setSampleFlat={setSampleFlat}
-                        setSavedContacts={setSavedContacts}
-                        setTotalBalcony={setTotalBalcony}
-                        setTotalBathroom={setTotalBathroom}
-                        setTotalBedroom={setTotalBedroom}
-                        setTotalNo={setTotalNo}
-                        totalBalcony={totalBalcony}
-                        totalBathroom={totalBathroom}
-                        totalBedroom={totalBedroom}
-                        totalNo={totalNo}
-                        role={role}
-                        transactionType={transactionType}
-
-                    />
-            }
-
-
-            <div className='border flex flex-row transition-all duration-300 gap-4 w-full mt-4'>
-                {
-                    showNext &&
-                    <ButtonCommon
-                        onClick={() => {
-                            setShowNext(false)
-                        }}
-                        title='Back' />
-                }
-                <ButtonCommon
-                    onClick={() => {
-                        if (showNext) {
-                            // setShowNext(true)
-                            handleSubmits()
-                            alert("Final call")
-                        } else {
-                            setShowNext(true)
-
+        <div className="flex flex-1 overflow-hidden h-full  ">
+            <div className="w-full h-full relative  flex justify-center items-center ">
+                <AnimatePresence custom={direction} mode='wait'>
+                    <motion.div
+                        key={formCount}
+                        custom={direction}
+                        variants={formCount === 6 ? fadeVariants : variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={
+                            (formCount === 6 || formCount === 6)
+                                ? { opacity: { duration: 0.4, ease: "easeInOut" } } // smooth fade
+                                : {
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.3 },
+                                }
                         }
-                    }}
-                    title={showNext ? "Continue" : "Next"} />
+                        className="h-full w-full ps-0 pr-4 md:px-4 lg:px-4 py-4 overflow-y-auto"
+
+                    >
+
+
+                        {
+                            formCount === 6 &&
+                            <div className='h-full flex flex-col gap-1'>
+                                {/* <FullPropertyView propertyData={propertyData} /> */}
+                                <h1 className='text-lg font-semibold'>Your Listing is Ready</h1>
+                                <h1 className='text-[16px] font-medium'>Continue to submit you listing</h1>
+                            </div>
+                        }
+                        {
+                            Number(formCount) === Number(2) &&
+                            <div className=''>
+                                <FormDetailsTwo
+                                    addLandmark={addLandmark}
+                                    errors={errors}
+                                    formData={formData}
+                                    handleChange={handleChange}
+                                    handleSearchInput={handleSearchInput}
+                                    handleSubmit={handleSubmit}
+                                    isLoading={isLoading}
+                                    landmarkInput={landmarkInput}
+                                    removeLandmark={removeLandmark}
+                                    setLandmarkInput={setLandmarkInput}
+                                    setUseLocationSearch={setUseLocationSearch}
+                                    suggestions={suggestions}
+                                    useLocationSearch={useLocationSearch}
+                                />
+                            </div>
+                        }
+
+                        {
+                            formCount === 3 &&
+
+                            <VillaForm1
+                                dropdownConfigs={dropdownConfigs}
+                                formData={formData}
+                                errors={errors}
+                                suggestions={suggestions}
+                                useLocationSearch={useLocationSearch}
+                                setUseLocationSearch={setUseLocationSearch}
+                                isLoading={isLoading}
+                                landmarkInput={landmarkInput}
+                                setLandmarkInput={setLandmarkInput}
+                                handleChange={handleChange}
+                                handleSearchInput={handleSearchInput}
+                                addLandmark={addLandmark}
+                                removeLandmark={removeLandmark}
+                                handleSubmit={handleSubmit}
+
+                                amount={amount}
+                                approvalAuthority={approvalAuthority}
+                                area={area}
+                                bookingAmount={bookingAmount}
+                                brochure={brochure}
+                                carpetArea={carpetArea}
+                                constructionStatus={constructionStatus}
+                                currentPlan={currentPlan}
+                                editIndex={editIndex}
+                                electricityStatus={electricityStatus}
+                                facingDirection={facingDirection}
+                                fileInputRef={fileInputRef}
+                                floorPlans={floorPlans}
+                                handleAddOrUpdate={handleAddOrUpdate}
+                                handleClick={handleClick}
+                                handleEditPlan={handleEditPlan}
+                                handleFileChange={handleFileChange}
+                                handleRemovePlan={handleRemovePlan}
+                                maintainenceCharges={maintainenceCharges}
+                                n={n}
+                                open={open}
+                                plotArea={plotArea}
+                                possessionDate={possessionDate}
+                                pricePerSqFT={pricePerSqFT}
+                                priceRange={priceRange}
+                                propertySize={propertySize}
+                                propertyage={propertyage}
+                                removePdf={removePdf}
+                                reraNumber={reraNumber}
+                                setAmount={setAmount}
+                                setApprovalAuthority={setApprovalAuthority}
+                                setArea={setArea}
+                                setBookingAmount={setBookingAmount}
+                                setCarpetArea={setCarpetArea}
+                                setConstructionStatus={setConstructionStatus}
+                                setCurrentPlan={setCurrentPlan}
+                                setEditIndex={setEditIndex}
+                                setElectricityStatus={setElectricityStatus}
+                                setFacingDirection={setFacingDirection}
+                                setFloorPlans={setFloorPlans}
+                                setMaintainenceCharges={setMaintainenceCharges}
+                                setN={setN}
+                                setOpen={setOpen}
+                                setPlotArea={setPlotArea}
+                                setPossessionDate={setPossessionDate}
+                                setPricePerSqT={setPricePerSqT}
+                                setPriceRange={setPriceRange}
+                                setPropertyAge={setPropertyAge}
+                                setPropertySize={setPropertySize}
+                                setReraNumber={setReraNumber}
+                                setTotalUnits={setTotalUnits}
+                                setUnitSizeRange={setUnitSizeRange}
+                                setUnitType={setUnitType}
+                                setWaterAvailablity={setWterAvailablity}
+                                totalUnits={totalUnits}
+                                unitSizeRange={unitSizeRange}
+                                unitType={unitType}
+                                waterAvailablity={waterAvailablity}
+                                role={role}
+                                transactionType={transactionType}
+                            />
+                        }
+
+                        {
+                            formCount === 4 &&
+                            <VillaForm2
+                                amenities={amenities}
+                                availableOffers={availableOffers}
+                                banks={banks}
+                                certification={certification}
+                                coveredParking={coveredParking}
+                                dropdownConfigs={dropdownConfigs}
+                                editContacts={editContacts}
+                                editIndexx={editIndexx}
+                                extraRoomTypes={extraRoomTypes}
+                                floorNo={floorNo}
+                                flooring={flooring}
+                                furnishingStatus={furnishingStatus}
+                                handleEditContact={handleEditContact}
+                                handleFormSubmit={handleFormSubmit}
+                                handleOpenChange={handleOpenChange}
+                                handleRemoveSavedContact={handleRemoveSavedContact}
+                                handleSelectionChangeChip={handleSelectionChangeChip}
+                                handleSelectionChangeChip2={handleSelectionChangeChip2}
+                                openn={openn}
+                                option={option}
+                                ownership={ownership}
+                                purpose={purpose}
+                                sampleFlat={sampleFlat}
+                                savedContacts={savedContacts}
+                                setAvailableOffers={setAvailableOffers}
+                                setBanks={setBanks}
+                                setCertification={setCertification}
+                                setCoveredParking={setCoveredParking}
+                                setEditContacts={setEditContacts}
+                                setEditIndexx={setEditIndexx}
+                                setExtraRoomTypes={setExtraRoomTypes}
+                                setFloorNo={setFloorNo}
+                                setFlooring={setFlooring}
+                                setFurnishingStatus={setFurnishingStatus}
+                                setOpenn={setOpenn}
+                                setOwnership={setOwnership}
+                                setPurpose={setPurpose}
+                                setSampleFlat={setSampleFlat}
+                                setSavedContacts={setSavedContacts}
+                                setTotalBalcony={setTotalBalcony}
+                                setTotalBathroom={setTotalBathroom}
+                                setTotalBedroom={setTotalBedroom}
+                                setTotalNo={setTotalNo}
+                                totalBalcony={totalBalcony}
+                                totalBathroom={totalBathroom}
+                                totalBedroom={totalBedroom}
+                                totalNo={totalNo}
+                                role={role}
+                                transactionType={transactionType}
+                            />
+                        }
+
+                        {
+                            formCount === 5 &&
+                            <MediaUpload
+                                coverVideo={coverVideo}
+                                galleryFiles={galleryFiles}
+                                removeGalleryItem={removeGalleryItem}
+                                setCoverVideo={setCoverVideo}
+                                setGalleryFiles={setGalleryFiles}
+                            />}
+                    </motion.div>
+                </AnimatePresence>
             </div>
-        </>
+        </div>
     );
 };
 
 export default Villa;
+
+interface FormDetailsTwoProps {
+    formData: any,
+    errors: any,
+    suggestions: any,
+    useLocationSearch: any,
+    setUseLocationSearch: any,
+    isLoading: any,
+    landmarkInput: any,
+    setLandmarkInput: any,
+    handleChange: any,
+    handleSearchInput: any,
+    addLandmark: any,
+    removeLandmark: any
+    handleSubmit: any
+}
+const FormDetailsTwo = ({
+    formData,
+    errors,
+    suggestions,
+    useLocationSearch,
+    setUseLocationSearch,
+    isLoading,
+    landmarkInput,
+    setLandmarkInput,
+    handleChange,
+    handleSearchInput,
+    addLandmark,
+    removeLandmark,
+    handleSubmit
+}: FormDetailsTwoProps) => {
+    return (
+        <div>
+            <BasicListingAddressForm
+                formData={formData}
+                errors={errors}
+                suggestions={suggestions}
+                useLocationSearch={useLocationSearch}
+                setUseLocationSearch={setUseLocationSearch}
+                isLoading={isLoading}
+                landmarkInput={landmarkInput}
+                setLandmarkInput={setLandmarkInput}
+                handleChange={handleChange}
+                handleSearchInput={handleSearchInput}
+                addLandmark={addLandmark}
+                removeLandmark={removeLandmark}
+                handleSubmit={handleSubmit}
+            />
+        </div>
+    )
+}
 
 interface FormVilla1Props {
     reraNumber: string,
@@ -1203,23 +1376,7 @@ const VillaForm1 = ({
     setCarpetArea, role, transactionType
 }: FormVilla1Props) => {
     return (
-        <div className='mt-3 space-y-3'>
-            <BasicListingAddressForm
-                formData={formData}
-                errors={errors}
-                suggestions={suggestions}
-                useLocationSearch={useLocationSearch}
-                setUseLocationSearch={setUseLocationSearch}
-                isLoading={isLoading}
-                landmarkInput={landmarkInput}
-                setLandmarkInput={setLandmarkInput}
-                handleChange={handleChange}
-                handleSearchInput={handleSearchInput}
-                addLandmark={addLandmark}
-                removeLandmark={removeLandmark}
-                handleSubmit={handleSubmit}
-            />
-
+        <div className='space-y-3'>
             <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
                     <label className="block text-sm font-medium text-gray-700">
@@ -1234,7 +1391,7 @@ const VillaForm1 = ({
                     />
                 </div>
                 {
-                    (transactionType === "resale" || role === "Agent") &&
+                    (transactionType === "resale" || role === "agent") &&
                     <div className='flex flex-col flex-1'>
                         <DropdownMenuCustom
                             key={dropdownConfigs[0].key}
@@ -1249,7 +1406,7 @@ const VillaForm1 = ({
             </div>
 
             {
-                (transactionType === "sale" && role === "Builder") &&
+                (transactionType === "sale" && role === "builder") &&
                 <div onClick={() => {
                     setOpen(true)
                     setCurrentPlan({ ...initialPlan }); // Reset to initial empty state
@@ -1403,7 +1560,7 @@ const VillaForm1 = ({
             </div>
             <div className='flex flex-row gap-4'>
                 {
-                    (transactionType === "resale" || role === "Agent") &&
+                    (transactionType === "resale" || role === "agent") &&
                     <div className='flex flex-col flex-1'>
                         <label className="block text-sm font-medium text-gray-700">
                             Amount
@@ -1755,7 +1912,7 @@ const VillaForm2 = ({
     setFlooring, role, transactionType
 }: FormVilla2Props) => {
     return (
-        <div className='mt-3 space-y-3'>
+        <div className='space-y-3'>
             <div className='flex flex-row gap-4'>
                 <div className='flex flex-col flex-1'>
                     <DropdownMenuCustom
@@ -1780,7 +1937,7 @@ const VillaForm2 = ({
             </div>
 
             {
-                (transactionType === "resale" || role === "Agent") &&
+                (transactionType === "resale" || role === "agent") &&
                 <>
                     <div className='flex flex-row gap-4'>
                         <div className='flex flex-col flex-1'>
@@ -1960,15 +2117,15 @@ const VillaForm2 = ({
                 </div>
             </div>
 
-            <div className="p-4">
+            <div className="py-2">
                 <div className="flex flex-row items-center flex-1 gap-4">
                     <label className="underline underline-offset-4 block text-sm font-medium text-gray-700">
-                        Add Contact
+                        Additional Contacts
                     </label>
                     <Dialog open={openn} onOpenChange={handleOpenChange}>
                         <DialogTrigger asChild>
                             <button className="border border-black w-[20px] flex justify-center items-center h-[20px] rounded-full">
-                                <Plus size={16} />
+                                <Plus className='h-5 w-5' />
                             </button>
                         </DialogTrigger>
                         <DialogContent className="max-w-lg">
@@ -2000,20 +2157,20 @@ const VillaForm2 = ({
                                     onClick={() => handleEditContact(index)}
                                     className="text-black cursor-pointer"
                                 >
-                                    <Edit2 size={16} />
+                                    <Edit2 className='h-5 w-5' />
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => handleRemoveSavedContact(index)}
                                     className="text-red-500 hover:text-red-700 cursor-pointer"
                                 >
-                                    <Trash2 size={16} />
+                                    <Trash2 className='h-5 w-5' />
                                 </button>
                             </div>
-                            <h1 className="text-sm font-medium">Name: {item.name}</h1>
-                            <h1 className="text-sm font-medium">Mobile: {item.mobile}</h1>
+                            <h1 className="text-sm  font-medium">Name: {item.name}</h1>
+                            <h1 className="text-sm  font-medium">Mobile: {item.mobile}</h1>
                             {item.email && (
-                                <h1 className="text-sm font-medium">Email: {item.email}</h1>
+                                <h1 className="text-sm  font-medium">Email: {item.email}</h1>
                             )}
                         </div>
 

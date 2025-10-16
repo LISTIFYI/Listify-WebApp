@@ -1,7 +1,7 @@
 // src/components/auth/LoginModal.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react'; // Optional: For close icon, assuming you have lucide-react installed
 import { useAuth } from '@/context/AuthContext';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
@@ -40,12 +40,46 @@ const LoginModal: React.FC = () => {
             }, 100);
         }
     };
+    const dialogContentRef = useRef<HTMLDivElement>(null);
 
+    // Handle keyboard visibility and modal positioning
+    useEffect(() => {
+        const handleKeyboard = () => {
+            if (dialogContentRef.current && window.visualViewport) {
+                const keyboardHeight = window.innerHeight - window.visualViewport.height;
+                if (keyboardHeight > 0) {
+                    // Keyboard is open, shift modal up
+                    dialogContentRef.current.style.transform = `translateY(-${keyboardHeight / 2}px)`;
+                    dialogContentRef.current.style.transition = 'transform 0.3s ease-in-out';
+                } else {
+                    // Keyboard is closed, reset position
+                    dialogContentRef.current.style.transform = 'translateY(0)';
+                }
+            }
+        };
+
+        // Listen for viewport resize (keyboard open/close) and input focus
+        window.visualViewport?.addEventListener('resize', handleKeyboard);
+        document.addEventListener('focusin', handleKeyboard);
+        document.addEventListener('focusout', handleKeyboard);
+
+        return () => {
+            window.visualViewport?.removeEventListener('resize', handleKeyboard);
+            document.removeEventListener('focusin', handleKeyboard);
+            document.removeEventListener('focusout', handleKeyboard);
+        };
+    }, []);
 
     return (
-        <Dialog open={showLogin} onOpenChange={handleOpenChange} >
-            <DialogContent showCloseButton={false} className={`
-                rounded-2xl p-0 shadow-xl  ${step === "profile" ? "max-w-lg" : "max-w-lg"}`}>
+        <Dialog open={showLogin} onOpenChange={() => {
+            if (step !== "profile") {
+                handleOpenChange
+            }
+        }} >
+            <DialogContent
+                ref={dialogContentRef}
+                showCloseButton={false} className={`
+                rounded-2xl p-0 shadow-xl  ${step === "profile" ? "w-[90%] md:max-w-lg lg:max-w-lg" : "w-[90%] md:max-w-lg lg:max-w-lg"}`}>
 
                 <div className='flex flex-row justify-between items-center p-4 pb-3 border-b'>
                     <div className='flex flex-row gap-2'>
@@ -55,6 +89,9 @@ const LoginModal: React.FC = () => {
                     <div
                         onClick={() => {
                             closeLogin()
+                            setTimeout(() => {
+                                router.push('/');
+                            }, 100);
                         }}
                         className='flex border cursor-pointer ml-auto border-slate-300  hover:bg-gray-50 transition-all duration-300 rounded-full w-[32px] h-[32px] justify-center items-center '>
                         <X size={22} />

@@ -20,9 +20,12 @@ import {
 import { tokenStore } from "@/lib/token";
 import axios from "axios";
 import Image from "next/image";
-import { Pencil } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { UploadPhoto } from "@/utils/api";
 import { log } from "node:console";
+import { http } from "@/lib/http";
+import Logo from '../../../assets/logo.png'
+
 
 export default function ProfileForm({
     open,
@@ -64,8 +67,7 @@ export default function ProfileForm({
         console.log("Form data:", formData);
         try {
             const tk = tokenStore.get();
-            const res = await axios.put(
-                `https://listifyi-api-1012443530727.asia-south1.run.app/users/profile`,
+            const res = await http.put(`/users/profile`,
                 {
                     profilePhoto: formData.profile_pic,
                     name: formData.name,
@@ -77,11 +79,6 @@ export default function ProfileForm({
                     age: Number(formData.age) || null,
 
                 },
-                {
-                    headers: {
-                        Authorization: `Bearer ${tk?.accessToken}`,
-                    },
-                }
             );
             await getProfile()
             await getProfileFn()
@@ -94,10 +91,7 @@ export default function ProfileForm({
     const getProfile = async () => {
         try {
             const tk = tokenStore.get();
-            const res = await axios.get<any>(
-                `https://listifyi-api-1012443530727.asia-south1.run.app/users/profile/${selectedId}`,
-                { headers: { Authorization: `Bearer ${tk?.accessToken}` } }
-            );
+            const res = await http.get<any>(`/users/profile/${selectedId}`);
             console.log("ss", res);
 
             if (res.data) {
@@ -129,15 +123,8 @@ export default function ProfileForm({
         const res = await UploadPhoto(payload, tk?.accessToken ?? "", file, "image")
 
         if (res.fileUrl) {
-            await axios.put(
-                `https://listifyi-api-1012443530727.asia-south1.run.app/users/profile`,
-                { profilePhoto: res.fileUrl },
-                {
-                    headers: {
-                        Authorization: `Bearer ${tk?.accessToken}`,
-                    },
-                }
-            );
+            await http.put(`/users/profile`,
+                { profilePhoto: res.fileUrl });
             await getProfile()
             await getProfileFn()
         }
@@ -153,13 +140,23 @@ export default function ProfileForm({
 
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>Edit Profile</DialogTitle>
-                </DialogHeader>
+        <Dialog open={open} onOpenChange={setOpen} >
+            <DialogContent className="sm:max-w-lg pt-0 pb-6 px-0" showCloseButton={false}>
+                <div className='flex flex-row justify-between items-center p-4 pb-3 border-b'>
+                    <div className='flex flex-row gap-2'>
+                        <Image src={Logo} alt="logo" className="max-w-[30px] h-[30px] border " />
+                        <h1 className='text-[22px]  text-black font-[700] text-nowrap  text-start'>Edit Profile</h1>
+                    </div>
+                    <div
+                        onClick={() => {
+                            setOpen(false)
+                        }}
+                        className='flex border cursor-pointer ml-auto border-slate-300  hover:bg-gray-50 transition-all duration-300 rounded-full w-[32px] h-[32px] justify-center items-center '>
+                        <X size={22} />
+                    </div>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 px-6">
                     <div className="relative w-16 h-16 sm:w-24 sm:h-24 mx-auto">
                         {/* Profile Picture */}
                         <div className="w-full h-full rounded-full overflow-hidden border flex justify-center items-center">

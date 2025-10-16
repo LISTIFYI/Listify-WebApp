@@ -36,7 +36,8 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
         pathname.startsWith("/setting") ||
         pathname.startsWith("/messages") ||
         pathname.startsWith("/dashboard") ||
-        pathname.startsWith("/properties");
+        pathname.startsWith("/properties") ||
+        pathname.startsWith("/profile");
 
 
     return (
@@ -62,22 +63,24 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
 
                 {/* Middle: filters/search (your existing UI) */}
                 <div className="flex p-2 flex-1 flex-row justify-between items-center">
-                    {
-                        !hideLogo &&
-                        <>
-                            <div className="flex md:ml-0 items-center flex-row gap-4 hideFilterOne">
-                                <div className="hidden md:block  ">
-                                    <button
-                                        onClick={onToggleSidebar}
-                                        aria-label="Toggle sidebar"
-                                        className={clsx(
-                                            "inline-flex  items-center justify-center rounded-md border border-gray-200 w-9 h-9 hover:bg-gray-50 transition",
-                                            isSidebarCollapsed ? "bg-gray-50" : "bg-white"
-                                        )}
-                                    >
-                                        <RxHamburgerMenu size={18} />
-                                    </button>
-                                </div>
+
+                    <>
+                        <div className="flex md:ml-0 items-center flex-row gap-4 hideFilterOne">
+                            <div className="hidden md:block  ">
+                                <button
+                                    onClick={onToggleSidebar}
+                                    aria-label="Toggle sidebar"
+                                    className={clsx(
+                                        "inline-flex  items-center justify-center rounded-md border border-gray-200 w-9 h-9 hover:bg-gray-50 transition",
+                                        isSidebarCollapsed ? "bg-gray-50" : "bg-white"
+                                    )}
+                                >
+                                    <RxHamburgerMenu size={18} />
+                                </button>
+                            </div>
+
+                            {
+                                !hideLogo &&
                                 <div className="bg-[#F9FAFB] hidden md:flex flex-row justify-center items-center rounded-full p-[4px]">
                                     <div
                                         className={clsx(
@@ -89,7 +92,7 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                                         onClick={() => {
                                             setActiveToggle("all")
                                             addFilters({
-                                                type: ""
+                                                priceType: ""
                                             })
                                         }}
                                     >
@@ -107,7 +110,7 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                                         onClick={() => {
                                             setActiveToggle("sale")
                                             addFilters({
-                                                type: "sale"
+                                                priceType: "sale"
                                             })
 
                                         }}
@@ -127,7 +130,7 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                                         onClick={() => {
                                             setActiveToggle("resale")
                                             addFilters({
-                                                type: "resale"
+                                                priceType: "resale"
                                             })
                                         }}
                                     >
@@ -135,7 +138,10 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                                         Resale
                                     </div>
                                 </div>
-                            </div>
+                            }
+
+                        </div>
+                        {!hideLogo &&
                             <div className="flex flex-row gap-3">
                                 <div className="border hideSearchbar rounded-full bg-[#F9FAFB] flex flex-row justify-center items-center gap-1 py-2 px-2.5 border-[#E7ECEE]">
                                     <IoSearch className="text-[#989CA0]" size={14} />
@@ -152,8 +158,10 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                                     <IoFilter className="text-[#989CA0]" size={14} />
                                     <h1 className="text-[12px] hideFilterText font-[400] text-[#989CA0]">Filter</h1>
                                 </div>
-                            </div></>
-                    }
+                            </div>
+                        }
+
+                    </>
                     {/* Right: actions (unchanged) */}
                     <div className="flex  ml-auto flex-row gap-4  items-center justify-center">
                         {
@@ -161,8 +169,6 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                             <>
                                 <div
                                     onClick={() => {
-                                        console.log("user", user);
-
                                         if (user?.roles?.includes("Builder") || user?.roles?.includes("Agent")) {
                                             router.push("/property-listing");
                                         } else {
@@ -215,9 +221,9 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <div className="flex cursor-pointer bg flex-row gap-2 items-center justify-center pr-4">
-                                                <div className="border hover:bg-gray-100  transition-all duration-300 overflow-hidden border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
+                                                <div className="border hover:bg-gray-100  transition-all duration-300 overflow-hidden border-[#EBEBEB] flex justify-center items-center w-[40px] h-[40px] lg:w-[34px] lg:h-[34px] rounded-full">
                                                     {/* Replace with user avatar if available */}
-                                                    <span className="text-[12px] font-bold">
+                                                    <span className="text-[16px] font-bold">
                                                         {user?.name?.[0] ?? "U"}
                                                     </span>
                                                 </div>

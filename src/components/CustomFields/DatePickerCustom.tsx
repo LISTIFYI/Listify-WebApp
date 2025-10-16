@@ -42,12 +42,12 @@ const DatePickerCustom: React.FC<DatePickerCustomProps> = ({
                     variant="outline"
                     data-empty={!date}
                     className={cn(
-                        "w-full h-8 rounded-sm justify-start text-left font-normal",
+                        "w-full h-10 rounded-sm justify-start text-left font-normal",
                         !date && "text-muted-foreground",
                         className
                     )}
                 >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="h-4 w-4" />
                     {date ? format(date, "PPP") : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>

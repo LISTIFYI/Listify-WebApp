@@ -303,3 +303,60 @@
   height: 100%;
   object-fit: cover;
 }
+
+
+.dropdownHeight {
+  height: 40px;
+
+}
+
+@media (max-width: 767px) {
+  .dropdownHeight {
+    height: 40px;
+
+  }
+}
+
+.alignAction {
+  position: absolute;
+  bottom: 0px;
+  right: -32px;
+}
+
+.actionColor {
+  color: #000;
+}
+
+@media (min-width: 767px) and (max-width: 1220px) {
+  .alignAction {
+    position: absolute;
+    bottom: 0px;
+    right: 10px;
+  }
+
+  .actionColor {
+    color: #fff;
+  }
+}
+
+@media (min-width: 0px) and (max-width: 767px) {
+  .alignAction2 {
+    position: absolute;
+    bottom: 16px;
+    right: 10px;
+  }
+
+  .actionColo2 {
+    color: #fff;
+  }
+}
+
+.showWidth {
+  width: 100%;
+}
+
+@media (min-width: 0px) and (max-width: 1220px) {
+  .showWidth {
+    width: 80%;
+  }
+}

@@ -10,6 +10,7 @@ import { http } from "@/lib/http"
 import CarouselCardLoader from "@/components/Loader/CarouselCardLoader"
 import { Heart, MapPin } from "lucide-react"
 import CarouselCardLoader2 from "@/components/Loader/CarouselCardLoader2"
+import { tokenStore } from "@/lib/token"
 
 const Discover = () => {
   const router = useRouter()
@@ -68,11 +69,11 @@ const Discover = () => {
     getLocation();
   }, []);
 
+  console.log("token", tokenStore.get()?.accessToken);
 
   const getAllNearbyProperties = async () => {
     try {
-
-      const res = await http.get(`/public/listings-v2/nearby?page=${1}&limit=${6}&lat=${Number("12.9735897")}&lng=${Number("77.7504179")}`);
+      const res = await http.get(`/public/listings-v2/nearby?page=${1}&limit=${6}&lat=${Number("12.9754666")}&lng=${Number("77.6328723")}`);
       const newNP = res?.data?.listings || [];
       console.log('API Response:', res?.data);
       console.log('New Builder:', newNP);
@@ -122,34 +123,35 @@ const Discover = () => {
     { name: "Liam" },
   ]
 
-  const [windowWidth, setWindowWidth] = useState<number | null>(null)
-  // Breakpoints for slidesPerView
-  const breakpoints = {
-    1250: 4,
-    1020: 3,
-    490: 2,
-    0: 1,
-  }
+  const [windowWidth, setWindowWidth] = useState<number>(typeof window !== "undefined" ? window.innerWidth : 0);
 
-  // Handle window resize
+  // Define Swiper breakpoints
+  const breakpoints: Record<number, { slidesPerView: number; spaceBetween: number }> = {
+    0: { slidesPerView: 2, spaceBetween: 10 },
+    490: { slidesPerView: 3, spaceBetween: 20 },
+    1020: { slidesPerView: 5, spaceBetween: 30 },
+    1250: { slidesPerView: 6, spaceBetween: 20 },
+  };
+  // Update window width on resize
   useEffect(() => {
-    setWindowWidth(window.innerWidth)
-    const handleResize = () => setWindowWidth(window.innerWidth)
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-  const getSlidesPerView = () => {
-    if (!windowWidth) return 1
-    if (windowWidth >= 1250) return breakpoints[1250]
-    if (windowWidth >= 1020) return breakpoints[1020]
-    if (windowWidth >= 490) return breakpoints[490]
-    return breakpoints[0]
-  }
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-  const slidesPerView = getSlidesPerView()
-  const isPropertiesScrollable = data.length > slidesPerView
-  const isAgentsScrollable = allAgents.length > slidesPerView
-  const isBuildersScrollable = allBuilders.length > slidesPerView
+  // Dynamically get slides per view based on current window width
+  const getSlidesPerView = () => {
+    if (windowWidth >= 1250) return breakpoints[1250].slidesPerView;
+    if (windowWidth >= 1020) return breakpoints[1020].slidesPerView;
+    if (windowWidth >= 490) return breakpoints[490].slidesPerView;
+    return breakpoints[0].slidesPerView;
+  };
+
+  const slidesPerView = getSlidesPerView();
+  const isPropertiesScrollable = data.length > slidesPerView;
+  const isAgentsScrollable = allAgents.length > slidesPerView;
+  const isBuildersScrollable = allBuilders.length > slidesPerView;
 
 
   const swiperSettings = {
@@ -165,9 +167,9 @@ const Discover = () => {
     modules: [Navigation],
     loop: true,
     breakpoints: {
-      490: { slidesPerView: 2, spaceBetween: 20 },
-      1020: { slidesPerView: 3, spaceBetween: 30 },
-      1250: { slidesPerView: 4, spaceBetween: 20 },
+      490: { slidesPerView: 3, spaceBetween: 20 },
+      1020: { slidesPerView: 5, spaceBetween: 30 },
+      1250: { slidesPerView: 6, spaceBetween: 20 },
     },
   }
 

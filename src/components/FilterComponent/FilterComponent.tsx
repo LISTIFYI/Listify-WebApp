@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ButtonCommon from '../CustomFields/Button';
 import { useAuth } from '@/context/AuthContext';
 import { Slider } from '../ui/slider';
+import { Checkbox } from '../ui/checkbox';
 
 interface Tab2 {
     id: string;
@@ -166,19 +167,33 @@ const FilterComponent: React.FC = () => {
                             disabled={tab.isDisable}
                             key={tab.id}
                             onClick={() => setActiveTab2(tab.name)}
-                            className={`px-6 flex-1 relative disabled:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:border disabled:border-gray-300 py-3.5 text-sm rounded-sm font-medium transition-colors duration-200 ${activeTab2 === tab.name
-                                ? 'bg-black text-white'
-                                : 'bg-white text-black hover:bg-gray-200'
-                                }`}
+                            className={`relative px-6 flex-1 py-3.5 text-sm rounded-md font-medium transition-colors duration-300
+      border border-gray-300
+      ${activeTab2 === tab.name
+                                    ? 'bg-black text-white border-black'
+                                    : 'bg-white text-black hover:bg-gray-100'}
+      disabled:cursor-not-allowed disabled:opacity-60`}
                         >
                             {tab.name}
+
                             {tab.isComing && (
-                                <span className="absolute left-1/2 bottom-[4px] -translate-x-1/2 bg-red-200 px-2 py-[0.5px] text-red-500 text-[8px] font-semibold rounded">
+                                <span className="
+        absolute right-0 top-0 md:right-2 md:top-2 lg:right-2 lg:top-2
+        text-[10px] font-medium
+        bg-gradient-to-r from-yellow-200 to-yellow-400
+        text-yellow-800
+        px-2 py-[1px]
+        rounded-full
+        shadow-sm
+        border border-yellow-300
+        animate-pulse
+      ">
                                     Coming Soon
                                 </span>
                             )}
                         </button>
                     ))}
+
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row relative w-fit" ref={containerRef}>
@@ -215,72 +230,112 @@ const FilterComponent: React.FC = () => {
                 {
                     (activeTab === "Plot") &&
                     <>
-                        <div className="flex flex-col gap-2 mt-2.5">
-                            <h1 className='text-sm'>Plot Type</h1>
-                            <div className="flex flex-row relative flex-wrap gap-2 w-fit">
+                        <div className="flex flex-col gap-2 mt-4">
+                            <h1 className='text-[16px] font-medium'>Plot Type</h1>
+
+                            <div className="flex flex-row flex-wrap gap-6 w-fit">
                                 {plotType.map((plotT, index) => (
-                                    <button
+                                    <label
                                         key={plotT}
-                                        onClick={() => togglePlotType(plotT)}
-                                        className={`px-4 py-1 border rounded-sm text-sm  transition-colors duration-300 ease-in-out z-10 ${selectedPlotType.includes(plotT) ? ' bg-black text-white' : 'text-gray-600 hover:text-black'
-                                            }`}
+                                        className="flex items-center gap-2 cursor-pointer text-[16px] text-gray-700"
                                     >
-                                        {plotT}
-                                    </button>
+                                        <Checkbox
+                                            checked={selectedPlotType.includes(plotT)}
+                                            onCheckedChange={() => togglePlotType(plotT)}
+                                            className='w-[20px] h-[20px] cursor-pointer' />
+                                        <span
+                                            className={`transition-colors ${selectedPlotType.includes(plotT)
+                                                ? "text-black"
+                                                : "text-gray-600"
+                                                }`}
+                                        >
+                                            {plotT}
+                                        </span>
+                                    </label>
                                 ))}
                             </div>
+
                         </div>
 
-                        <div className="flex flex-col gap-2 mt-2.5">
-                            <h1 className='text-sm'>Approval Authority</h1>
-                            <div className="flex flex-row relative flex-wrap gap-2 w-fit">
+                        <div className="flex flex-col gap-2 mt-4">
+                            <h1 className='text-[16px] font-medium'>Approval Authority</h1>
+
+                            <div className="flex flex-row flex-wrap gap-6 w-fit">
                                 {approvalAuthority.map((approvalA) => (
-                                    <button
+                                    <label
+                                        className="flex items-center gap-2 cursor-pointer text-[16px] text-gray-700"
                                         key={approvalA}
-                                        onClick={() => toggleApprovalAuthority(approvalA)}
-                                        className={`px-4 py-1 border rounded-sm text-sm  transition-colors duration-300 ease-in-out z-10 ${selectedAuthority.includes(approvalA) ? 'bg-black text-white' : 'text-gray-600 hover:text-black'
-                                            }`}
+
                                     >
-                                        {approvalA}
-                                    </button>
+                                        <Checkbox
+                                            checked={selectedAuthority.includes(approvalA)}
+                                            onCheckedChange={() => toggleApprovalAuthority(approvalA)}
+                                            className='w-[20px] h-[20px] cursor-pointer' />
+                                        <span
+                                            className={`transition-colors ${selectedAuthority.includes(approvalA)
+                                                ? "text-black"
+                                                : "text-gray-600"
+                                                }`}
+                                        >
+                                            {approvalA}
+                                        </span>
+                                    </label>
                                 ))}
                             </div>
+
+
                         </div>
                     </>
                 }
-
-
                 {
                     (activeTab === "Flat" || activeTab === "Villa") &&
                     <>
-                        <div className="flex flex-col gap-2 mt-2.5">
-                            <h1 className='text-sm'>Bedrooms</h1>
-                            <div className="flex flex-row relative flex-wrap gap-2 w-fit">
-                                {bedrooms.map((bedroom, index) => (
-                                    <button
+                        <div className="flex flex-col gap-2 mt-4">
+                            <h1 className='text-[16px] font-medium'>Bedrooms</h1>
+                            <div className="flex flex-row flex-wrap gap-6 w-fit">
+                                {bedrooms.map((bedroom) => (
+                                    <label
                                         key={bedroom}
-                                        onClick={() => toggleBedroom(bedroom)}
-                                        className={`px-4 py-1 border rounded-sm text-sm  transition-colors duration-300 ease-in-out z-10 ${selectedBedrooms.includes(bedroom) ? ' bg-black text-white' : 'text-gray-600 hover:text-black'
-                                            }`}
+                                        className="flex items-center gap-2 cursor-pointer text-[16px] text-gray-700"
                                     >
-                                        {bedroom}
-                                    </button>
+                                        <Checkbox
+                                            checked={selectedBedrooms.includes(bedroom)}
+                                            onCheckedChange={() => toggleBedroom(bedroom)}
+                                            className='w-[20px] h-[20px] cursor-pointer' />
+                                        <span
+                                            className={`transition-colors ${selectedBedrooms.includes(bedroom)
+                                                ? "text-black"
+                                                : "text-gray-600"
+                                                }`}
+                                        >
+                                            {bedroom}
+                                        </span>
+                                    </label>
                                 ))}
                             </div>
                         </div>
-
-                        <div className="flex flex-col gap-2 mt-2.5">
-                            <h1 className='text-sm'>Building Type</h1>
-                            <div className="flex flex-row relative flex-wrap gap-2 w-fit">
+                        <div className="flex flex-col gap-2 mt-4">
+                            <h1 className='text-[16px] font-medium'>Building Type</h1>
+                            <div className="flex flex-row flex-wrap gap-6 w-fit">
                                 {buildingTypes.map((buildingType) => (
-                                    <button
+                                    <label
                                         key={buildingType}
-                                        onClick={() => toggleBuildingType(buildingType)}
-                                        className={`px-4 py-1 border rounded-sm text-sm  transition-colors duration-300 ease-in-out z-10 ${selectedBuildingTypes.includes(buildingType) ? 'bg-black text-white' : 'text-gray-600 hover:text-black'
-                                            }`}
+                                        className="flex items-center gap-2 cursor-pointer text-[16px] text-gray-700"
+
                                     >
-                                        {buildingType}
-                                    </button>
+                                        <Checkbox
+                                            checked={selectedBuildingTypes.includes(buildingType)}
+                                            onCheckedChange={() => toggleBuildingType(buildingType)}
+                                            className='w-[20px] h-[20px] cursor-pointer' />
+                                        <span
+                                            className={`transition-colors ${selectedBuildingTypes.includes(buildingType)
+                                                ? "text-black"
+                                                : "text-gray-600"
+                                                }`}
+                                        >
+                                            {buildingType}
+                                        </span>
+                                    </label>
                                 ))}
                             </div>
                         </div>
@@ -307,18 +362,28 @@ const FilterComponent: React.FC = () => {
 
                 {
                     (activeTab === "Flat" || activeTab === "Villa") &&
-                    <div className="flex flex-col gap-2 mt-2.5">
-                        <h1 className='text-sm'>Project Status</h1>
-                        <div className="flex flex-row relative flex-wrap gap-2 w-fit">
+                    <div className="flex flex-col gap-2 mt-4">
+                        <h1 className='text-[16px] font-medium'>Project Status</h1>
+                        <div className="flex flex-row flex-wrap gap-6 w-fit">
                             {projectStatuses.map((status) => (
-                                <button
+                                <label
+                                    className="flex items-center gap-2 cursor-pointer text-[16px] text-gray-700"
                                     key={status}
-                                    onClick={() => toggleProjectStatus(status)}
-                                    className={`px-4 py-1 border rounded-sm text-sm font-medium transition-colors duration-300 ease-in-out z-10 ${selectedProjectStatuses.includes(status) ? 'bg-black text-white' : 'text-gray-600 hover:text-black'
-                                        }`}
+
                                 >
-                                    {status}
-                                </button>
+                                    <Checkbox
+                                        checked={selectedProjectStatuses.includes(status)}
+                                        onCheckedChange={() => toggleProjectStatus(status)}
+                                        className='w-[20px] h-[20px] cursor-pointer' />
+                                    <span
+                                        className={`transition-colors ${selectedProjectStatuses.includes(status)
+                                            ? "text-black"
+                                            : "text-gray-600"
+                                            }`}
+                                    >
+                                        {status}
+                                    </span>
+                                </label>
                             ))}
                         </div>
                     </div>
@@ -326,36 +391,59 @@ const FilterComponent: React.FC = () => {
 
                 {
                     (activeTab === "Flat" || activeTab === "Villa") &&
-                    <div className="flex flex-col gap-2 mt-2.5">
-                        <h1 className='text-sm'>Furnishing Status</h1>
-                        <div className="flex flex-row relative flex-wrap gap-2 w-fit">
+                    <div className="flex flex-col gap-2 mt-4">
+                        <h1 className='text-[16px] font-medium'>Furnishing Status</h1>
+                        <div className="flex flex-row flex-wrap gap-6 w-fit">
                             {furnishingStatuses.map((status) => (
-                                <button
+                                <label
+                                    className="flex items-center gap-2 cursor-pointer text-[16px] text-gray-700"
                                     key={status}
-                                    onClick={() => toggleFurnishingStatus(status)}
-                                    className={`px-4 py-1 border rounded-sm text-sm font-medium transition-colors duration-300 ease-in-out z-10 ${selectedFurnishingStatuses.includes(status) ? 'bg-black text-white' : 'text-gray-600 hover:text-black'
-                                        }`}
+
                                 >
-                                    {status}
-                                </button>
+                                    <Checkbox
+                                        checked={selectedFurnishingStatuses.includes(status)}
+                                        onCheckedChange={() => toggleFurnishingStatus(status)}
+                                        className='w-[20px] h-[20px] cursor-pointer' />
+                                    <span
+                                        className={`transition-colors  ${selectedFurnishingStatuses.includes(status)
+                                            ? "text-black"
+                                            : "text-gray-600"
+                                            }`}
+                                    >
+                                        {status}
+                                    </span>
+                                </label>
                             ))}
                         </div>
                     </div>
                 }
 
                 {/* Facing Section */}
-                <div className="flex flex-col gap-2 mt-2.5">
-                    <h1 className='text-sm'>Facing</h1>
-                    <div className="flex flex-row relative flex-wrap gap-2 w-fit">
+                <div className="flex flex-col gap-2 mt-4">
+                    <h1 className='text-[16px] font-medium'>Facing</h1>
+
+                    <div className="flex flex-row flex-wrap gap-6 w-fit">
                         {facings.map((facing) => (
-                            <button
+                            <label
+                                className="flex items-center gap-2 cursor-pointer text-[16px] text-gray-700"
                                 key={facing}
-                                onClick={() => toggleFacing(facing)}
-                                className={`px-4 py-1 border rounded-sm text-sm font-medium transition-colors duration-300 ease-in-out z-10 ${selectedFacings.includes(facing) ? 'bg-black text-white' : 'text-gray-600 hover:text-black'
-                                    }`}
+
                             >
-                                {facing}
-                            </button>
+                                <Checkbox className='w-[20px] h-[20px] cursor-pointer'
+                                    checked={selectedFacings.includes(facing)}
+                                    onCheckedChange={() => toggleFacing(facing)}
+                                />
+
+
+                                <span
+                                    className={`transition-colors   ${selectedFacings.includes(facing)
+                                        ? "text-black"
+                                        : "text-gray-600"
+                                        }`}
+                                >
+                                    {facing}
+                                </span>
+                            </label>
                         ))}
                     </div>
                 </div>
