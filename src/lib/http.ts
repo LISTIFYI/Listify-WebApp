@@ -30,7 +30,7 @@ class ApiInterceptor {
     constructor(tokenStore: { get: () => Tokens | null; set: (tokens: Tokens) => void; clear: () => void }) {
         this.tokenStore = tokenStore;
         this.api = axios.create({
-            baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+            baseURL: "https://listifyi-api-dev-1012443530727.asia-south1.run.app",
             headers: {
                 'Content-Type': 'application/json',
             },
