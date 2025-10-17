@@ -12,13 +12,14 @@ import { IoFilter } from 'react-icons/io5';
 import { useAuth } from '@/context/AuthContext';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import FilterComponent from '@/components/FilterComponent/FilterComponent';
-import { http } from '@/lib/http';
 import { AnimatePresence, motion } from 'framer-motion';
 import Logo from '../../../assets/logo.png'
 import { FaFacebookF, FaWhatsapp } from 'react-icons/fa';
 import { IoIosMail, IoIosSend } from 'react-icons/io';
 import { FaSquareThreads, FaXTwitter } from "react-icons/fa6";
 import { useRouter } from 'next/navigation';
+import { tokenStore } from '@/lib/token';
+import { initializeApi } from '@/lib/http';
 
 // Update the Post interface
 type Post = {
@@ -95,6 +96,8 @@ type ApiResponse = {
 };
 
 const VideoScrollingUI = () => {
+    const api = initializeApi(tokenStore).getApi();
+
     const { selectedPost, setSelectedPost } = usePostContext();
     const { setOpenFilter, filters, openFilter, user, openLogin } = useAuth()
     const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -104,6 +107,8 @@ const VideoScrollingUI = () => {
 
     const [selectedVideo, setSelectedVideo] = useState<Post | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    console.log("wathchsdsososkodksokdsokdskdoskdsok", isDetailsOpen)
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [pagination, setPagination] = useState({
@@ -168,17 +173,17 @@ const VideoScrollingUI = () => {
             // If we have a logged-in user → use private API
             if (user) {
                 if (filterQuery?.length > 0) {
-                    res = await http.get(`/listings-v2/search/posts?offset=${offset}&limit=${25}&${filterQuery}`);
+                    res = await api.get(`/listings-v2/search/posts?offset=${offset}&limit=${25}&${filterQuery}`);
                 } else {
-                    res = await http.get(`/posts/feed?offset=${offset}&limit=${25}`);
+                    res = await api.get(`/posts/feed?offset=${offset}&limit=${25}`);
                 }
             }
             // Else → use public API
             else {
                 if (filterQuery?.length > 0) {
-                    res = await http.get(`/public/posts/search?offset=${offset}&limit=${25}&${filterQuery}`);
+                    res = await api.get(`/public/posts/search?offset=${offset}&limit=${25}&${filterQuery}`);
                 } else {
-                    res = await http.get(`/public/posts/feed?offset=${offset}&limit=${25}`);
+                    res = await api.get(`/public/posts/feed?offset=${offset}&limit=${25}`);
                 }
             }
 
@@ -270,9 +275,9 @@ const VideoScrollingUI = () => {
             }
 
             if (isCurrentlyFollowing) {
-                await http.delete(`/users/unfollow`, { data: { userId } });
+                await api.delete(`/users/unfollow`, { data: { userId } });
             } else {
-                await http.post(`/users/follow`, { userId });
+                await api.post(`/users/follow`, { userId });
             }
 
             // ✅ API call
@@ -325,10 +330,10 @@ const VideoScrollingUI = () => {
                             ...p,
                             is_liked: !isCurrentlyLiked,
                             stats: {
-                                ...p.stats,
+                                ...p?.stats,
                                 like_count: isCurrentlyLiked
-                                    ? p.stats.like_count - 1
-                                    : p.stats.like_count + 1,
+                                    ? p?.stats?.like_count - 1
+                                    : p?.stats?.like_count + 1,
                             },
                         }
                         : p
@@ -340,19 +345,19 @@ const VideoScrollingUI = () => {
                     ...prev,
                     is_liked: !isCurrentlyLiked,
                     stats: {
-                        ...prev.stats,
+                        ...prev?.stats,
                         like_count: isCurrentlyLiked
-                            ? prev.stats.like_count - 1
-                            : prev.stats.like_count + 1,
+                            ? prev?.stats?.like_count - 1
+                            : prev?.stats?.like_count + 1,
                     },
                 });
             }
 
             // API call
             if (isCurrentlyLiked) {
-                await http.delete(`/posts/${postId}/like`);
+                await api.delete(`/posts/${postId}/like`);
             } else {
-                await http.post(`/posts/${postId}/like`);
+                await api.post(`/posts/${postId}/like`);
             }
         } catch (err) {
             console.error("Error toggling like:", err);
@@ -360,7 +365,7 @@ const VideoScrollingUI = () => {
             setPosts(prevPosts =>
                 prevPosts.map(p =>
                     p.post.id === post.post.id
-                        ? { ...p, is_liked: post.is_liked, stats: { ...p.stats, like_count: post.stats.like_count } }
+                        ? { ...p, is_liked: post?.is_liked, stats: { ...p.stats, like_count: post.stats?.like_count } }
                         : p
                 )
             );
@@ -368,7 +373,7 @@ const VideoScrollingUI = () => {
                 setSelectedVideo(prev => prev && {
                     ...prev,
                     is_liked: post.is_liked,
-                    stats: { ...prev.stats, like_count: post.stats.like_count },
+                    stats: { ...prev?.stats, like_count: post.stats?.like_count },
                 });
             }
             setError("Failed to update like status");
@@ -391,10 +396,10 @@ const VideoScrollingUI = () => {
                             ...p,
                             is_saved: !isCurrentlySaved,
                             stats: {
-                                ...p.stats,
+                                ...p?.stats,
                                 save_count: isCurrentlySaved
-                                    ? p.stats.save_count - 1
-                                    : p.stats.save_count + 1,
+                                    ? p?.stats?.save_count - 1
+                                    : p?.stats?.save_count + 1,
                             },
                         }
                         : p
@@ -406,19 +411,19 @@ const VideoScrollingUI = () => {
                     ...prev,
                     is_saved: !isCurrentlySaved,
                     stats: {
-                        ...prev.stats,
+                        ...prev?.stats,
                         save_count: isCurrentlySaved
-                            ? prev.stats.save_count - 1
-                            : prev.stats.save_count + 1,
+                            ? prev?.stats?.save_count - 1
+                            : prev?.stats?.save_count + 1,
                     },
                 });
             }
 
             // API call
             if (isCurrentlySaved) {
-                await http.delete(`/posts/${postId}/save`);
+                await api.delete(`/posts/${postId}/save`);
             } else {
-                await http.post(`/posts/${postId}/save`);
+                await api.post(`/posts/${postId}/save`);
             }
         } catch (err) {
             console.error("Error toggling save:", err);
@@ -426,7 +431,7 @@ const VideoScrollingUI = () => {
             setPosts(prevPosts =>
                 prevPosts.map(p =>
                     p.post.id === post.post.id
-                        ? { ...p, is_saved: post.is_saved, stats: { ...p.stats, save_count: post.stats.save_count } }
+                        ? { ...p, is_saved: post?.is_saved, stats: { ...p?.stats, save_count: post?.stats?.save_count } }
                         : p
                 )
             );
@@ -434,7 +439,7 @@ const VideoScrollingUI = () => {
                 setSelectedVideo(prev => prev && {
                     ...prev,
                     is_saved: post.is_saved,
-                    stats: { ...prev.stats, save_count: post.stats.save_count },
+                    stats: { ...prev?.stats, save_count: post?.stats?.save_count },
                 });
             }
             setError("Failed to update save status");
@@ -612,7 +617,7 @@ const VideoScrollingUI = () => {
 
     const generateLinkFn = async (id: string, setSharedLink: any) => {
         try {
-            const res = await http.post(`/posts/${id}/share-link`);
+            const res = await api.post(`/posts/${id}/share-link`);
             if (res.data) {
                 setSharedLink(
                     res?.data?.shareUrl.replace(
@@ -629,7 +634,7 @@ const VideoScrollingUI = () => {
 
     const getUserProfile = async (id: string) => {
         try {
-            const res = await http.get<any>(`users/profile/${id}`);
+            const res = await api.get<any>(`users/profile/${id}`);
             return res?.data
 
         } catch (err) {
@@ -643,7 +648,7 @@ const VideoScrollingUI = () => {
 
     const getAllWishlistFn = async () => {
         try {
-            const response = await http.get<any>("/wishlists");
+            const response = await api.get<any>("/wishlists");
             const wishlists = response?.data?.wishlists || [];
             console.log("lo", wishlists);
 
@@ -1052,6 +1057,7 @@ const VideoScrollingUI = () => {
                                                                             <VideoDetails
                                                                                 post={selectedVideo}
                                                                                 handleCloseDetails={handleCloseDetails}
+                                                                                isDetailsOpen={isDetailsOpen}
                                                                             />
                                                                         </div>
 
@@ -1121,16 +1127,14 @@ const VideoScrollingUI = () => {
                                                         onClick={(e) => {
 
                                                             if (user) {
-
-
                                                                 e.stopPropagation();
 
-                                                                if (!postData?.is_saved) {
-                                                                    handleSaveToggle(postData);
-                                                                    setWishlistModalOpen(true)
-                                                                } else {
-                                                                    setWishlistModalOpen(true)
-                                                                }
+                                                                // if (!postData?.is_saved) {
+                                                                handleSaveToggle(postData);
+                                                                // setWishlistModalOpen(true)
+                                                                // } else {
+                                                                // setWishlistModalOpen(true)
+                                                                // }
 
                                                             } else {
                                                                 openLogin()
@@ -1140,7 +1144,7 @@ const VideoScrollingUI = () => {
                                                     >
                                                         <Bookmark
                                                             size={26}
-                                                            className={postData?.is_saved ? 'fill-red text-red' : ''}
+                                                            className={postData?.is_saved ? 'fill-red-500 text-red-500' : ''}
                                                         />
                                                         <span className="text-[16px]">
                                                             {formatNumber(postData?.post?.save_count ?? postData?.stats?.save_count ?? 0)}
@@ -1217,12 +1221,12 @@ const VideoScrollingUI = () => {
 
                                                                 e.stopPropagation();
 
-                                                                if (!postData?.is_saved) {
-                                                                    handleSaveToggle(postData);
-                                                                    setWishlistModalOpen(true)
-                                                                } else {
-                                                                    setWishlistModalOpen(true)
-                                                                }
+                                                                // if (!postData?.is_saved) {
+                                                                handleSaveToggle(postData);
+                                                                // setWishlistModalOpen(true)
+                                                                // } else {
+                                                                // setWishlistModalOpen(true)
+                                                                // }
 
                                                             } else {
                                                                 openLogin()
@@ -1232,7 +1236,7 @@ const VideoScrollingUI = () => {
                                                     >
                                                         <Bookmark
                                                             size={26}
-                                                            className={postData?.is_saved ? 'fill-red text-red' : ''}
+                                                            className={postData?.is_saved ? 'fill-red-500 text-red-500' : ''}
                                                         />
                                                         <span className="text-[16px]">
                                                             {formatNumber(postData?.post?.save_count ?? postData?.stats?.save_count ?? 0)}
@@ -1301,6 +1305,7 @@ const VideoScrollingUI = () => {
                     </div>
 
 
+
                 </div>
 
                 {/* Details Panel */}
@@ -1308,12 +1313,14 @@ const VideoScrollingUI = () => {
                 {
                     !isMobile &&
                     <div
-                        className={`h-full hidden md:flex border-l border-gray-400  rounded-[20px] overflow-hidden transition-transform duration-700 ease-out absolute top-0 w-1/2 ${isDetailsOpen ? 'translate-x-0  right-[0px]' : 'translate-x-full  right-[0px]'}`}
+                        className={`h-full hidden md:flex border-l border-gray-400  rounded-[20px] overflow-hidden transition-transform duration-700  ease-out absolute top-0 w-1/2 ${isDetailsOpen ? 'translate-x-0  right-[0px]' : 'translate-x-full  right-[0px]'}`}
                     >
+
                         {selectedVideo && (
                             <VideoDetails
                                 post={selectedVideo}
                                 handleCloseDetails={handleCloseDetails}
+                                isDetailsOpen={isDetailsOpen}
                             />
                         )}
                     </div>

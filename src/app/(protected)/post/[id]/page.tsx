@@ -12,13 +12,14 @@ import { IoFilter } from 'react-icons/io5';
 import { useAuth } from '@/context/AuthContext';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import FilterComponent from '@/components/FilterComponent/FilterComponent';
-import { http } from '@/lib/http';
 import { AnimatePresence, motion } from 'framer-motion';
 import Logo from '../../../../assets/logo.png'
 import { FaFacebookF, FaWhatsapp } from 'react-icons/fa';
 import { IoIosMail, IoIosSend } from 'react-icons/io';
 import { FaSquareThreads, FaXTwitter } from "react-icons/fa6";
 import { useParams, useRouter } from 'next/navigation';
+import { initializeApi } from '@/lib/http';
+import { tokenStore } from '@/lib/token';
 
 // Update the Post interface
 type Post = {
@@ -95,6 +96,9 @@ type ApiResponse = {
 };
 
 const VideoScrollingUI = () => {
+
+    const api = initializeApi(tokenStore).getApi();
+
     const { selectedPost, setSelectedPost } = usePostContext();
     const { setOpenFilter, filters, openFilter, user, openLogin } = useAuth()
     const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -145,7 +149,7 @@ const VideoScrollingUI = () => {
         try {
 
             setLoading(true);
-            const res = await http.get(`/posts/user/${id}?offset=${offset}&limit=${25}`);
+            const res = await api.get(`/posts/user/${id}?offset=${offset}&limit=${25}`);
             if (res.data) {
                 let newPosts = res.data.posts ?? res?.data;
 
@@ -230,9 +234,9 @@ const VideoScrollingUI = () => {
             }
 
             if (isCurrentlyFollowing) {
-                await http.delete(`/users/unfollow`, { data: { userId } });
+                await api.delete(`/users/unfollow`, { data: { userId } });
             } else {
-                await http.post(`/users/follow`, { userId });
+                await api.post(`/users/follow`, { userId });
             }
 
             // ✅ API call
@@ -310,9 +314,9 @@ const VideoScrollingUI = () => {
 
             // API call
             if (isCurrentlyLiked) {
-                await http.delete(`/posts/${postId}/like`);
+                await api.delete(`/posts/${postId}/like`);
             } else {
-                await http.post(`/posts/${postId}/like`);
+                await api.post(`/posts/${postId}/like`);
             }
         } catch (err) {
             console.error("Error toggling like:", err);
@@ -376,9 +380,9 @@ const VideoScrollingUI = () => {
 
             // API call
             if (isCurrentlySaved) {
-                await http.delete(`/posts/${postId}/save`);
+                await api.delete(`/posts/${postId}/save`);
             } else {
-                await http.post(`/posts/${postId}/save`);
+                await api.post(`/posts/${postId}/save`);
             }
         } catch (err) {
             console.error("Error toggling save:", err);
@@ -572,7 +576,7 @@ const VideoScrollingUI = () => {
 
     const generateLinkFn = async (id: string, setSharedLink: any) => {
         try {
-            const res = await http.post(`/posts/${id}/share-link`);
+            const res = await api.post(`/posts/${id}/share-link`);
             if (res.data) {
                 setSharedLink(
                     res?.data?.shareUrl.replace(
@@ -589,7 +593,7 @@ const VideoScrollingUI = () => {
 
     const getUserProfile = async (id: string) => {
         try {
-            const res = await http.get<any>(`users/profile/${id}`);
+            const res = await api.get<any>(`users/profile/${id}`);
             return res?.data
 
         } catch (err) {
@@ -837,13 +841,29 @@ const VideoScrollingUI = () => {
                                                             className='w-full h-full'
                                                         />
                                                     </div>
-                                                    <h1 className='text-[14px] font-[500]'>
-                                                        <span onClick={() => {
-                                                            router.push(`/profile/${postData.user.id}`)
-                                                        }}>{postData.user.name}</span>
+                                                    <h1 className='text-[16px] font-[500]'>
+                                                        <span
+                                                            onClick={() => {
+                                                                if (user?.id === postData.user.id) {
+                                                                    router.push(`/profile`)
+
+                                                                }
+                                                                else {
+                                                                    router.push(`/profile/${postData.user.id}`)
+
+                                                                }
+                                                            }}
+
+                                                        >{postData.user.name}</span>
                                                         {user?.id !== postData.user.id &&
 
-                                                            <button onClick={() => handleFollowToggle(postData)} className='text-[12px] transition-all duration-200 border px-2 rounded-sm  font-semibold ml-1'>
+                                                            <button onClick={() => {
+                                                                if (user) {
+                                                                    handleFollowToggle(postData)
+                                                                } else {
+                                                                    openLogin()
+                                                                }
+                                                            }} className='text-[15px] transition-all duration-200 border px-2 rounded-sm  font-semibold ml-1'>
                                                                 {
                                                                     postData.user.isFollowing ? "Following" : "Follow"
                                                                 }
@@ -852,7 +872,7 @@ const VideoScrollingUI = () => {
                                                     </h1>
                                                 </div>
                                                 <h3 className="text-[16px] font-bold">{postData.post.title}</h3>
-                                                <div className="lg:w-[100%] md:w-[100%] w-[80%] text-[12px] font-light tracking-wide">
+                                                <div className="showWidth text-[12px] font-light tracking-wide">
                                                     {expanded || postData.post.description.length <= 80
                                                         ? (
                                                             <>
@@ -898,7 +918,7 @@ const VideoScrollingUI = () => {
                                                                                         handleOpenDetails();
                                                                                     }
                                                                                 }}
-                                                                                className="px-4 h-10 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200  lg:w-[100%] md:w-[100%] w-[80%]  "
+                                                                                className="px-4 h-10 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200  showWidth "
                                                                             >
                                                                                 View Details
                                                                             </Button>
@@ -911,6 +931,7 @@ const VideoScrollingUI = () => {
                                                                             <VideoDetails
                                                                                 post={selectedVideo}
                                                                                 handleCloseDetails={handleCloseDetails}
+                                                                                isDetailsOpen={isDetailsOpen}
                                                                             />
                                                                         </div>
 
@@ -924,7 +945,7 @@ const VideoScrollingUI = () => {
                                                                             handleOpenDetails();
                                                                         }
                                                                     }}
-                                                                    className="px-4 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 lg:w-[100%] md:w-[100%] w-[80%] "
+                                                                    className="px-4 py-[10px] mt-2 border bottom-0 bg-[rgba(0,0,0,0.4)] border-gray-500  shadow-md rounded-md text-[12px] font-medium transition-colors duration-200 showWidth"
                                                                 >
                                                                     View Details
                                                                 </button>
@@ -942,8 +963,9 @@ const VideoScrollingUI = () => {
                                             </div>
 
 
+
                                             {/* Action Buttons */}
-                                            <div className={`flex flex-col space-y-3  alignAction `}>
+                                            <div className={`flex-col space-y-3 hidden md:flex alignAction `}>
                                                 <div className="flex flex-col space-y-3">
                                                     <button
                                                         onClick={(e) => {
@@ -954,7 +976,7 @@ const VideoScrollingUI = () => {
                                                                 openLogin()
                                                             }
                                                         }}
-                                                        className="duration-200 lg:text-black md:text-black text-white cursor-pointer"
+                                                        className="duration-200  actionColor cursor-pointer"
                                                     >
                                                         <Heart
                                                             size={26}
@@ -964,13 +986,13 @@ const VideoScrollingUI = () => {
                                                             {formatNumber(postData?.post?.like_count ?? postData?.stats?.like_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  lg:text-black md:text-black text-white cursor-pointer">
+                                                    <button className="duration-200   actionColor cursor-pointer">
                                                         <MessageCircle size={26} />
                                                         <span className="text-[16px]">
                                                             {formatNumber(postData?.post?.comment_count ?? postData?.stats?.comment_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200  lg:text-black md:text-black text-white cursor-pointer ">
+                                                    <button className="duration-200  actionColor cursor-pointer ">
                                                         <EyeIcon size={26} />
                                                         <span className=" text-[16px]">
                                                             {formatNumber(postData?.post?.view_count ?? postData?.stats?.view_count ?? 0)}
@@ -981,16 +1003,23 @@ const VideoScrollingUI = () => {
 
                                                             if (user) {
                                                                 e.stopPropagation();
+
+                                                                // if (!postData?.is_saved) {
                                                                 handleSaveToggle(postData);
+                                                                // setWishlistModalOpen(true)
+                                                                // } else {
+                                                                // setWishlistModalOpen(true)
+                                                                // }
+
                                                             } else {
                                                                 openLogin()
                                                             }
                                                         }}
-                                                        className="duration-200 lg:text-black md:text-black text-white cursor-pointer"
+                                                        className="duration-200 actionColor  cursor-pointer"
                                                     >
                                                         <Bookmark
                                                             size={26}
-                                                            className={postData?.is_saved ? 'fill-blue-500 text-blue-500' : ''}
+                                                            className={postData?.is_saved ? 'fill-red-500 text-red-500' : ''}
                                                         />
                                                         <span className="text-[16px]">
                                                             {formatNumber(postData?.post?.save_count ?? postData?.stats?.save_count ?? 0)}
@@ -1008,7 +1037,7 @@ const VideoScrollingUI = () => {
                                                                 openLogin()
                                                             }
                                                         }}
-                                                        className="duration-200 lg:text-black md:text-black text-white cursor-pointer  ">
+                                                        className="duration-200 actionColor cursor-pointer  ">
                                                         <Share size={26} />
                                                         <span className=" text-[16px]">
                                                             {formatNumber(postData?.post?.share_count ?? postData?.stats?.share_count ?? 0)}
@@ -1020,7 +1049,99 @@ const VideoScrollingUI = () => {
                                                         onClick={() => {
                                                             setOpenFilter(true)
                                                         }}
-                                                        className="duration-200 flex md:hidden lg:hidden lg:text-black md:text-black text-white cursor-pointer  ">
+                                                        className="duration-200 flex md:hidden lg:hidden actionColor cursor-pointer  ">
+                                                        <IoFilter className="text" size={26} />
+                                                    </button>
+
+                                                </div>
+                                            </div>
+                                            <div className={`flex-col space-y-3 flex md:hidden alignAction2 `}>
+                                                <div className="flex flex-col space-y-3">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            if (user) {
+                                                                e.stopPropagation();
+                                                                handleLikeToggle(postData);
+                                                            } else {
+                                                                openLogin()
+                                                            }
+                                                        }}
+                                                        className="duration-200  actionColor2 cursor-pointer"
+                                                    >
+                                                        <Heart
+                                                            size={26}
+                                                            className={postData?.is_liked ? 'fill-red-500 text-red-500' : ''}
+                                                        />
+                                                        <span className="text-[16px]">
+                                                            {formatNumber(postData?.post?.like_count ?? postData?.stats?.like_count ?? 0)}
+                                                        </span>
+                                                    </button>
+                                                    <button className="duration-200   actionColor2 cursor-pointer">
+                                                        <MessageCircle size={26} />
+                                                        <span className="text-[16px]">
+                                                            {formatNumber(postData?.post?.comment_count ?? postData?.stats?.comment_count ?? 0)}
+                                                        </span>
+                                                    </button>
+                                                    <button className="duration-200  actionColor2 cursor-pointer ">
+                                                        <EyeIcon size={26} />
+                                                        <span className=" text-[16px]">
+                                                            {formatNumber(postData?.post?.view_count ?? postData?.stats?.view_count ?? 0)}
+                                                        </span>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+
+                                                            if (user) {
+
+
+                                                                e.stopPropagation();
+
+                                                                // if (!postData?.is_saved) {
+                                                                handleSaveToggle(postData);
+                                                                // setWishlistModalOpen(true)
+                                                                // } else {
+                                                                // setWishlistModalOpen(true)
+                                                                // }
+
+                                                            } else {
+                                                                openLogin()
+                                                            }
+                                                        }}
+                                                        className="duration-200 actionColor2  cursor-pointer"
+                                                    >
+                                                        <Bookmark
+                                                            size={26}
+                                                            className={postData?.is_saved ? 'fill-red-500 text-red-500' : ''}
+                                                        />
+                                                        <span className="text-[16px]">
+                                                            {formatNumber(postData?.post?.save_count ?? postData?.stats?.save_count ?? 0)}
+                                                        </span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (user) {
+                                                                generateLinkFn(postData?.post?.id, setSharedLink)
+                                                                setShareModalOpen(true)
+
+
+                                                            }
+                                                            else {
+                                                                openLogin()
+                                                            }
+                                                        }}
+                                                        className="duration-200 actionColor2 cursor-pointer  ">
+                                                        <Share size={26} />
+                                                        <span className=" text-[16px]">
+                                                            {formatNumber(postData?.post?.share_count ?? postData?.stats?.share_count ?? 0)}
+                                                        </span>
+                                                    </button>
+
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setOpenFilter(true)
+                                                        }}
+                                                        className="duration-200 flex md:hidden lg:hidden actionColor2 cursor-pointer  ">
                                                         <IoFilter className="text" size={26} />
                                                     </button>
 
@@ -1072,6 +1193,7 @@ const VideoScrollingUI = () => {
                             <VideoDetails
                                 post={selectedVideo}
                                 handleCloseDetails={handleCloseDetails}
+                                isDetailsOpen={isDetailsOpen}
                             />
                         )}
                     </div>

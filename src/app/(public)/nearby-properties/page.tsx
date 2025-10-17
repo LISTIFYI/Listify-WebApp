@@ -3,12 +3,16 @@
 import ButtonCommon from '@/components/CustomFields/Button';
 import BuilderAgentCardLoader from '@/components/Loader/BuilderAgentCardLoader';
 import CarouselCardLoader2 from '@/components/Loader/CarouselCardLoader2';
-import { http } from '@/lib/http';
+import { initializeApi } from '@/lib/http';
+import { tokenStore } from '@/lib/token';
 import { AlignVerticalSpaceBetween, Heart, LocateIcon, MapPin } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const NearbyProperties = () => {
+
+    const api = initializeApi(tokenStore).getApi();
+
     const [allNearbyProperties, setAllNearbyProperties] = useState<any[]>([]);
     const [page, setPage] = useState(1);
     const [totalNearbyP, setTotalNearbyP] = useState(0);
@@ -22,7 +26,7 @@ const NearbyProperties = () => {
         setLoading(true);
         try {
 
-            const res = await http.get(`/public/listings-v2/nearby?page=${pageNum}&limit=${limit}&lat=${Number(24.5956608)}&lng=${Number(73.777152)}`);
+            const res = await api.get(`/public/listings-v2/nearby?page=${pageNum}&limit=${limit}&lat=${Number(24.5956608)}&lng=${Number(73.777152)}`);
             const newNP = res?.data?.agents || [];
             console.log('API Response:', res?.data);
             console.log('New Builder:', newNP);

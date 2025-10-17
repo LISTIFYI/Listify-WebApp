@@ -18,11 +18,15 @@ import three from '@/assets/square-dashed-svgrepo-com.svg'
 import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { IoIosArrowBack } from 'react-icons/io'
-import { http } from '@/lib/http'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { tokenStore } from '@/lib/token'
+import { initializeApi } from '@/lib/http'
 
 const ListingPage = () => {
+
+    const api = initializeApi(tokenStore).getApi();
+
     const dropdownConfigs: DropdownConfig[] = [
         {
             key: 'transactionType',
@@ -132,21 +136,21 @@ const ListingPage = () => {
                 if (data.formDataa.entityType) {
                     console.log("Creating listing with data:", data.formDataa);
 
-                    const listingRes = await http.post(`/listings-v2`, data.formDataa);
+                    const listingRes = await api.post(`/listings-v2`, data.formDataa);
                     const listingId = listingRes?.data?.data?.id;
                     if (!listingId) throw new Error("Failed to retrieve listing ID");
 
                     console.log("Listing created with ID:", listingId);
 
                     // Create post
-                    const postResponse = await http.post(`/posts`, data.payload);
+                    const postResponse = await api.post(`/posts`, data.payload);
                     const postId = postResponse?.data?._id;
                     if (!postId) throw new Error("Failed to create post");
 
                     console.log("Post created with ID:", postId);
 
                     // Attach post to listing
-                    await http.post(`/listings-v2/${listingId}/attach-posts`, {
+                    await api.post(`/listings-v2/${listingId}/attach-posts`, {
                         postIds: [postId],
                     });
 
@@ -156,7 +160,7 @@ const ListingPage = () => {
                 // 🧩 Subcase: formData exists but no entityType (post only)
                 else {
                     toast.warning("No entityType found. Creating post only...");
-                    const postResponse = await http.post(`/posts`, data.payload);
+                    const postResponse = await api.post(`/posts`, data.payload);
                     if (!postResponse?.data?._id)
                         throw new Error("Failed to create post");
 

@@ -1,7 +1,10 @@
-import { http } from '@/lib/http';
+import { useAuth } from '@/context/AuthContext';
+import { useChat } from '@/context/ChatContext';
+import { initializeApi } from '@/lib/http';
 import { tokenStore } from '@/lib/token';
 import axios from 'axios';
-import { Bell, X } from 'lucide-react';
+import { Bell, ChevronLeft, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
@@ -29,7 +32,11 @@ export const notificationButtonMap: Record<string, string> = {
 };
 
 
-const NotificationPanel = ({ setIsSheetOpen }: any) => {
+const NotificationPanel = ({ setIsSheetOpen, onMob }: any) => {
+    const api = initializeApi(tokenStore).getApi();
+    const { user } = useAuth()
+    const { setChatDetails } = useChat()
+    const router = useRouter()
     const [allNotifications, setAllNotifications] = useState<any[]>([]);
     const [page, setPage] = useState(1);
     const [totalNotifications, setTotalNotifications] = useState(0);
@@ -41,7 +48,7 @@ const NotificationPanel = ({ setIsSheetOpen }: any) => {
         setLoading(true);
         try {
             const tk = tokenStore.get();
-            const res = await http.get(`/notifications?page=${pageNum}&limit=${limit}`,
+            const res = await api.get(`/notifications?page=${pageNum}&limit=${limit}`,
                 {
                     headers: {
                         Authorization: `Bearer ${tk?.accessToken}`,
@@ -129,17 +136,55 @@ const NotificationPanel = ({ setIsSheetOpen }: any) => {
     }
 
 
+    const fetchChatDetails = async (chatId: string) => {
+        if (!chatId) return;
+        try {
+            const { data } = await api.get<any>(`chats/${chatId}`);
+            const filterData = data?.participants.filter((item: any) => item.userId !== user?.id);
+            console.log("ftilerData", filterData);
+
+            if (data?.status == "accepted") {
+                setChatDetails({
+                    username: filterData?.companyName ? filterData?.companyName : filterData?.agentName ? filterData?.agentName : filterData?.name,
+                    contentID: "",
+                    profilePic: "",
+                    listingId: "",
+                    propertyName: "",
+                    id: data?.id,
+                })
+                setIsSheetOpen(false)
+                router.push("/messages/")
+                // navigation.navigate("ChatScreen", {
+                //   username: filterData?.companyName ? filterData?.companyName : filterData?.agentName ? filterData?.agentName : filterData?.name,
+                //   contentID: null,
+                //   profilePic: null,
+                //   listingId: null,
+                //   propertyName: null,
+                //   id: data?.id,
+                // });
+            } else {
+                // navigation.navigate("chatsc")
+                // setActiveTab("Messages")
+                setIsSheetOpen(false)
+                router.push("/messages/")
+
+
+            }
+
+        } catch (error: any) {
+            console.error('Failed to fetch chat details:', error.response);
+        }
+    };
     const handleButtonPress = async (item: any) => {
-        console.log("item", item);
         if (item?.type === "post_liked" || item?.type === "post_saved" || item?.type === "post_commented" || item?.type === "post_shared") {
             console.log("calledddd");
-            const response = await http.get(`/posts/${item?.metadata?.post_id}`)
+            const response = await api.get(`/posts/${item?.metadata?.post_id}`)
             console.log("responsee", response);
 
         }
         if (item?.type === "chat_message" || item?.type === "chat_accepted" || "chat_requested") {
             console.log("oneee", item?.type === "chat_message" || item?.type === "chat_accepted" || "chat_requested");
-            //   fetchChatDetails(item?.metadata?.chat_id)
+            fetchChatDetails(item?.metadata?.chat_id)
         } else if (item?.type === "post_liked" || item?.type === "post_saved" || item?.type === "post_commented" || item?.type === "post_shared") {
             console.log("two", item?.type === "post_liked" || item?.type === "post_saved" || item?.type === "post_commented" || item?.type === "post_shared");
 
@@ -203,13 +248,19 @@ const NotificationPanel = ({ setIsSheetOpen }: any) => {
 
     return (
         <div className='h-full flex flex-col'>
-            <div className='h-[65px] px-4 border flex justify-between items-center'>
+            <div className={`h-[65px] border flex ${onMob ? "justify-start px-2 " : "justify-between px-4 "} items-center`}>
+                {onMob &&
+                    <ChevronLeft className="cursor-pointer" size={28} />
+                }
                 <h1 className='text-[18px] font-medium flex flex-row gap-1 items-center'><Bell size={20} />Notifications</h1>
-                <button className='cursor-pointer' onClick={() => {
-                    setIsSheetOpen(false)
-                }}>
-                    <X />
-                </button>
+                {
+                    !onMob &&
+                    <button className='cursor-pointer' onClick={() => {
+                        setIsSheetOpen(false)
+                    }}>
+                        <X />
+                    </button>
+                }
             </div>
             <div
                 className=" h-full shadow-lg  overflow-y-auto"
@@ -225,7 +276,7 @@ const NotificationPanel = ({ setIsSheetOpen }: any) => {
                         className="text-center py-4 text-[14px] ">{allNotifications.length === 0 ? "No Notification" : "No more notification to load."}</p>}
                     scrollableTarget="scrollableDiv" // Specify scroll container
                 >
-                    <div className="p-4">
+                    <div className="">
 
                         {
                             allNotifications.map((notification, index) => {
@@ -256,7 +307,7 @@ const NotificationPanel = ({ setIsSheetOpen }: any) => {
                                 return (
                                     <div
                                         key={notification._id || `notification-${index}`}
-                                        className='flex flex-row justify-between items-center py-5 px-4 border-b border-b-[rgb(115,115,115)] bg-white'
+                                        className='flex flex-row justify-between items-center py-5 px-4 border-b bg-white'
                                     >
                                         <div className='w-[42px] h-[42px] bg-[#dbdbdb] flex rounded-full overflow-hidden mr-[8px] justify-center items-center border border-[#fff]'>
                                             {notification?.sender_profile_pic ?

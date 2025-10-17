@@ -1,15 +1,18 @@
 "use client"
 
-import { http } from '@/lib/http';
 import { usePostContext } from '@/lib/postContext';
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { motion, useAnimation } from "framer-motion";
 import SPImage from '@/assets/Logo.svg'
 import Image from 'next/image';
+import { tokenStore } from '@/lib/token';
+import { initializeApi } from '@/lib/http';
 
 
 const SharedPost = () => {
+    const api = initializeApi(tokenStore).getApi();
+
     const { id } = useParams();
     const { setSelectedPost } = usePostContext()
     const [loading, setLoading] = useState(false)
@@ -17,9 +20,9 @@ const SharedPost = () => {
     const GetPost = async () => {
         try {
             setLoading(true)
-            const res = await http.get(`posts/shared/${id}`)
+            const res = await api.get(`posts/shared/${id}`)
             if (res?.data) {
-                const properPost = await http.get(`posts/${res?.data.post.id}`)
+                const properPost = await api.get(`posts/${res?.data.post.id}`)
 
                 const transformResponseData = (response: any) => {
                     const data = response || {};

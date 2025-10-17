@@ -2,7 +2,7 @@
 
 import MapWithMarkers from '@/components/GoogleMapComponent/MapWithMarkers';
 import ProfileForm from '@/components/Layout/ProfileForm/ProfileForm';
-import { http } from '@/lib/http';
+import { initializeApi } from '@/lib/http';
 import { usePostContext } from '@/lib/postContext';
 import { tokenStore } from '@/lib/token';
 import axios from 'axios';
@@ -14,6 +14,8 @@ import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const ProfilePage: NextPage = () => {
+    const api = initializeApi(tokenStore).getApi();
+
     const router = useRouter()
     const [profileData, setProfileData] = useState<any>(null);
     const [postData, setPostData] = useState<any[]>([]);
@@ -28,7 +30,7 @@ const ProfilePage: NextPage = () => {
     const getProfile = async () => {
         try {
             const tk = tokenStore.get();
-            const res = await http.get("/users/profile");
+            const res = await api.get("/users/profile");
             console.log("resssssssss", res);
 
             setProfileData(res.data);
@@ -46,7 +48,7 @@ const ProfilePage: NextPage = () => {
 
         try {
             const tk = tokenStore.get();
-            const res = await http.get(`/posts/my-posts?page=${currentPage}&limit=20&??pricingType=${activeTab.toLowerCase()}&status=published`);
+            const res = await api.get(`/posts/my-posts?page=${currentPage}&limit=20&??pricingType=${activeTab.toLowerCase()}&status=published`);
             const newPosts = res?.data?.posts || [];
 
             // ✅ ensure uniqueness by filtering with IDs

@@ -9,28 +9,22 @@ import DropdownMenuCustom from '@/components/CustomFields/DropdownMenuCustom';
 import DatePickerCustom from '@/components/CustomFields/DatePickerCustom';
 import { Switch } from '@/components/ui/switch';
 import MultiSelectDropdown from '@/components/CustomFields/MultiDropdown';
-import { ChipList } from '@/components/CustomFields/ChipList';
-import { tree } from 'next/dist/build/templates/app-page';
 import ButtonCommon from '@/components/CustomFields/Button';
-import { tokenStore } from '@/lib/token';
 import { Bath, Bed, Cross, CrossIcon, Delete, DeleteIcon, Edit2, FileText, Home, IndianRupee, MapPin, Pencil, Plus, Sun, SunMoonIcon, Trash2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import FloorPlanningPricing, { FloorPlan, initialPlan } from '@/components/AdditionalComponents/FloorPlanningPricing';
 import MediaUpload from '@/components/MediaUpload/MediaUpload';
-import { Item } from '@radix-ui/react-dropdown-menu';
 import { getAgentById, UploadPhoto } from '@/utils/api';
 import { IoDocument } from 'react-icons/io5';
 import { formatAmount, formatIndianCurrency } from '@/utils/commonFn/common';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import ContactForm from '@/components/Forms/ContacFormCommon';
-import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { http } from '@/lib/http';
 import { AnimatePresence, motion } from 'framer-motion';
-import { log } from 'node:console';
-import FullPropertyView from '@/components/FullPropertyView/FullPropertyView';
 import ListingPreview from '@/components/ListingPreview/ListingPreview';
+import { tokenStore } from '@/lib/token';
+import { initializeApi } from '@/lib/http';
 
 
 // Interface for form data
@@ -96,6 +90,7 @@ const Flat = ({
 }: FlatProps) => {
     console.log("roleeeee", role);
 
+    const api = initializeApi(tokenStore).getApi();
 
 
     const [coverVideo, setCoverVideo] = useState<any>(null)

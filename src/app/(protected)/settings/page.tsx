@@ -23,16 +23,16 @@ const SettingPage: React.FC = () => {
   const profileList: ListItem[] = [
     { id: "1", title: "Profile", icon: "personIcon", link: "/profile" },
     { id: "2", title: "Calendar", icon: "calendarIcon", link: "/calendar" },
-    { id: "3", title: "Settings", icon: "settingsIcon", link: "/settings" },
+    // { id: "3", title: "Settings", icon: "settingsIcon", link: "/settings" },
     { id: "7", title: "Subscriptions", icon: "starIcon", link: "/subscriptions" },
     { id: "8", title: "Privacy and Safety", icon: "lockIcon", link: "/privacy" },
     { id: "6", title: `${loading ? "Switching" : "Switch"} to ${isAdmin ? "User" : "Admin"}`, icon: "twoPersonIcon", link: "/switch" },
   ];
 
   const generalList: ListItem[] = [
-    { id: "2", title: "Listifyi Verified", icon: "verifiedIcon", link: "/verification" },
-    { id: "4", title: "Listify Guidelines", icon: "bookIcon", link: "/guidelines" },
-    { id: "5", title: "Sales Enquiry", icon: "increaseIcon", link: "/sales-enquiry" },
+    { id: "2", title: "Listifyi Verified", icon: "verifiedIcon", link: "/listifyi-verification" },
+    { id: "4", title: "Listify Guidelines", icon: "bookIcon", link: "/listifyi-guidelines" },
+    { id: "5", title: "Sales Enquiry", icon: "increaseIcon", link: "#" },
   ];
 
   const supportList: ListItem[] = [
@@ -116,6 +116,9 @@ const SettingPage: React.FC = () => {
             const IconComponent = iconMap[item.icon];
             return (
               <div
+                onClick={() => {
+                  router.push(String(item.link))
+                }}
                 key={item.id}
                 className="flex flex-row justify-between items-center py-2 md:py-3 lg:py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
               >

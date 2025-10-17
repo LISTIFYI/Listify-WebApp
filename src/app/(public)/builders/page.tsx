@@ -1,11 +1,14 @@
 "use client"
 
 import BuilderAgentCardLoader from '@/components/Loader/BuilderAgentCardLoader';
-import { http } from '@/lib/http';
+import { initializeApi } from '@/lib/http';
+import { tokenStore } from '@/lib/token';
 import React, { useEffect, useState } from 'react'
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const Builders = () => {
+    const api = initializeApi(tokenStore).getApi();
+
     const [allBuilders, setAllBuilders] = useState<any[]>([]);
     const [page, setPage] = useState(1);
     const [totalbuilders, setTotalBuilders] = useState(0);
@@ -18,7 +21,7 @@ const Builders = () => {
         console.log("ca;ed");
 
         try {
-            const res = await http.get(`/public/builders?page=${pageNum}&limit=${limit}`);
+            const res = await api.get(`/public/builders?page=${pageNum}&limit=${limit}`);
             const newBuilders = res?.data?.builders || [];
             console.log('API Response:', res?.data);
             console.log('New Builder:', newBuilders);

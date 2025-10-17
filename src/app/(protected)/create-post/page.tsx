@@ -3,7 +3,7 @@ import ButtonCommon from "@/components/CustomFields/Button";
 import InputBox from "@/components/CustomFields/InputBox";
 import TextAreaBox from "@/components/CustomFields/TextAreaBox";
 import { Button } from "@/components/ui/button";
-import { http } from "@/lib/http";
+import { initializeApi } from "@/lib/http";
 import { tokenStore } from "@/lib/token";
 import { UploadPhoto } from "@/utils/api";
 import { te } from "date-fns/locale";
@@ -22,6 +22,8 @@ interface PostData {
 }
 
 const PostScreen: React.FC = () => {
+    const api = initializeApi(tokenStore).getApi();
+
     const router = useRouter()
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
@@ -64,7 +66,7 @@ const PostScreen: React.FC = () => {
         };
         try {
             setCreatePost(true)
-            const postResponse = await http.post(`/posts`, payload);
+            const postResponse = await api.post(`/posts`, payload);
             router.replace("/");
         } catch (error: any) {
             toast.error(error?.response?.data?.message || error?.message || "Something went wrong!");

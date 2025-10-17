@@ -14,10 +14,11 @@ import { IoFilter, IoSearch } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import PropertiesHomeCard from "@/components/Loader/PropertyHomeLoader";
 import { useAuth } from "@/context/AuthContext";
-import { http } from "@/lib/http";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import FilterComponent from "@/components/FilterComponent/FilterComponent";
+import { initializeApi } from "@/lib/http";
+import { tokenStore } from "@/lib/token";
 
 // Update the Post interface
 type Post = {
@@ -99,6 +100,7 @@ const Home = () => {
   const { filters, addFilters, openFilter, setOpenFilter } = useAuth()
   const { setSelectedPost } = usePostContext();
   const router = useRouter()
+  const api = initializeApi(tokenStore).getApi();
 
   const [selected, setSelected] = useState("");
   const [allProperties, setAllProperties] = useState<any[]>([]);
@@ -128,15 +130,16 @@ const Home = () => {
     console.log("filters", filterQuery);
 
     setLoading(true);
+
     let res
     try {
       let res;
       if (filterQuery?.length > 0) {
         // call search api
-        res = await http.get(`/public/posts/search?offset=${currentOffset}&limit=${limit}&${filterQuery}`);
+        res = await api.get(`/public/posts/search?offset=${currentOffset}&limit=${limit}&${filterQuery}`);
       } else {
         // call feed api with pagination
-        res = await http.get(
+        res = await api.get(
           `/public/posts/feed?offset=${currentOffset}&limit=${limit}`
         );
       }

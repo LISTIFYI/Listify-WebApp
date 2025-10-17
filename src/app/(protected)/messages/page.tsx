@@ -1,13 +1,15 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { http } from "@/lib/http";
 import React, { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { parse, format, isToday, isYesterday } from "date-fns";
 import ChatsDetails from "@/components/ChatsComponent/ChatsDetails";
 import { useRouter } from "next/navigation";
 import { useChat } from "@/context/ChatContext";
+import { toast } from "sonner";
+import { tokenStore } from "@/lib/token";
+import { initializeApi } from "@/lib/http";
 
 const formatTimestamp = (timestamp: string) => {
     const messageTime = new Date(timestamp);
@@ -42,9 +44,12 @@ interface Chat {
 interface SelectedUser {
     id: string;
     username: string;
+    statusType: string
 }
 
 const MessagePage = () => {
+    const api = initializeApi(tokenStore).getApi();
+
     const { user } = useAuth();
     const { chatDetails, setChatDetails } = useChat();
     const [allMessages, setAllMessages] = useState<Chat[]>([]);
@@ -59,7 +64,7 @@ const MessagePage = () => {
     const getAllMessages = async (pageNum: number) => {
         setLoading(true);
         try {
-            const res = await http.get(`/chats?page=${pageNum}&limit=${limit}`);
+            const res = await api.get(`/chats?page=${pageNum}&limit=${limit}`);
             const newMessages = res?.data?.chats || [];
 
             const transformedChats: Chat[] = newMessages.map((chat: any) => {
@@ -89,7 +94,6 @@ const MessagePage = () => {
                 };
             });
 
-            console.log("Transformed Chats:", transformedChats);
 
             setAllMessages((prevMessages) => {
                 const existingIds = new Set(prevMessages.map((m) => m.id));
@@ -99,7 +103,6 @@ const MessagePage = () => {
 
             if (pageNum === 1) {
                 const total = res?.data?.total || 0;
-                console.log("Total Messages:", total);
                 setTotalMessages(total);
             }
 
@@ -128,7 +131,6 @@ const MessagePage = () => {
 
     const handleLoadMoreData = () => {
         if (loading || !hasMore) return;
-        console.log("Loading more data, current page:", page, "hasMore:", hasMore);
         setPage((prevPage) => {
             const nextPage = prevPage + 1;
             getAllMessages(nextPage);
@@ -136,11 +138,29 @@ const MessagePage = () => {
         });
     };
 
-    const handleSelectMessage = (id: string, username: string) => {
-        console.log("Selecting message with id:", id, "username:", username); // Debug
-        setSelectedId({ id, username });
+    const handleSelectMessage = (id: string, username: string, statusType: string) => {
+        setSelectedId({ id, username, statusType });
     };
 
+    const handleAccept = async (id: string) => {
+        try {
+            const response = await api.put<any>(`chats/${id}/accept`);
+            getAllMessages(1);
+        } catch (err) {
+            console.error("Failed to accept chat:", err);
+            //   setError("Failed to accept chat");
+        }
+    };
+
+    const handleRejected = async (id: string) => {
+        try {
+            const response = await api.put<any>(`chats/${id}/reject`);
+            getAllMessages(1);
+        } catch (err) {
+            console.error("Failed to accept chat:", err);
+            //   setError("Failed to accept chat");
+        }
+    };
 
     const handleNavigateToChatDetails = () => {
 
@@ -162,10 +182,13 @@ const MessagePage = () => {
         router.push('/messages/3434343');
         // }
     };
+    console.log("no", allMessages);
+
+    console.log("indererererer", window.innerWidth);
 
     return (
         <div className="h-full bg-white-200 flex flex-row">
-            <div className="lg:max-w-[400px]  w-[100%]">
+            <div className="lg:max-w-[400px] md:max-w-[400px]   w-[100%]">
                 <div className="h-full shadow-lg overflow-y-auto" id="scrollableDiv">
                     <InfiniteScroll
                         dataLength={allMessages.length}
@@ -177,13 +200,42 @@ const MessagePage = () => {
                             className="text-center py-4 text-[16px] md:text-[14px] lg:text-[14px]">{allMessages.length === 0 ? "No messages" : "No more messages to load."}</p>}
                         scrollableTarget="scrollableDiv"
                     >
-                        <div className="p-4">
+                        <div className="">
                             {
                                 allMessages.map((message, index) => (
                                     <div
-                                        onClick={() => handleSelectMessage(message.id, message.userName)}
+                                        onClick={() => {
+                                            if (message?.statusType !== "pending" && message?.statusType !== "rejected") {
+
+                                                if (window.innerWidth >= 768) {
+                                                    setChatDetails({
+                                                        id: message?.id,
+                                                        username: message?.userName,
+                                                        profilePic: message?.avatar,
+                                                    });
+                                                    handleSelectMessage(message.id, message.userName, message?.statusType);
+
+                                                } else {
+                                                    setChatDetails({
+                                                        id: message?.id,
+                                                        username: message?.userName,
+                                                        profilePic: message?.avatar,
+                                                    });
+                                                    handleSelectMessage(message.id, message.userName, message?.statusType);
+                                                    router.push(`/messages/${message?.id}`)
+                                                }
+
+
+                                            } else {
+                                                toast.warning(`${message?.statusType === "rejected" ? "You cannot view messages for a rejected request." : "You can view messages only after accepting the request."}`);
+                                                setChatDetails({})
+                                                setSelectedId(null)
+
+                                            }
+
+                                        }}
                                         key={message.id || `notification-${index}`}
-                                        className="flex flex-row py-2 px-4 border-b cursor-pointer border-b-[#454545] items-center"
+                                        className={`flex flex-row py-2 px-4 border-b cursor-pointer items-center transition-all duration-200  ${chatDetails?.id === message?.id ? "lg:bg-gray-100 md:bg-gray-100 bg-white" : "bg-white"}`}
                                     >
                                         <div className="border w-[42px] flex h-[42px] overflow-hidden rounded-full justify-center items-center border-[#fff] mr-3 bg-[#dbdbdb]">
                                             {message.avatar ? (
@@ -194,14 +246,14 @@ const MessagePage = () => {
                                                 </h1>
                                             )}
                                         </div>
-                                        <div className="flex flex-1 justify-between">
+                                        <div className="flex flex-1 justify-between flex-col">
                                             {message.type !== "user" ? (
                                                 <div className="flex flex-row justify-between">
-                                                    <div className="flex flex-row items-center gap-2">
-                                                        <h1 className="text-[14px] font-normal text-black">{message.userName}</h1>
+                                                    <div className="flex flex-row justify-between flex-1 items-center gap-2">
+                                                        <h1 className="text-sm font-normal text-black">{message.userName}</h1>
                                                         <h1
                                                             style={{ color: "rgb(115,115,115)" }}
-                                                            className="mt-0.5 font-normal text-12">
+                                                            className="mt-0.5 font-normal text-xs">
                                                             {formatTimestamp(message.timestamp.toISOString())}
                                                         </h1>
                                                     </div>
@@ -228,12 +280,22 @@ const MessagePage = () => {
                                                     </h1>
                                                 </div>
                                             )}
-                                            {!message.initiatedByMessage && message.type === "request" && (
+                                            {(!message.initiatedByMessage && message.type === "request") && (
                                                 <div className="flex flex-row mt-2 gap-2">
-                                                    <button className="rounded-md py-1 px-3 bg-black text-white text-xs">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleAccept(message?.id)
+                                                        }}
+                                                        className="rounded-md py-1 px-3 bg-black text-white text-xs">
                                                         <h1>Accept</h1>
                                                     </button>
-                                                    <button className="rounded-md py-1 px-3 bg-black text-white text-xs">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleRejected(message?.id)
+                                                        }}
+                                                        className="rounded-md py-1 px-3 bg-black text-white text-xs">
                                                         <h1>Reject</h1>
                                                     </button>
                                                 </div>
@@ -246,16 +308,9 @@ const MessagePage = () => {
                     </InfiniteScroll>
                 </div>
             </div>
-            <div className="border-l border-[2px] justify-center items-center hidden lg:flex flex-1">
-                {selectedId ? (
-                    <ChatsDetails
-                    // id={selectedId.id}
-                    // username={selectedId.username}
-                    // contentID={undefined}
-                    // profilePic={undefined}
-                    // listingId={allMessages.find((msg) => msg.id === selectedId.id)?.listingId}
-                    // propertyName={undefined}
-                    />
+            <div className="border-l border-[2px] justify-center items-center hidden md:flex lg:flex flex-1">
+                {(selectedId?.id || chatDetails?.id) ? (
+                    <ChatsDetails  />
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full">
                         <p

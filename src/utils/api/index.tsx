@@ -1,17 +1,22 @@
-import { http } from "@/lib/http";
+import { initializeApi } from "@/lib/http";
+import { tokenStore } from "@/lib/token";
 import axios from "axios";
 
 /**
  * Step 1: Request a signed URL from backend
  */
+const api = initializeApi(tokenStore).getApi();
+
 export const UploadPhoto = async (
     payload: any,
     token: string,
     file: File,
     type?: string
 ) => {
+
+
     try {
-        const res = await http.post(
+        const res = await api.post(
             `/storage/signed-url`,
             payload,
             {
@@ -98,9 +103,9 @@ export const getAgentById = async (id: string, type: string) => {
     try {
         let res
         if (type === "builder") {
-            res = await http.get(`/builders/${id}`);
+            res = await api.get(`/builders/${id}`);
         } else {
-            res = await http.get(
+            res = await api.get(
                 `/agents/${id}`);
         }
         return res.data

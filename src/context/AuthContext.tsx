@@ -1,9 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { http } from '@/lib/http';
 import { tokenStore, Tokens } from '@/lib/token';
-import { usePathname } from 'next/navigation';
+import { initializeApi } from '@/lib/http';
+import { jwtDecode } from 'jwt-decode'
 
 export interface Filters {
     [key: string]: any;
@@ -16,9 +16,11 @@ type User = {
     email?: string;
     age?: number;
     gender?: 'male' | 'female' | 'other';
-    roles?: ("Builder" | "Agent")[];
+    roles?: ('Builder' | 'Agent')[];
     builderProfile?: any;
     agentProfile?: any;
+    profile_pic?: string;
+    profilePhoto?: string;
 };
 
 type AuthState = {
@@ -61,15 +63,19 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     const [filters, setFilters] = useState<Filters>({});
     const [openFilter, setOpenFilter] = useState(false);
 
+    // Initialize API interceptor with tokenStore
+    const api = useMemo(() => initializeApi(tokenStore).getApi(), []);
+
+
     useEffect(() => {
         const init = async () => {
             try {
                 const tk = tokenStore.get();
                 setTokens(tk);
                 if (tk?.accessToken) {
-                    const me = await http.get('/users/profile');
+                    const me = await api.get('/users/profile');
                     setUser(me.data);
-                    setRole(me.data.roles?.includes("Builder") ? "builder" : me.data.roles?.includes("Agent") ? "agent" : null);
+                    setRole(me.data.roles?.includes('Builder') ? 'builder' : me.data.roles?.includes('Agent') ? 'agent' : null);
                 }
             } catch (error) {
                 console.error('Failed to load user profile:', error);
@@ -81,20 +87,23 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
             }
         };
         init();
-    }, []);
+    }, [api]);
 
     const startPhoneLogin = async (phone: string) => {
-        await http.post('/auth/mobile_login_otp', { mobile_number: phone });
+        await api.post('/auth/mobile_login_otp', { mobile_number: phone });
     };
 
     const verifyOtp = async (phone: string, otp: string) => {
-        const res = await http.post('/auth/mobile_verify_otp', { mobile_number: phone, otp_code: otp });
+        const res = await api.post('/auth/mobile_verify_otp', { mobile_number: phone, otp_code: otp });
         const { token: accessToken, refresh_token: refreshToken, user: u, accessExp, refreshExp } = res.data;
+        const decodedAccess = jwtDecode<any>(accessToken);
+        console.log("dedeodeomdeomdoemde", decodedAccess);
+
 
         const tk: Tokens = {
             accessToken,
             refreshToken,
-            accessExp: accessExp ? accessExp * 1000 : undefined, // Convert to ms if in seconds
+            accessExp: accessExp ? accessExp * 1000 : undefined,
             refreshExp: refreshExp ? refreshExp * 1000 : undefined,
         };
 
@@ -114,11 +123,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
             : null;
 
         setUser(normalizedUser);
-        setRole(normalizedUser?.roles?.includes("Builder") ? "builder" : normalizedUser?.roles?.includes("Agent") ? "agent" : null);
+        setRole(normalizedUser?.roles?.includes('Builder') ? 'builder' : normalizedUser?.roles?.includes('Agent') ? 'agent' : null);
     };
 
     const completeProfile = async (payload: Required<Pick<User, 'name' | 'email' | 'age' | 'gender'>>) => {
-        const res = await http.put('/users/profile', payload);
+        const res = await api.put('/users/profile', payload);
         setUser(res.data);
         setShowLogin(false);
     };
@@ -127,6 +136,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         tokenStore.clear();
         setUser(null);
         setTokens(null);
+        setRole(null);
+        setIsAdmin(false);
     };
 
     const setRoleGlobally = (newRole: string) => {
@@ -138,7 +149,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     };
 
     const toggleAdminMode = () => {
-        setIsAdmin(prev => !prev);
+        setIsAdmin((prev) => !prev);
     };
 
     const addFilters = (newFilters: Filters) => {
@@ -149,29 +160,31 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         setFilters({});
     };
 
-    const value = useMemo<AuthState>(() => ({
-        user, tokens, loading, showLogin,
-        startPhoneLogin,
-        verifyOtp,
-        completeProfile,
-        logout,
-        openLogin: () => setShowLogin(true),
-        closeLogin: () => setShowLogin(false),
-        clearRole,
-        setRoleGlobally,
-        role,
-        toggleAdminMode,
-        isAdmin,
-        addFilters,
-        filters,
-        removeAllFilters,
-        openFilter,
-        setOpenFilter,
-    }), [user, tokens, loading, showLogin, isAdmin, filters, openFilter, role]);
-
-    return (
-        <AuthCtx.Provider value={value}>
-            {children}
-        </AuthCtx.Provider>
+    const value = useMemo<AuthState>(
+        () => ({
+            user,
+            tokens,
+            loading,
+            showLogin,
+            startPhoneLogin,
+            verifyOtp,
+            completeProfile,
+            logout,
+            openLogin: () => setShowLogin(true),
+            closeLogin: () => setShowLogin(false),
+            clearRole,
+            setRoleGlobally,
+            role,
+            toggleAdminMode,
+            isAdmin,
+            addFilters,
+            filters,
+            removeAllFilters,
+            openFilter,
+            setOpenFilter,
+        }),
+        [user, tokens, loading, showLogin, isAdmin, filters, openFilter, role, api],
     );
+
+    return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 };

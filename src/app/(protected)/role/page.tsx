@@ -8,9 +8,10 @@ import React, { useEffect, useState } from "react";
 import Lottie from "lottie-react";
 import buildersAnimation from '../../../assets/lotties/D360 Hero.json'
 import agentAnimation from '../../../assets/lotties/fast man.json'
-import { http } from "@/lib/http";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { tokenStore } from "@/lib/token";
+import { initializeApi } from "@/lib/http";
 
 
 interface FormData {
@@ -42,6 +43,8 @@ interface FormData {
 }
 
 const Role = () => {
+    const api = initializeApi(tokenStore).getApi();
+
     const { role, setRoleGlobally } = useAuth();
     const [showSuccess, setShowSuccess] = useState(false)
     console.log("empty role or something", role);
@@ -122,11 +125,11 @@ const Role = () => {
             setLoadingSubmit(true);
             let response;
             if (role === "builder") {
-                response = await http.post(`/builders`, payload);
+                response = await api.post(`/builders`, payload);
                 handleSubmitRole("Builder")
                 setShowSuccess(true)
             } else {
-                response = await http.post(`/agents`, payload2);
+                response = await api.post(`/agents`, payload2);
                 handleSubmitRole("Agent")
 
                 setShowSuccess(true)
@@ -142,7 +145,7 @@ const Role = () => {
 
     const handleSubmitRole = async (role: any) => {
         try {
-            const response = http.post(`users/roles/${role}`);
+            const response = api.post(`users/roles/${role}`);
             await handleSubmit();
         } catch (error: any) {
             console.log("Error in handleNext:", error);

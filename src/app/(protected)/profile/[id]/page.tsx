@@ -1,8 +1,9 @@
 "use client"
 
+import DirectMessageModal from '@/components/DirectMessageModal/DirectMessageModal';
 import MapWithMarkers from '@/components/GoogleMapComponent/MapWithMarkers';
 import ProfileForm from '@/components/Layout/ProfileForm/ProfileForm';
-import { http } from '@/lib/http';
+import { initializeApi } from '@/lib/http';
 import { usePostContext } from '@/lib/postContext';
 import { tokenStore } from '@/lib/token';
 import axios from 'axios';
@@ -14,22 +15,24 @@ import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const ProfilePageById: NextPage = () => {
+    const api = initializeApi(tokenStore).getApi();
+
     const { id } = useParams()
     const router = useRouter()
     const [profileData, setProfileData] = useState<any>(null);
     const [postData, setPostData] = useState<any[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
     const [open, setOpen] = useState(false);
-    const [selectedId, setSelectedId] = useState<string>("")
     // pagination
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
 
+
+    const [showMessageModal, setShowMessageModal] = useState(false)
     const getProfile = async () => {
         try {
-            const tk = tokenStore.get();
-            const res = await http.get(`/users/profile/${id}`);
+            const res = await api.get(`/users/profile/${id}`);
             console.log("resssssssss", res);
 
             setProfileData(res.data);
@@ -46,8 +49,7 @@ const ProfilePageById: NextPage = () => {
         setLoading(true);
 
         try {
-            const tk = tokenStore.get();
-            const res = await http.get(`posts/user/${id}?page=${currentPage}&limit=20&??pricingType=${activeTab.toLowerCase()}&status=published`);
+            const res = await api.get(`posts/user/${id}?page=${currentPage}&limit=20&??pricingType=${activeTab.toLowerCase()}&status=published`);
             const newPosts = res?.data?.posts || [];
 
             // ✅ ensure uniqueness by filtering with IDs
@@ -105,9 +107,9 @@ const ProfilePageById: NextPage = () => {
 
         try {
             if (isCurrentlyFollowing) {
-                await http.delete(`/users/unfollow`, { data: { userId } });
+                await api.delete(`/users/unfollow`, { data: { userId } });
             } else {
-                await http.post(`/users/follow`, { userId });
+                await api.post(`/users/follow`, { userId });
             }
         } catch (err) {
             console.error("Error toggling follow:", err);
@@ -126,7 +128,7 @@ const ProfilePageById: NextPage = () => {
             <div className="h-full  md:max-w-[100%] lg:w-[85%] w-[100%] md:mx-auto lg:mx-auto">
                 {/* <MapWithMarkers /> */}
                 {/* Profile Header */}
-                <div className="mx-auto p-4 sm:p-6 max-w-[90%] w-[100%] ">
+                <div className="mr-auto lg:mx-auto  p-4 sm:p-6 max-w-lg w-[100%] ">
                     <div className="flex flex-row  items-center  space-y-4 space-x-4">
                         <div className="relative  w-18 h-18 sm:w-32 sm:h-32 rounded-full my-auto overflow-hidden border justify-center items-center flex">
                             {profileData?.profile_pic && profileData?.profile_pic.trim() !== "" ? (
@@ -150,8 +152,8 @@ const ProfilePageById: NextPage = () => {
                                 <button
                                     onClick={() => {
                                         // router.push(`/profile/${profileData?.id}`);
-                                        setSelectedId(profileData?.id)
-                                        setOpen(true)
+                                        // setSelectedId(profileData?.id)
+                                        // setOpen(true)
                                     }}
                                     className="">
                                     <EllipsisVertical size={22} />                                </button>
@@ -172,13 +174,22 @@ const ProfilePageById: NextPage = () => {
                             </div>
                         </div>
                     </div>
-                    <button
-                        onClick={() => {
-                            handleFollowToggle()
-                        }}
-                        className="mt-2.5 flex  px-4 py-2 w-[50%]  justify-center items-center rounded-md text-[16px] font-medium bg-gray-200 text-gray-800">
-                        {profileData?.isFollowing ? "Following" : "Follow"}
-                    </button>
+                    <div className='flex w-full flex-row gap-2'>
+                        <button
+                            onClick={() => {
+                                handleFollowToggle()
+                            }}
+                            className="mt-2.5 flex w-[100%]  px-4 py-2 justify-center items-center rounded-md text-[16px] font-medium bg-gray-200 text-gray-800">
+                            {profileData?.isFollowing ? "Following" : "Follow"}
+                        </button>
+                        {/* <button
+                            onClick={() => {
+                                setOpen(true)
+                            }}
+                            className="mt-2.5 flex w-[100%]  px-4 py-2   justify-center items-center rounded-md text-[16px] font-medium bg-gray-200 text-gray-800">
+                            {"Message"}
+                        </button> */}
+                    </div>
                 </div>
                 <div className="w-full">
                     {/* Tabs */}
@@ -247,7 +258,8 @@ const ProfilePageById: NextPage = () => {
                     </div>
                 </InfiniteScroll>
 
-                <ProfileForm open={open} setOpen={setOpen} selectedId={selectedId} getProfileFn={getProfile} />
+                <DirectMessageModal open={open} setOpen={setOpen} />
+
             </div>
         </div>
     );

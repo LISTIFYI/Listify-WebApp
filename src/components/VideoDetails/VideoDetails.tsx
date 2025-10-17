@@ -7,6 +7,12 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import DirectMessageModal from '../DirectMessageModal/DirectMessageModal';
+import ChatsDetails from '../ChatsComponent/ChatsDetails';
+import { useChat } from '@/context/ChatContext';
+import { tokenStore } from '@/lib/token';
+import { initializeApi } from '@/lib/http';
 
 // Shared interfaces (ideally move to types/index.ts)
 interface Location {
@@ -84,37 +90,48 @@ interface ApiResponse {
 type VideoDetailsProps = {
     handleCloseDetails: () => void;
     post: any;
+    isDetailsOpen: boolean
 };
 
 interface AutoCarouselProps {
     images: string[];
     interval?: number; // slide interval in ms
 }
-const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
+const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsProps) => {
+    console.log("sdsmdskdmskdmskmdsskdmdksm", post);
+    const api = initializeApi(tokenStore).getApi();
+
     const tabs = ["Location map", "Shopping", "School"];
     const [activeTab, setActiveTab] = useState("Location map");
-
+    const { user, openLogin } = useAuth()
+    const { setChatDetails } = useChat()
 
     const [dataDetails, setDataDetails] = useState<any>(null)
+    console.log("datadetails", dataDetails);
+
     const [similarProperties, setSimilarProperties] = useState([])
     const [loading, setLoading] = useState(false)
     console.log("d", dataDetails);
     console.log("similar proer", similarProperties);
 
 
-    const getDetailsById = async (id: string) => {
-        setLoading(true)
+    const getDetailsById = async (id: string): Promise<void> => {
         try {
-            const response = await axios.get(`https://listifyi-api-1012443530727.asia-south1.run.app/public/listings-v2/${id}`)
-            setDataDetails(response?.data?.data);
+            setLoading(true);
+
+            const endpoint = user
+                ? `/listings-v2/${id}`
+                : `/public/listings-v2/${id}`;
+
+            const { data } = await api.get(endpoint);
+            setDataDetails(data?.data ?? null);
+
         } catch (error) {
-            console.log("something went wrong", error);
+            console.error("Failed to fetch details:", error);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-
-
-    }
+    };
 
 
     const getSimilarrPoperty = async (id: string) => {
@@ -131,13 +148,31 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
 
     }
 
+    const [profile, setProfile] = useState<any>(null)
+    const getUserProfile = async (id: string) => {
+        try {
+            const res = await api.get<any>(`users/profile/${id}`);
+            setProfile(res?.data)
+
+        } catch (err) {
+            console.error("Error fetching profile:", err);
+        }
+    };
+
 
     useEffect(() => {
-        if (post?.listing?.id) {
+        if (post && isDetailsOpen) {
             getDetailsById(post.listing.id);
             getSimilarrPoperty(post.listing.id);
+
         }
-    }, [post?.listing?.id]);
+    }, [isDetailsOpen, post]);
+
+    useEffect(() => {
+        if (dataDetails) {
+            getUserProfile(dataDetails?.userId)
+        }
+    }, [dataDetails])
 
     const combinedMedia: any[] = [];
 
@@ -191,6 +226,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
     const router = useRouter()
 
     const [open, setOpen] = useState(false)
+    const [openMessageModal, setOpenMessageModal] = useState(false)
     const [selectedBHK, setSelectedBHK] = useState<string>('All'); // State to track selected BHK type
     // Get unique BHK types for buttons
     const bhkTypes = Array.from(
@@ -228,6 +264,7 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     </div>
                     : */}
             <div className="h-full flex flex-col  overflow-y-auto transition-all md:py-0 py-6">
+
                 <div className="absolute hidden md:flex top-2 right-[20px] z-50">
                     <button
                         onClick={handleCloseDetails}
@@ -237,114 +274,6 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     </button>
                 </div>
                 <div className=" text-black flex flex-col">
-                    {/* Image Carousel */}
-                    <div className="relative w-full h-64 overflow-hidden">
-                        <div
-                            ref={slideRef}
-                            className="flex transition-transform duration-700 ease-in-out w-full h-full"
-                        >
-                            {images.map((img, index) => (
-                                <div key={index} className="flex-shrink-0 w-full h-64 relative">
-                                    <Image
-                                        src={img}
-                                        alt={`Slide ${index + 1}`}
-                                        fill
-                                        className="object-cover w-full h-full"
-                                    />
-                                    {/* Play button overlay */}
-                                    <button className="absolute inset-0 flex items-center justify-center">
-                                        <div onClick={() => {
-                                            setOpen(true)
-                                        }} className="bg-black bg-opacity-50 p-4 rounded-full">
-                                            <Play size={32} className="text-white" />
-                                        </div>
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Previous / Next Arrows */}
-                        <button
-                            onClick={handlePrev}
-                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-800 p-2 rounded-full z-20"
-                        >
-                            <ChevronLeft size={24} className="text-white" />
-                        </button>
-                        <button
-                            onClick={handleNext}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-800 p-2 rounded-full z-20"
-                        >
-                            <ChevronRight size={24} className="text-white" />
-                        </button>
-                    </div>
-
-
-                    <Dialog open={open} onOpenChange={() => {
-                        setOpen(false)
-                    }}
-
-                    >
-                        <DialogContent showCloseButton={false} className="p-2 fixed h-[90%] sm:max-w-full w-[1000px]" >
-                            <div className="relative w-full h-full overflow-hidden">
-                                <div
-                                    // ref={slideRef}
-                                    className="flex transition-transform duration-700 ease-in-out w-full h-full"
-                                >
-                                    <button onClick={() => {
-                                        setOpen(false)
-                                    }} className='flex cursor-pointer justify-center items-center z-50 rounded-full bg-[rgba(0,0,0,0.4)] h-[50px] w-[50px] m-2 absolute right-0 top-0'>
-                                        <X size={38} color='#fff' />
-                                    </button>
-                                    {combinedMedia?.map((img: any, index: any) => (
-                                        <div key={index} className="flex-shrink-0 w-full h-full relative">
-
-                                            {/* <Image
-                                            
-                                                src={img}
-                                                alt={`Slide ${index + 1}`}
-                                                fill
-                                                className="object-cover w-full h-full"
-                                            /> */}
-                                            {
-                                                img?.type === "video" ?
-                                                    <video loop={true} controls={false} autoPlay src={img?.content} className='w-full h-full object-cover'></video>
-                                                    :
-
-                                                    <img src={img?.content} className='w-full h-full object-cover'></img>
-
-                                            }
-                                            {/* Play button overlay */}
-                                            {/* <button className="absolute inset-0 flex items-center justify-center">
-                                                <div onClick={() => {
-                                                    setOpen(true)
-                                                }} className="bg-black bg-opacity-50 p-4 rounded-full">
-                                                    <Play size={32} className="text-white" />
-                                                </div>
-                                            </button> */}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Previous / Next Arrows */}
-                                {combinedMedia?.length > 1 &&
-                                    <>
-                                        <button
-                                            onClick={handlePrev}
-                                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-800 p-2 rounded-full z-20"
-                                        >
-                                            <ChevronLeft size={24} className="text-white" />
-                                        </button>
-                                        <button
-                                            onClick={handleNext}
-                                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-800 p-2 rounded-full z-20"
-                                        >
-                                            <ChevronRight size={24} className="text-white" />
-                                        </button>
-                                    </>
-                                }
-                            </div>
-                        </DialogContent>
-                    </Dialog>
 
                     {/* Details */}
                     <div className="p-4 space-y-4 pb-28">
@@ -689,26 +618,46 @@ const VideoDetails = ({ handleCloseDetails, post, }: VideoDetailsProps) => {
                     </div>
 
                     {/* Bottom Actions */}
-                    <div className="fixed bottom-0 left-0 w-full border-t  bg-white p-2 flex justify-around border-gray-200">
-                        <button
-                            onClick={() => {
-                                router.push("/messages/")
-                            }}
-                            className=" cursor-pointer flex flex-col items-center hover:text-gray-400  transition-all duration-300">
-                            <MessageCircle size={18} />
-                            <span className="text-xs mt-1">Message</span>
-                        </button>
-                        <button className=" cursor-pointer flex flex-col items-center  hover:text-gray-400  transition-all duration-300">
-                            <Calendar size={18} />
-                            <span className="text-xs mt-1">Schedule</span>
-                        </button>
-                        <button className=" cursor-pointer flex flex-col items-center hover:text-gray-400  transition-all duration-300">
-                            <Phone size={18} />
-                            <span className="text-xs mt-1">Call</span>
-                        </button>
-                    </div>
+                    {
+                        user?.id !== profile?.id &&
+                        <div className="fixed bottom-0 left-0 w-full border-t  bg-white p-2 flex justify-around border-gray-200">
+                            <button
+                                onClick={() => {
+                                    if (user) {
+                                        setChatDetails({
+                                            username: `${profile?.builderProfile ? profile?.builderProfile?.builderName : profile?.agentProfile ? profile?.agentProfile?.agentName : ""}`,
+                                            profilePic: `${profile?.builderProfile ? profile?.builderProfile?.logoUrl : profile?.agentProfile ? profile?.agentProfile?.profilePhoto : ""}`,
+                                            propertyName: dataDetails?.title,
+                                            listingId: dataDetails?.id,
+                                            id: dataDetails?.chatId,
+                                            contentID: profile?.id
+
+
+                                        })
+                                        setOpenMessageModal(true)
+                                    } else {
+                                        openLogin()
+                                    }
+
+                                }}
+                                className=" cursor-pointer flex flex-col items-center hover:text-gray-400  transition-all duration-300">
+                                <MessageCircle size={18} />
+                                <span className="text-xs mt-1">Message</span>
+                            </button>
+                            <button className=" cursor-pointer flex flex-col items-center  hover:text-gray-400  transition-all duration-300">
+                                <Calendar size={18} />
+                                <span className="text-xs mt-1">Schedule</span>
+                            </button>
+                            <button className=" cursor-pointer flex flex-col items-center hover:text-gray-400  transition-all duration-300">
+                                <Phone size={18} />
+                                <span className="text-xs mt-1">Call</span>
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
+            <DirectMessageModal open={openMessageModal} setOpen={setOpenMessageModal} />
+
             {/* } */}
         </>
     );

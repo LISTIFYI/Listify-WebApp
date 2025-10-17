@@ -187,13 +187,23 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
 
                                 <div className="hideFilterTwo w-[1px] bg-[#EBEBEB] h-[12px]" />
 
-                                <div className="hideFilterThree flex flex-row gap-2">
-                                    <div className="border border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
+                                <div className="flex flex-row gap-2">
+                                    <div
+                                        onClick={() => {
+                                            router.push("/messages/")
+                                        }}
+                                        className="border border-[#EBEBEB] flex justify-center items-center w-[34px] h-[34px] rounded-full">
                                         <LuMessageSquareText color="black" size={16} />
                                     </div>
-                                    <div onClick={() => {
-                                        setIsSheetOpen(true)
-                                    }} className="border cursor-pointer border-[#EBEBEB] relative flex justify-center items-center w-[34px] h-[34px] rounded-full">
+                                    <div
+                                        onClick={() => {
+                                            if (window.innerWidth >= 767) {
+                                                setIsSheetOpen(true)
+                                            } else {
+                                                router.push("/notifications/")
+                                            }
+                                        }}
+                                        className="border  cursor-pointer border-[#EBEBEB] relative flex justify-center items-center w-[34px] h-[34px] rounded-full">
                                         <FiBell color="black" size={16} />
                                         <div className="border w-[18px] h-[18px] bg-black absolute -top-1 -right-1 rounded-full text-[9px] flex justify-center items-center text-white">+6</div>
                                     </div>
@@ -214,13 +224,13 @@ const Header = ({ isSidebarCollapsed = false, onToggleSidebar, isSheetOpen, setI
                                         <h1 className="text-[14px]  text-black font-[700]">Login</h1>
                                         {/* <IoChevronDown color="black" size={14} /> */}
                                     </div>
-                                </> :
+                                </>
+                                :
                                 <>
-
-                                    <div className="hideFilterThree  w-[1px] bg-[#EBEBEB] h-[12px]" />
+                                    <div className="w-[1px] bg-[#EBEBEB] h-[12px]" />
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <div className="flex cursor-pointer bg flex-row gap-2 items-center justify-center pr-4">
+                                            <div className="flex cursor-pointer bg flex-row gap-2 items-center justify-center pr-1.5">
                                                 <div className="border hover:bg-gray-100  transition-all duration-300 overflow-hidden border-[#EBEBEB] flex justify-center items-center w-[40px] h-[40px] lg:w-[34px] lg:h-[34px] rounded-full">
                                                     {/* Replace with user avatar if available */}
                                                     <span className="text-[16px] font-bold">

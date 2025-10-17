@@ -17,14 +17,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { tokenStore } from "@/lib/token";
-import axios from "axios";
 import Image from "next/image";
 import { Pencil, X } from "lucide-react";
 import { UploadPhoto } from "@/utils/api";
-import { log } from "node:console";
-import { http } from "@/lib/http";
 import Logo from '../../../assets/logo.png'
+import { initializeApi } from "@/lib/http";
+import { tokenStore } from "@/lib/token";
 
 
 export default function ProfileForm({
@@ -38,6 +36,9 @@ export default function ProfileForm({
     selectedId: string;
     getProfileFn: any
 }) {
+
+    const api = initializeApi(tokenStore).getApi();
+
     const [formData, setFormData] = useState<any>({
         profilePhoto: "",
         name: "",
@@ -67,7 +68,7 @@ export default function ProfileForm({
         console.log("Form data:", formData);
         try {
             const tk = tokenStore.get();
-            const res = await http.put(`/users/profile`,
+            const res = await api.put(`/users/profile`,
                 {
                     profilePhoto: formData.profile_pic,
                     name: formData.name,
@@ -91,7 +92,7 @@ export default function ProfileForm({
     const getProfile = async () => {
         try {
             const tk = tokenStore.get();
-            const res = await http.get<any>(`/users/profile/${selectedId}`);
+            const res = await api.get<any>(`/users/profile/${selectedId}`);
             console.log("ss", res);
 
             if (res.data) {
@@ -123,7 +124,7 @@ export default function ProfileForm({
         const res = await UploadPhoto(payload, tk?.accessToken ?? "", file, "image")
 
         if (res.fileUrl) {
-            await http.put(`/users/profile`,
+            await api.put(`/users/profile`,
                 { profilePhoto: res.fileUrl });
             await getProfile()
             await getProfileFn()

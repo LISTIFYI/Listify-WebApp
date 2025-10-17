@@ -6,13 +6,15 @@ import { Navigation } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import { useRouter } from "next/navigation"
-import { http } from "@/lib/http"
 import CarouselCardLoader from "@/components/Loader/CarouselCardLoader"
 import { Heart, MapPin } from "lucide-react"
 import CarouselCardLoader2 from "@/components/Loader/CarouselCardLoader2"
+import { initializeApi } from "@/lib/http"
 import { tokenStore } from "@/lib/token"
 
 const Discover = () => {
+  const api = initializeApi(tokenStore).getApi();
+
   const router = useRouter()
   const [allNearbyProperties, setAllNearbyProperties] = useState<any[]>([]);
   const [allAgents, setAllAgents] = useState<any[]>([])
@@ -73,7 +75,7 @@ const Discover = () => {
 
   const getAllNearbyProperties = async () => {
     try {
-      const res = await http.get(`/public/listings-v2/nearby?page=${1}&limit=${6}&lat=${Number("12.9754666")}&lng=${Number("77.6328723")}`);
+      const res = await api.get(`/public/listings-v2/nearby?page=${1}&limit=${6}&lat=${Number("12.9754666")}&lng=${Number("77.6328723")}`);
       const newNP = res?.data?.listings || [];
       console.log('API Response:', res?.data);
       console.log('New Builder:', newNP);
@@ -86,7 +88,7 @@ const Discover = () => {
 
   const getAllAgents = async () => {
     try {
-      const res = await http.get(`/public/agents?page=${1}&limit=${6}`)
+      const res = await api.get(`/public/agents?page=${1}&limit=${6}`)
       const newAgents = res?.data?.agents || []
       setAllAgents(newAgents || [])
     } catch (err) {
@@ -97,7 +99,7 @@ const Discover = () => {
 
   const getAllBuilders = async () => {
     try {
-      const res = await http.get(`/public/builders?page=${1}&limit=${6}`)
+      const res = await api.get(`/public/builders?page=${1}&limit=${6}`)
       const newBuilders = res?.data?.builders || []
       setAllBuilders(newBuilders || [])
     } catch (err) {
