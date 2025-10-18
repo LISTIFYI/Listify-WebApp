@@ -20,6 +20,7 @@ import { FaSquareThreads, FaXTwitter } from "react-icons/fa6";
 import { useRouter } from 'next/navigation';
 import { tokenStore } from '@/lib/token';
 import { initializeApi } from '@/lib/http';
+import { FiVolume2, FiVolumeX } from 'react-icons/fi';
 
 // Update the Post interface
 type Post = {
@@ -98,6 +99,7 @@ type ApiResponse = {
 const VideoScrollingUI = () => {
     const api = initializeApi(tokenStore).getApi();
 
+    const [mutetrue, setMuteTrue] = useState(false)
     const { selectedPost, setSelectedPost } = usePostContext();
     const { setOpenFilter, filters, openFilter, user, openLogin } = useAuth()
     const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -924,7 +926,7 @@ const VideoScrollingUI = () => {
                                             poster={postData.post.thumbnail_url}
                                             className="w-full h-full object-cover"
                                             loop={true}
-                                            muted={true}
+                                            muted={mutetrue}
                                             playsInline
                                             preload="metadata"
                                             onClick={(e) => handleVideoClick(postData, e)}
@@ -932,6 +934,7 @@ const VideoScrollingUI = () => {
                                         {/* Overlay */}
                                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300 pointer-events-none" />
                                     </div>
+
 
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <button
@@ -949,6 +952,19 @@ const VideoScrollingUI = () => {
                                                     <div className="w-1 h-6 bg-white rounded mx-0.5"></div>
                                                 </div>
                                             )}
+                                        </button>
+
+                                    </div>
+                                    <div className="absolute top-2.5 left-2 pointer-events-none">
+                                        <button
+                                            onClick={() => setMuteTrue(!mutetrue)}
+                                            className="bg-white/20 backdrop-blur-sm rounded-full p-2 hover:bg-white/30 hover:scale-110 transition-all duration-300 pointer-events-auto opacity-0 group-hover:opacity-100 ml-4"
+                                        >
+                                            {
+                                                mutetrue
+                                                    ? <FiVolumeX className="w-6 h-6 text-white" />
+                                                    : <FiVolume2 className="w-6 h-6 text-white" />
+                                            }
                                         </button>
                                     </div>
 
