@@ -22,6 +22,7 @@ import { tokenStore } from '@/lib/token';
 import { initializeApi } from '@/lib/http';
 import { FiVolume2, FiVolumeX } from 'react-icons/fi';
 import CommentComponent from '@/components/CommentComponent/CommentComponent';
+import { SafeMobileDrawer } from '@/components/SafeMobileDrawer/SafeMobileDrawer';
 
 // Update the Post interface
 type Post = {
@@ -1411,28 +1412,14 @@ const VideoScrollingUI = () => {
 
                 {
                     isMobile &&
-                    <Drawer
-                        open={isCommentOpen}
-                        onOpenChange={(open) => {
-                            if (!open && !document.activeElement?.tagName.match(/input|textarea/i)) {
-                                setIsCommentOpen(false);
-                            }
-                        }}
-                    >
-                        <DrawerContent
-                            showIndicator={false}
-                            className="sm:max-w-lg mx-auto overflow-hidden rounded-t-2xl absolute bottom-0 left-0 right-0"
-                        >
-                            <div className="max-h-[70vh] overflow-y-auto">
-                                <CommentComponent
-                                    post={selectedVideo}
-                                    isCommentClosed={() => setIsCommentOpen(false)}
-                                    isCommentOpen={isCommentOpen}
-                                    onCommentAdded={(postId, action) => handleCommentUpdated(postId, action)}
-                                />
-                            </div>
-                        </DrawerContent>
-                    </Drawer>
+                    <SafeMobileDrawer open={isCommentOpen} onClose={() => setIsCommentOpen(false)}>
+                        <CommentComponent
+                            post={selectedVideo}
+                            isCommentClosed={() => setIsCommentOpen(false)}
+                            isCommentOpen={isCommentOpen}
+                            onCommentAdded={handleCommentUpdated}
+                        />
+                    </SafeMobileDrawer>
 
                 }
             </div>
