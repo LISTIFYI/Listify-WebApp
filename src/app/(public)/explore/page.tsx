@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { tokenStore } from '@/lib/token';
 import { initializeApi } from '@/lib/http';
 import { FiVolume2, FiVolumeX } from 'react-icons/fi';
+import CommentComponent from '@/components/CommentComponent/CommentComponent';
 
 // Update the Post interface
 type Post = {
@@ -109,7 +110,7 @@ const VideoScrollingUI = () => {
 
     const [selectedVideo, setSelectedVideo] = useState<Post | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-    console.log("wathchsdsososkodksokdsokdskdoskdsok", isDetailsOpen)
+    const [isCommentOpen, setIsCommentOpen] = useState(false);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -137,6 +138,7 @@ const VideoScrollingUI = () => {
             // 👇 Close details if entering mobile view
             if (mobile) {
                 setIsDetailsOpen(false);
+                setIsCommentOpen(false);
             }
         };
 
@@ -379,6 +381,41 @@ const VideoScrollingUI = () => {
                 });
             }
             setError("Failed to update like status");
+        }
+    };
+
+    const handleCommentUpdated = (postId: string, action: 'increase' | 'decrease' = 'increase') => {
+
+        setPosts(prevPosts =>
+            prevPosts.map(p =>
+                p.post.id === postId
+                    ? {
+                        ...p,
+                        stats: {
+                            ...p.stats,
+                            comment_count:
+                                action === 'increase'
+                                    ? (p.stats.comment_count || 0) + 1
+                                    : Math.max((p.stats.comment_count || 1) - 1, 0),
+                        },
+                    }
+                    : p
+            )
+        );
+
+        if (selectedVideo?.post.id === postId) {
+            setSelectedVideo(prev =>
+                prev && {
+                    ...prev,
+                    stats: {
+                        ...prev.stats,
+                        comment_count:
+                            action === 'increase'
+                                ? (prev.stats.comment_count || 0) + 1
+                                : Math.max((prev.stats.comment_count || 1) - 1, 0),
+                    },
+                }
+            );
         }
     };
 
@@ -787,7 +824,7 @@ const VideoScrollingUI = () => {
     console.log(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(sharedLink)}`);
 
     return (
-        <div className="h-full bg-white text-white overflow-hidden ">
+        <div className="h-full bg-white text-white overflow-hidden py-2">
 
             {/* save */}
             <Dialog open={wishlistModalOpen} onOpenChange={setWishlistModalOpen}>
@@ -905,7 +942,7 @@ const VideoScrollingUI = () => {
             </Dialog>
             <div className="flex h-full relative">
                 {/* Video Scrolling Section */}
-                <div className={`h-full md:transition-all  md:duration-700 md:ease-out  ${isDetailsOpen ? "w-1/2" : 'w-full'}`}>
+                <div className={`h-full md:transition-all  md:duration-700 md:ease-out  ${isDetailsOpen || (isCommentOpen && !isMobile) ? "w-1/2" : 'w-full'}`}>
                     <div
                         ref={scrollContainerRef}
                         className="h-full   overflow-y-auto snap-y snap-mandatory flex justify-center no-scrollbar"
@@ -1074,6 +1111,7 @@ const VideoScrollingUI = () => {
                                                                                 post={selectedVideo}
                                                                                 handleCloseDetails={handleCloseDetails}
                                                                                 isDetailsOpen={isDetailsOpen}
+                                                                                pauseReelsVideos={handleVideoClick}
                                                                             />
                                                                         </div>
 
@@ -1127,7 +1165,19 @@ const VideoScrollingUI = () => {
                                                             {formatNumber(postData?.post?.like_count ?? postData?.stats?.like_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200   actionColor cursor-pointer">
+                                                    <button
+                                                        onClick={(e) => {
+
+                                                            if (user) {
+                                                                e.stopPropagation(); // Prevent video play/pause
+                                                                setSelectedVideo(postData); // ← CRITICAL: Set the current post
+                                                                setIsCommentOpen(true);     // ← Then open comment panel
+                                                            } else {
+                                                                openLogin()
+                                                            }
+
+                                                        }}
+                                                        className="duration-200   actionColor cursor-pointer">
                                                         <MessageCircle size={26} />
                                                         <span className="text-[16px]">
                                                             {formatNumber(postData?.post?.comment_count ?? postData?.stats?.comment_count ?? 0)}
@@ -1217,7 +1267,11 @@ const VideoScrollingUI = () => {
                                                             {formatNumber(postData?.post?.like_count ?? postData?.stats?.like_count ?? 0)}
                                                         </span>
                                                     </button>
-                                                    <button className="duration-200   actionColor2 cursor-pointer">
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsCommentOpen(true)
+                                                        }}
+                                                        className="duration-200   actionColor2 cursor-pointer">
                                                         <MessageCircle size={26} />
                                                         <span className="text-[16px]">
                                                             {formatNumber(postData?.post?.comment_count ?? postData?.stats?.comment_count ?? 0)}
@@ -1329,7 +1383,7 @@ const VideoScrollingUI = () => {
                 {
                     !isMobile &&
                     <div
-                        className={`h-full hidden md:flex border-l border-gray-400  rounded-[20px] overflow-hidden transition-transform duration-700  ease-out absolute top-0 w-1/2 ${isDetailsOpen ? 'translate-x-0  right-[0px]' : 'translate-x-full  right-[0px]'}`}
+                        className={`h-full hidden md:flex   rounded-[20px] overflow-hidden mx-0 md:mx-[60px] lg:mx-[60px]  transition-transform duration-700  ease-out absolute top-0 w-1/2 ${isDetailsOpen ? 'translate-x-0  right-[0px]' : 'translate-x-[140%]  right-[0px]'}`}
                     >
 
                         {selectedVideo && (
@@ -1337,9 +1391,40 @@ const VideoScrollingUI = () => {
                                 post={selectedVideo}
                                 handleCloseDetails={handleCloseDetails}
                                 isDetailsOpen={isDetailsOpen}
+                                pauseReelsVideos={handleVideoClick}
                             />
                         )}
                     </div>
+                }
+                {!isMobile &&
+                    <div
+                        className={`h-full  hidden md:flex rounded-[20px] overflow-hidden mx-0 md:mx-[60px] lg:mx-[60px]  transition-transform duration-700  ease-out absolute top-0 w-[400px] border-[10px] border-red-400 ${isCommentOpen ? 'translate-x-0  right-[0px]' : 'translate-x-[120%]  right-[0px]'}`}
+                    >
+                        <CommentComponent
+                            post={selectedVideo}
+                            isCommentClosed={() => setIsCommentOpen(false)}
+                            isCommentOpen={isCommentOpen}
+                            onCommentAdded={(postId, action) => handleCommentUpdated(postId, action)}
+                        />
+                    </div>}
+
+
+                {
+                    isMobile &&
+                    <Drawer open={isCommentOpen}>
+                        <DrawerContent showIndicator={false} className="sm:max-w-lg mx-auto overflow-hidden rounded-t-2xl">
+
+                            <div className="max-h-[70vh] overflow-y-auto">
+                                <CommentComponent
+                                    post={selectedVideo}
+                                    isCommentClosed={() => setIsCommentOpen(false)}
+                                    isCommentOpen={isCommentOpen}
+                                    onCommentAdded={(postId, action) => handleCommentUpdated(postId, action)}
+                                />
+                            </div>
+
+                        </DrawerContent>
+                    </Drawer>
                 }
             </div>
         </div>

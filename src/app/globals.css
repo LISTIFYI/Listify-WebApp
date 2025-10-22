@@ -327,7 +327,7 @@
   color: #000;
 }
 
-@media (min-width: 767px) and (max-width: 1220px) {
+@media (min-width: 767px) and (max-width: 1330px) {
   .alignAction {
     position: absolute;
     bottom: 0px;
@@ -355,7 +355,7 @@
   width: 100%;
 }
 
-@media (min-width: 0px) and (max-width: 1220px) {
+@media (min-width: 0px) and (max-width: 1330px) {
   .showWidth {
     width: 80%;
   }

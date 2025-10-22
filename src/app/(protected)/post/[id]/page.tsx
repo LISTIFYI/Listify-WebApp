@@ -932,6 +932,8 @@ const VideoScrollingUI = () => {
                                                                                 post={selectedVideo}
                                                                                 handleCloseDetails={handleCloseDetails}
                                                                                 isDetailsOpen={isDetailsOpen}
+                                                                                pauseReelsVideos={handleVideoClick}
+
                                                                             />
                                                                         </div>
 
@@ -1194,6 +1196,8 @@ const VideoScrollingUI = () => {
                                 post={selectedVideo}
                                 handleCloseDetails={handleCloseDetails}
                                 isDetailsOpen={isDetailsOpen}
+                                pauseReelsVideos={handleVideoClick}
+
                             />
                         )}
                     </div>

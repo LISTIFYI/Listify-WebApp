@@ -13,8 +13,8 @@ import ChatsDetails from '../ChatsComponent/ChatsDetails';
 import { useChat } from '@/context/ChatContext';
 import { tokenStore } from '@/lib/token';
 import { initializeApi } from '@/lib/http';
-
-// Shared interfaces (ideally move to types/index.ts)
+import OImage from '../../assets/pb.jpg';
+import VideoSectionComponent from '../VideoSectionComponent/VideoSectionComponent';
 interface Location {
     address: string;
     area: string;
@@ -91,13 +91,14 @@ type VideoDetailsProps = {
     handleCloseDetails: () => void;
     post: any;
     isDetailsOpen: boolean
+    pauseReelsVideos: any
 };
 
 interface AutoCarouselProps {
     images: string[];
     interval?: number; // slide interval in ms
 }
-const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsProps) => {
+const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen, pauseReelsVideos }: VideoDetailsProps) => {
     console.log("sdsmdskdmskdmskmdsskdmdksm", post);
     const api = initializeApi(tokenStore).getApi();
 
@@ -107,13 +108,14 @@ const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsP
     const { setChatDetails } = useChat()
 
     const [dataDetails, setDataDetails] = useState<any>(null)
-    console.log("datadetails", dataDetails);
 
     const [similarProperties, setSimilarProperties] = useState([])
     const [loading, setLoading] = useState(false)
-    console.log("d", dataDetails);
-    console.log("similar proer", similarProperties);
 
+
+    const stopVideo = (post: any, e: any) => {
+        pauseReelsVideos(post, e)
+    }
 
     const getDetailsById = async (id: string): Promise<void> => {
         try {
@@ -162,8 +164,8 @@ const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsP
 
     useEffect(() => {
         if (post && isDetailsOpen) {
-            getDetailsById(post.listing.id);
-            getSimilarrPoperty(post.listing.id);
+            getDetailsById(post?.listing?.id);
+            getSimilarrPoperty(post?.listing?.id);
 
         }
     }, [isDetailsOpen, post]);
@@ -173,56 +175,6 @@ const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsP
             getUserProfile(dataDetails?.userId)
         }
     }, [dataDetails])
-
-    const combinedMedia: any[] = [];
-
-    if (dataDetails?.media) {
-        console.log(dataDetails?.media?.videos);
-        console.log(dataDetails?.media?.images);
-
-        // Add videos to combinedMedia with type 'video'
-        if (dataDetails.media.videos) {
-            combinedMedia.push(...dataDetails.media.videos.map((video: any) => ({ type: 'video', content: video })));
-        }
-
-        // Add images to combinedMedia with type 'image'
-        if (dataDetails.media.images) {
-            combinedMedia.push(...dataDetails.media.images.map((image: any) => ({ type: 'image', content: image })));
-        }
-    } ``
-    console.log("p[[[[", combinedMedia);
-
-    const images = [
-        post.post.thumbnail_url ||
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4sly3zeMUd6G3eUB5qx9VhYQC05CAZlBQkQ&s",
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3PXXOg4AefDv6XwHm2CdL1lHBdiDcA2KVPw&s",
-    ];
-
-    const interval = 6000;
-    const [activeIndex, setActiveIndex] = useState(0);
-    const slideRef = useRef<HTMLDivElement>(null);
-
-    // Auto-slide
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setActiveIndex((prev) => (prev + 1) % images.length);
-        }, interval);
-        return () => clearInterval(timer);
-    }, []);
-
-    // Slide animation
-    useEffect(() => {
-        if (slideRef.current) {
-            slideRef.current.style.transform = `translateX(-${activeIndex * 100}%)`;
-        }
-    }, [activeIndex]);
-
-    const handleNext = () => setActiveIndex((prev) => (prev + 1) % images.length);
-    const handlePrev = () =>
-        setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
-
-    console.log(post);
-
     const router = useRouter()
 
     const [open, setOpen] = useState(false)
@@ -241,19 +193,6 @@ const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsP
                 (item: any) => `${item?.noOfBathroom || 1} BHK` === selectedBHK
             );
 
-
-    console.log("post", post?.user?.id);
-    console.log("post", post?.user?.name);
-    console.log("post", dataDetails?.id);
-    console.log("post--", dataDetails?.title);
-
-
-    // username: post?.user?.name,
-    //     contentID: post?.user?.id,
-    //     profilePic: "",
-    //     listingId: listingId,
-    //     propertyName: propertyName,
-    //     id: previousChatId
     return (
         <>
             {/* {
@@ -263,7 +202,12 @@ const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsP
                         <h1 className='animate-spin duration-300'><LoaderCircle /></h1>
                     </div>
                     : */}
+
+
+
             <div className="h-full flex flex-col  overflow-y-auto transition-all md:py-0 py-6">
+
+
 
                 <div className="absolute hidden md:flex top-2 right-[20px] z-50">
                     <button
@@ -278,13 +222,36 @@ const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsP
                     {/* Details */}
                     <div className="p-4 space-y-4 pb-28">
                         {/* Price + Location */}
-                        <div className=''>
-                            <h1 className="text-[15px] font-semibold">Price ₹ {dataDetails?.details?.priceRange || "N/A"}</h1>
-                            <div className="flex items-center text-gray-600 text-[13px]">
-                                <MapPin size={16} className="mr-1" />
-                                {post?.listing?.location?.address || "Address not available"}
+                        <div
+                            className="relative cursor-pointer h-[240px] w-full rounded-2xl overflow-hidden group bg-cover bg-center shadow-md transition-all duration-500 hover:shadow-xl hover:scale-[1.02]"
+                            style={{ backgroundImage: `url(${OImage.src})` }}
+                        >
+                            {/* Overlay gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 group-hover:opacity-90"></div>
+
+                            {/* Content */}
+                            <div className="absolute bottom-0 left-0 right-0 p-5 text-white z-10">
+                                <div className="space-y-1">
+                                    <h1 className="text-xl font-bold tracking-wide drop-shadow-md">
+                                        ₹ {dataDetails?.details?.priceRange || "N/A"}
+                                    </h1>
+                                    <h2 className="text-[17px] font-medium truncate drop-shadow-sm">
+                                        {dataDetails?.title || "N/A"}
+                                    </h2>
+                                </div>
+
+                                <div className="flex items-start mt-2 text-gray-200 text-sm ">
+                                    <MapPin size={16} className="mr-2 mt-0.5 text-gray-300 shrink-0" />
+                                    <span className="">
+                                        {post?.listing?.location?.address || "Address not available"}
+                                    </span>
+                                </div>
                             </div>
+
+                            {/* Optional light border highlight */}
+                            <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10"></div>
                         </div>
+
 
                         {/* Highlights */}
                         <div className=''>
@@ -509,6 +476,9 @@ const VideoDetails = ({ handleCloseDetails, post, isDetailsOpen }: VideoDetailsP
                             </div>
                         </div>
 
+                        <VideoSectionComponent dataDetails={dataDetails}
+                            onModalVideoPlay={(e: any) => stopVideo(post, e)}
+                        />
                         {/* Society Details */}
                         <div className="p-4">
                             <h3 className="text-[15px] font-semibold mb-2">Society Details</h3>
