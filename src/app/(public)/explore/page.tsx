@@ -24,6 +24,7 @@ import { FiVolume2, FiVolumeX } from 'react-icons/fi';
 import CommentComponent from '@/components/CommentComponent/CommentComponent';
 import CustomDrawer from '@/components/SafeMobileDrawer/SafeMobileDrawer';
 import { Input } from '@mui/joy';
+import PersistentDrawer from '@/components/SafeMobileDrawer/SafeMobileDrawer';
 
 // Update the Post interface
 type Post = {
@@ -1413,18 +1414,16 @@ const VideoScrollingUI = () => {
 
                 {
                     isMobile &&
-                    <div className="flex flex-col items-center gap-4 mt-10">
-                        <Button onClick={() => setIsCommentOpen(true)}>Open Drawer</Button>
-
-                        <CustomDrawer open={isCommentOpen} onClose={() => setIsCommentOpen(false)} anchor="bottom">
-                            <h2 className="text-lg font-semibold mb-3">Enter your details</h2>
-                            <Input placeholder="Your name" className="mb-3" />
-                            <Input placeholder="Email address" className="mb-3" />
-                            <Button onClick={() => setIsCommentOpen(false)}>
-                                Submit
-                            </Button>
-                        </CustomDrawer>
-                    </div>
+                    <PersistentDrawer
+                        open={isCommentOpen}
+                        onClose={() => setIsCommentOpen(false)}
+                        anchor="bottom"
+                    >
+                        <h2 className="text-lg font-semibold mb-3">Enter your details</h2>
+                        <Input placeholder="Your name" className="mb-3" />
+                        <Input placeholder="Email address" className="mb-3" />
+                        <Button onClick={() => setIsCommentOpen(false)}>Submit</Button>
+                    </PersistentDrawer>
                 }
             </div>
         </div>
