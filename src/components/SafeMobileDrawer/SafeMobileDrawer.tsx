@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -18,40 +18,38 @@ const SafeMobileDrawer: React.FC<CustomDrawerProps> = ({
     title,
     showCloseButton = true,
 }) => {
-    React.useEffect(() => {
-        // Prevent background scroll when open
-        if (open) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
+    const drawerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (open) document.body.style.overflow = "hidden";
+        else document.body.style.overflow = "";
         return () => {
             document.body.style.overflow = "";
         };
     }, [open]);
 
+    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        // ✅ Only close if the click happened *outside* the drawer content
+        if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+            onClose();
+        }
+    };
+
     return (
         <AnimatePresence>
             {open && (
-                <>
-                    {/* Overlay */}
+                <div
+                    className="fixed inset-0 z-40 flex flex-col justify-end bg-black/50 backdrop-blur-sm"
+                    onClick={handleBackdropClick}
+                >
                     <motion.div
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-                        onClick={onClose}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    />
-
-                    {/* Drawer Content */}
-                    <motion.div
-                        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-xl overflow-hidden"
+                        ref={drawerRef}
+                        className="bg-white rounded-t-2xl shadow-xl w-full sm:max-w-lg mx-auto overflow-hidden"
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        // 👇 Important: makes drawer stable even when keyboard appears
-                        style={{ transform: "translateY(0)", willChange: "transform" }}
+                        onClick={(e) => e.stopPropagation()} // Prevent click inside drawer from bubbling
                     >
                         <div className="flex items-center justify-between p-4 border-b">
                             {title && <h2 className="text-lg font-semibold">{title}</h2>}
@@ -66,16 +64,15 @@ const SafeMobileDrawer: React.FC<CustomDrawerProps> = ({
                         </div>
 
                         <div
-                            className="max-h-[70vh] overflow-y-auto p-4"
+                            className="max-h-[70vh] bg-red-300 overflow-y-auto p-4"
                             style={{
-                                // Prevent resize glitches when keyboard opens
                                 WebkitOverflowScrolling: "touch",
                             }}
                         >
                             {children}
                         </div>
                     </motion.div>
-                </>
+                </div>
             )}
         </AnimatePresence>
     );
