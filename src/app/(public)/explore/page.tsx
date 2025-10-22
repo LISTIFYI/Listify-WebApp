@@ -22,7 +22,7 @@ import { tokenStore } from '@/lib/token';
 import { initializeApi } from '@/lib/http';
 import { FiVolume2, FiVolumeX } from 'react-icons/fi';
 import CommentComponent from '@/components/CommentComponent/CommentComponent';
-import SafeMobileDrawer from '@/components/SafeMobileDrawer/SafeMobileDrawer';
+import { DrawerModal } from '@/components/SafeMobileDrawer/SafeMobileDrawer';
 
 // Update the Post interface
 type Post = {
@@ -1412,7 +1412,7 @@ const VideoScrollingUI = () => {
 
                 {
                     isMobile &&
-                    <SafeMobileDrawer
+                    <DrawerModal
                         open={isCommentOpen}
                         onClose={() => setIsCommentOpen(false)}
                         title="Comments"
@@ -1423,7 +1423,8 @@ const VideoScrollingUI = () => {
                             isCommentOpen={isCommentOpen}
                             onCommentAdded={(postId, action) => handleCommentUpdated(postId, action)}
                         />
-                    </SafeMobileDrawer>
+                    </DrawerModal>
+
 
 
                 }
