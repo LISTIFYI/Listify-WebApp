@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -21,26 +21,56 @@ const SafeMobileDrawer: React.FC<CustomDrawerProps> = ({
     const drawerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (open) document.body.style.overflow = "hidden";
-        else document.body.style.overflow = "";
+        // Prevent body scroll when drawer is open
+        document.body.style.overflow = open ? "hidden" : "";
         return () => {
             document.body.style.overflow = "";
         };
     }, [open]);
 
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        // ✅ Only close if the click happened *outside* the drawer content
-        if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
-            onClose();
-        }
-    };
+    useEffect(() => {
+        if (!open) return;
+
+        const handlePointerDown = (e: PointerEvent) => {
+            // Check if click/tap happened outside drawer
+            if (
+                drawerRef.current &&
+                !drawerRef.current.contains(e.target as Node)
+            ) {
+                // Store the fact that pointer started outside
+                (e as any)._outsideDrawer = true;
+            }
+        };
+
+        const handlePointerUp = (e: PointerEvent) => {
+            // Only close if both pointer down and up were outside
+            if ((e as any)._outsideDrawer && drawerRef.current) {
+                const path = e.composedPath();
+                if (!path.includes(drawerRef.current)) {
+                    onClose();
+                }
+            }
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("pointerup", handlePointerUp);
+
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("pointerup", handlePointerUp);
+        };
+    }, [open, onClose]);
+
+    if (!open) return null;
 
     return (
         <AnimatePresence>
             {open && (
-                <div
-                    className="fixed inset-0 z-40 flex flex-col justify-end bg-black/50 backdrop-blur-sm"
-                    onClick={handleBackdropClick}
+                <motion.div
+                    className="fixed inset-0 z-50 flex flex-col justify-end bg-black/50 backdrop-blur-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                 >
                     <motion.div
                         ref={drawerRef}
@@ -49,7 +79,6 @@ const SafeMobileDrawer: React.FC<CustomDrawerProps> = ({
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        onClick={(e) => e.stopPropagation()} // Prevent click inside drawer from bubbling
                     >
                         <div className="flex items-center justify-between p-4 border-b">
                             {title && <h2 className="text-lg font-semibold">{title}</h2>}
@@ -64,15 +93,13 @@ const SafeMobileDrawer: React.FC<CustomDrawerProps> = ({
                         </div>
 
                         <div
-                            className="max-h-[70vh] bg-red-300 overflow-y-auto p-4"
-                            style={{
-                                WebkitOverflowScrolling: "touch",
-                            }}
+                            className="max-h-[70vh] overflow-y-auto p-4"
+                            style={{ WebkitOverflowScrolling: "touch" }}
                         >
                             {children}
                         </div>
                     </motion.div>
-                </div>
+                </motion.div>
             )}
         </AnimatePresence>
     );
