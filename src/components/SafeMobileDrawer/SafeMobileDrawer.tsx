@@ -1,60 +1,49 @@
-"use client";
+'use client';
+import * as React from 'react';
+import { Drawer, Box } from '@mui/joy';
+import { Button } from '@mui/joy';
 
-import * as React from "react";
-import { motion } from "framer-motion";
-import { X } from "lucide-react";
-import { Dialog, DialogContent } from "../ui/dialog";
-
-interface DrawerModalProps {
+interface CustomDrawerProps {
+    anchor?: 'top' | 'left' | 'bottom' | 'right';
     open: boolean;
     onClose: () => void;
     children: React.ReactNode;
-    title?: string;
-    showCloseButton?: boolean;
 }
 
-export function DrawerModal({
+const CustomDrawer = ({
+    anchor = 'bottom',
     open,
     onClose,
     children,
-    title,
-    showCloseButton = true,
-}: DrawerModalProps) {
+}: CustomDrawerProps) => {
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-            <DialogContent
-                className="p-0 bg-transparent border-none shadow-none max-w-full sm:max-w-lg mx-auto flex justify-end flex-col"
-                // Prevent closing on input focus blur
-                onPointerDownOutside={(e) => e.preventDefault()}
-                onInteractOutside={(e) => e.preventDefault()}
+        <Drawer
+            anchor={anchor}
+            open={open}
+            onClose={onClose}
+            slotProps={{
+                backdrop: { sx: { backgroundColor: 'rgba(0, 0, 0, 0.4)' } },
+            }}
+            sx={{
+                '& .MuiDrawer-content': {
+                    borderTopLeftRadius: anchor === 'bottom' ? '24px' : '0px',
+                    borderTopRightRadius: anchor === 'bottom' ? '24px' : '0px',
+                    overflow: 'visible',
+                },
+            }}
+        >
+            <Box
+                sx={{
+                    p: 2,
+                    minHeight: anchor === 'bottom' ? '40vh' : '100%',
+                    overflowY: 'auto',
+                }}
+                onClick={(e) => e.stopPropagation()} // ✅ prevent accidental close when clicking inside
             >
-                <motion.div
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                    className="bg-white w-full rounded-t-2xl overflow-hidden shadow-xl"
-                >
-                    <div className="flex items-center justify-between p-4 border-b">
-                        {title && <h2 className="text-lg font-semibold">{title}</h2>}
-                        {showCloseButton && (
-                            <button
-                                onClick={onClose}
-                                className="p-2 rounded-full hover:bg-gray-100 transition"
-                            >
-                                <X size={20} />
-                            </button>
-                        )}
-                    </div>
-
-                    <div
-                        className="max-h-[70vh] overflow-y-auto p-4"
-                        style={{ WebkitOverflowScrolling: "touch" }}
-                    >
-                        {children}
-                    </div>
-                </motion.div>
-            </DialogContent>
-        </Dialog>
+                {children}
+            </Box>
+        </Drawer>
     );
-}
+};
+
+export default CustomDrawer;
