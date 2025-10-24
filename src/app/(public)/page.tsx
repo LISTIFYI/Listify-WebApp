@@ -102,6 +102,8 @@ const Home = () => {
   const router = useRouter()
   const api = initializeApi(tokenStore).getApi();
 
+  console.log("loggesaser");
+
   const [selected, setSelected] = useState("");
   const [allProperties, setAllProperties] = useState<any[]>([]);
   const [offset, setOffset] = useState(0);
