@@ -1,7 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Calendar, ChevronsLeft, ChevronsRight, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, ChevronsLeft, ChevronsRight, Plus, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { tokenStore } from '@/lib/token';
+import { initializeApi } from '@/lib/http';
+import { format, isSameDay } from 'date-fns';
+import CommonCalendar from '@/components/CustomFields/CommonCalendar';
+import { formatTime } from '@/utils/timeUtils';
+
+
 
 interface ScheduleItem {
     id: number;
@@ -12,9 +20,27 @@ interface ScheduleItem {
 }
 
 const CustomCalendar = () => {
+    const api = initializeApi(tokenStore).getApi();
+
+    const router = useRouter()
     const [currentDate] = useState(new Date('2025-10-20T17:08:00'));
-    const [selectedDate] = useState(new Date('2025-10-20T17:08:00'));
-    const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+    const [allBlocktime, setAllBlockTime] = useState<any>(null)
+
+    const fetchallCalendar = async (): Promise<void> => {
+        const tk = tokenStore.get();
+        try {
+            const res = await api.get(`/calendar`);
+            setAllBlockTime(res?.data?.calendar?.blockedTimes);
+        } catch (err) {
+            console.error(err);
+        } finally {
+        }
+    };
+
+
+    useEffect(() => {
+        fetchallCalendar()
+    }, [])
 
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -29,102 +55,66 @@ const CustomCalendar = () => {
 
     const dates = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
+
+    const [selectedDate, setSelectedDate] = useState(new Date('2025-10-20T17:08:00'));
+
+    const handleDateSelect = (date: Date) => {
+        setSelectedDate(date);
+        // Optionally fetch new blocked times for the selected date
+        // fetchallCalendar();
+    };
+
+
+    const getFormattedDate = () => {
+        const today = new Date();
+        return isSameDay(selectedDate, today)
+            ? `Today, ${format(selectedDate, 'MMM d')}`
+            : `${format(selectedDate, 'EEE, MMM d')}`;
+    };
     return (
-        <div className="flex flex-col lg:flex-row h-full bg-gray-50 font-sans">
-            {/* LEFT PANEL: Calendar + Time Slots */}
-            <div className="w-full h-fit lg:w-96  bg-white border-r border-gray-200 flex flex-col">
-                {/* Calendar Header */}
-                <div className="flex items-center justify-between p-4 border-b">
-                    <button className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
-                        <ChevronsLeft className="w-5 h-5 text-gray-700" />
-                    </button>
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        {months[month]} {year}
-                    </h2>
-                    <button className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
-                        <ChevronsRight className="w-5 h-5 text-gray-700" />
-                    </button>
-                </div>
+        <div className="flex flex-col h-full bg-gray-50 font-sans">
+            <div className='flex flex-col lg:flex-row h-full bg-gray-50 font-sans border-[10px]'>
+                {/* LEFT PANEL: Calendar + Time Slots */}
+                <div className="w-full h-fit lg:w-96  bg-white border-r border-gray-200 flex flex-col">
+                    <CommonCalendar
+                        currentDate={currentDate}
+                        selectedDate={selectedDate}
+                        onDateSelect={handleDateSelect}
+                    />
 
-                {/* Month Grid */}
-                <div className="flex-1 p-3">
-                    <div className="grid grid-cols-7 text-xs font-medium text-gray-500 mb-2">
-                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                            <div key={d} className="h-8 flex items-center justify-center">{d}</div>
-                        ))}
-                    </div>
-                    <div className="grid grid-cols-7 gap-1">
-                        {Array.from({ length: firstDay }, (_, i) => (
-                            <div key={`empty-start-${i}`} />
-                        ))}
-                        {dates.map(date => {
-                            const dateObj = new Date(year, month, date);
-                            const isToday = dateObj.toDateString() === today.toDateString();
-                            const isSelected = dateObj.toDateString() === selectedDate.toDateString();
-                            const isPast = dateObj < today && !isToday;
 
-                            return (
-                                <button
-                                    key={date}
-                                    disabled={isPast}
-                                    className={`
-                    h-9 w-9 rounded-full text-sm flex items-center justify-center transition-all
-                    ${isToday ? 'bg-blue-600 text-white font-semibold' : ''}
-                    ${isSelected && !isToday ? 'bg-gray-900 text-white' : ''}
-                    ${isPast ? 'text-gray-300 cursor-not-allowed' : ''}
-                    ${!isToday && !isSelected && !isPast ? 'hover:bg-gray-100 text-gray-700' : ''}
-                  `}
-                                >
-                                    {date}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Selected Date + Time Slots */}
-                <div className="border-t bg-gray-50 p-4">
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">
-                        Mon, Oct 20 – Available Slots
-                    </h3>
-                    <div className="space-y-2">
-                        {["10:00 AM - 11:00 AM", "03:00 PM - 04:00 PM", "05:00 PM - 06:00 PM"].map(slot => (
-                            <label
-                                key={slot}
-                                className={`
-                  flex items-center p-3 rounded-lg border cursor-pointer transition-all
-                  ${selectedSlot === slot
-                                        ? 'border-blue-500 bg-blue-50'
-                                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                                    }
+                    {/* Selected Date + Time Slots */}
+                    <div className="border-t bg-gray-50 p-4">
+                        <h3 className="text-sm font-medium text-gray-900 mb-3">
+                            {getFormattedDate()} – Available Slots
+                        </h3>
+                        <div className="space-y-2">
+                            {allBlocktime?.map((slot: any, index: any) => (
+                                <label
+                                    key={slot?._id}
+                                    className={`flex bg-[#E6F4EA] items-center px-3 py-2 rounded-md border cursor-pointer transition-all border-gray-200 hover:border-gray-300 bg-white'
                 `}
-                            >
-                                <input
-                                    type="radio"
-                                    name="slot"
-                                    value={slot}
-                                    checked={selectedSlot === slot}
-                                    onChange={() => setSelectedSlot(slot)}
-                                    className="sr-only"
-                                />
-                                <div className={`
-                  w-4 h-4 rounded-full border-2 mr-3 flex-shrink-0 transition-all
-                  ${selectedSlot === slot
-                                        ? 'border-blue-600 bg-blue-600 ring-2 ring-blue-200'
-                                        : 'border-gray-300'
-                                    }`}
-                                />
-                                <span className="text-sm font-medium text-gray-700">{slot}</span>
-                            </label>
-                        ))}
+                                >
+                                    <span className="text-sm font-medium text-gray-700">
+                                        {formatTime(slot?.startTime)} - {formatTime(slot?.endTime)}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
                     </div>
+                </div>
+
+                {/* RIGHT PANEL: Today's Schedule */}
+                <div className="flex-1 p-6 overflow-y-auto">
+                    <TodaysScheduleImproved />
                 </div>
             </div>
 
-            {/* RIGHT PANEL: Today's Schedule */}
-            <div className="flex-1 p-6 overflow-y-auto">
-                <TodaysScheduleImproved />
-            </div>
+            <button
+                onClick={() => {
+                    router.push("/book-your-slot")
+                }}
+                className='text-white cursor-pointer bg-black text-[14px] absolute flex flex-row gap-1 rounded-md bottom-10 right-10 py-2 items-center px-4 '><Plus size={18} />Block Time</button>
         </div>
     );
 };

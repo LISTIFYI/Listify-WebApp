@@ -22,7 +22,7 @@ const SettingPage: React.FC = () => {
   const router = useRouter()
   const profileList: ListItem[] = [
     { id: "1", title: "Profile", icon: "personIcon", link: "/profile" },
-    { id: "2", title: "Calendar", icon: "calendarIcon", link: "/calendar" },
+    { id: "2", title: "Calendar", icon: "calendarIcon", link: `${isAdmin ? "/admin-calendar" : "/calendar"}` },
     // { id: "3", title: "Settings", icon: "settingsIcon", link: "/settings" },
     { id: "7", title: "Subscriptions", icon: "starIcon", link: "/subscriptions" },
     { id: "8", title: "Privacy and Safety", icon: "lockIcon", link: "/privacy" },

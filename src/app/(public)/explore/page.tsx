@@ -1399,32 +1399,11 @@ const VideoScrollingUI = () => {
                         )}
                     </div>
                 }
-                {!isMobile &&
-                    <div
-                        className={`h-full  hidden md:flex rounded-[20px] overflow-hidden mx-0 md:mx-[60px] lg:mx-[60px]  transition-transform duration-700  ease-out absolute top-0 w-[400px] border-[10px] border-red-400 ${isCommentOpen ? 'translate-x-0  right-[0px]' : 'translate-x-[120%]  right-[0px]'}`}
-                    >
-                        <CommentComponent
-                            post={selectedVideo}
-                            isCommentClosed={() => setIsCommentOpen(false)}
-                            isCommentOpen={isCommentOpen}
-                            onCommentAdded={(postId, action) => handleCommentUpdated(postId, action)}
-                        />
-                    </div>}
-
-
-                {
-                    isMobile &&
-                    <PersistentDrawer
-                        open={isCommentOpen}
-                        onClose={() => setIsCommentOpen(false)}
-                        anchor="bottom"
-                    >
-                        <h2 className="text-lg font-semibold mb-3">Enter your details</h2>
-                        <Input placeholder="Your name" className="mb-3" />
-                        <Input placeholder="Email address" className="mb-3" />
-                        <Button onClick={() => setIsCommentOpen(false)}>Submit</Button>
-                    </PersistentDrawer>
-                }
+                {/* <MobileCommentDrawer
+                    isOpen={isCommentOpen}
+                    onClose={() => setIsCommentOpen(false)}
+                    post={selectedPost}
+                /> */}
             </div>
         </div>
     );

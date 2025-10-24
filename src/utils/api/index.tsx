@@ -19,12 +19,6 @@ export const UploadPhoto = async (
         const res = await api.post(
             `/storage/signed-url`,
             payload,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            }
         );
 
         if (res?.data?.signedUrl && res?.data?.publicUrl) {
